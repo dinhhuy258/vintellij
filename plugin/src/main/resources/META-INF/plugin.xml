@@ -11,12 +11,12 @@
 
     <!-- Enable plugin in all products -->
     <depends>com.intellij.modules.lang</depends>
-    
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.kotlin</depends>
-    <project-components>
+
+    <application-components>
         <component>
-            <implementation-class>com.dinhhuy258.plugins.components.VIProjectComponent</implementation-class>
+            <implementation-class>com.dinhhuy258.plugins.components.VIApplicationComponent</implementation-class>
         </component>
-    </project-components>
+    </application-components>
 </idea-plugin>
