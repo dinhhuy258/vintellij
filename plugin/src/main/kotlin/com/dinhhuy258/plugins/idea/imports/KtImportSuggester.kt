@@ -1,4 +1,4 @@
-package com.dinhhuy258.plugins.idea
+package com.dinhhuy258.plugins.idea.imports
 
 import com.intellij.codeInsight.ImportFilter
 import com.intellij.packageDependencies.DependencyValidationManager
@@ -27,13 +27,13 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
-class ImportSuggester(private val element: KtSimpleNameExpression) {
-    fun collectSuggestions(): List<String> {
+class KtImportSuggester: ImportSuggester {
+    override fun collectSuggestions(element: KtSimpleNameExpression): List<String> {
         if (!element.isValid) {
             return emptyList()
         }
 
-        val callTypeAndReceiver = getCallTypeAndReceiver() ?: return emptyList()
+        val callTypeAndReceiver = getCallTypeAndReceiver(element) ?: return emptyList()
         if (callTypeAndReceiver is CallTypeAndReceiver.UNKNOWN) {
             return emptyList()
         }
@@ -44,7 +44,7 @@ class ImportSuggester(private val element: KtSimpleNameExpression) {
         }
 
         return importNames
-                .flatMap { collectSuggestionsForName(it, callTypeAndReceiver) }
+                .flatMap { collectSuggestionsForName(element, it, callTypeAndReceiver) }
                 .asSequence()
                 .distinct()
                 .map { it.fqNameSafe.asString() }
@@ -52,8 +52,7 @@ class ImportSuggester(private val element: KtSimpleNameExpression) {
                 .toList()
     }
 
-    private fun collectSuggestionsForName(name: Name, callTypeAndReceiver: CallTypeAndReceiver<*, *>): Collection<DeclarationDescriptor> {
-        val element = element ?: return emptyList()
+    private fun collectSuggestionsForName(element: KtSimpleNameExpression, name: Name, callTypeAndReceiver: CallTypeAndReceiver<*, *>): Collection<DeclarationDescriptor> {
         val nameStr = name.asString()
         if (nameStr.isEmpty()) {
             return emptyList()
@@ -74,7 +73,7 @@ class ImportSuggester(private val element: KtSimpleNameExpression) {
 
         val indicesHelper = KotlinIndicesHelper(resolutionFacade, searchScope, ::isVisible, file = file)
 
-        var result = fillCandidates(nameStr, callTypeAndReceiver, bindingContext, indicesHelper)
+        var result = fillCandidates(element, nameStr, callTypeAndReceiver, bindingContext, indicesHelper)
 
         if (callTypeAndReceiver is CallTypeAndReceiver.DEFAULT) {
             val isCall = element.parent is KtCallExpression
@@ -103,9 +102,9 @@ class ImportSuggester(private val element: KtSimpleNameExpression) {
         }
     }
 
-    private fun fillCandidates(name: String, callTypeAndReceiver: CallTypeAndReceiver<*, *>, bindingContext: BindingContext, indicesHelper: KotlinIndicesHelper): List<DeclarationDescriptor> {
-        val expression = element ?: return emptyList()
-
+    private fun fillCandidates(expression: KtSimpleNameExpression, name: String,
+                               callTypeAndReceiver: CallTypeAndReceiver<*, *>,
+                               bindingContext: BindingContext, indicesHelper: KotlinIndicesHelper): List<DeclarationDescriptor> {
         val result = ArrayList<DeclarationDescriptor>()
 
         if (!expression.isImportDirectiveExpression() && !isSelectorInQualified(expression)) {
@@ -126,11 +125,12 @@ class ImportSuggester(private val element: KtSimpleNameExpression) {
         return result
     }
 
-    private fun getCallTypeAndReceiver() = element.let { CallTypeAndReceiver.detect(it) }
+    private fun getCallTypeAndReceiver(element: KtSimpleNameExpression) = element.let { CallTypeAndReceiver.detect(it) }
 
     private fun KtExpression.getCallableDescriptor() = resolveToCall()?.resultingDescriptor
 
-    private fun KotlinIndicesHelper.getClassesByName(expressionForPlatform: KtExpression, name: String): Collection<ClassDescriptor> {
+    private fun KotlinIndicesHelper.getClassesByName(expressionForPlatform: KtExpression,
+                                                     name: String): Collection<ClassDescriptor> {
         val platform = TargetPlatformDetector.getPlatform(expressionForPlatform.containingKtFile)
         return when {
             platform.isJvm() -> getJvmClassesByName(name)
