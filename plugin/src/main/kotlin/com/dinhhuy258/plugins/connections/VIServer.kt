@@ -3,6 +3,7 @@ package com.dinhhuy258.plugins.connections
 import com.dinhhuy258.plugins.exceptions.HandlerNotFoundException
 import com.dinhhuy258.plugins.handlers.EchoHandler
 import com.dinhhuy258.plugins.handlers.ImportSuggestionsHandler
+import com.dinhhuy258.plugins.handlers.OpenFileHandler
 import com.dinhhuy258.plugins.handlers.VIHandler
 import com.google.gson.Gson
 import io.ktor.application.call
@@ -22,7 +23,8 @@ class VIServer(private val port: Int) {
     init {
         handlers = mapOf(
                 "echo" to EchoHandler(),
-                "import" to ImportSuggestionsHandler()
+                "import" to ImportSuggestionsHandler(),
+                "open" to OpenFileHandler()
         )
     }
 
