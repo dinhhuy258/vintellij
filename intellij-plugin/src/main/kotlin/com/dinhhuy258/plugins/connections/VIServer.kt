@@ -52,7 +52,7 @@ class VIServer(private val port: Int) {
             while (parser.hasNext()) {
                 val request: ServerRequest = gson.fromJson(parser.next(), ServerRequest::class.java)
                 val response = processRequest(request)
-                writer.write(gson.toJson(response))
+                writer.write(response)
                 writer.flush()
             }
         }
