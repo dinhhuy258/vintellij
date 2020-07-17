@@ -8,7 +8,7 @@ abstract class BaseHandler<RequestType, ResponseType>: VIHandler {
 
     protected abstract fun requestClass(): Class<RequestType>
 
-    protected abstract fun handle(request: RequestType): ResponseType
+    protected abstract fun handleInternal(request: RequestType): ResponseType
 
     private fun validate(request: RequestType) {
     }
@@ -17,6 +17,6 @@ abstract class BaseHandler<RequestType, ResponseType>: VIHandler {
         val request = gson.fromJson(data, requestClass())
         validate(request)
 
-        return gson.toJson(handle(request))
+        return handleInternal(request).toString()
     }
 }

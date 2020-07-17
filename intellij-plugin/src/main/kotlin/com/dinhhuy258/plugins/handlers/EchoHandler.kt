@@ -7,7 +7,7 @@ class EchoHandler: BaseHandler<JsonElement, String>() {
         return JsonElement::class.java
     }
 
-    override fun handle(request: JsonElement): String {
+    override fun handleInternal(request: JsonElement): String {
         return request.toString()
     }
 }

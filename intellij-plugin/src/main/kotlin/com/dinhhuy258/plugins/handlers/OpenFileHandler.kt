@@ -12,7 +12,7 @@ class OpenFileHandler: BaseHandler<OpenFileHandler.Request, Unit>() {
         return Request::class.java
     }
 
-    override fun handle(request: Request) {
+    override fun handleInternal(request: Request) {
         val project = IdeaUtils.getProject()
         val virtualFile = IdeaUtils.getVirtualFile(request.file)
 
