@@ -32,7 +32,7 @@ class IdeaUtils {
             val virtualFileRef = Ref<VirtualFile>()
             application.invokeAndWait {
                 val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
-                        ?: throw VIException("Virtual file not found: $fileName!!!")
+                        ?: throw VIException("Virtual file not found: $fileName.")
                 virtualFileRef.set(virtualFile)
             }
 
