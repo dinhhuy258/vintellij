@@ -1,6 +1,7 @@
 package com.dinhhuy258.plugins.connections
 
 import com.dinhhuy258.plugins.exceptions.HandlerNotFoundException
+import com.dinhhuy258.plugins.handlers.GoToDefinitionHandler
 import com.dinhhuy258.plugins.handlers.ImportSuggestionsHandler
 import com.dinhhuy258.plugins.handlers.OpenFileHandler
 import com.dinhhuy258.plugins.handlers.VIHandler
@@ -25,7 +26,8 @@ class VIServer(private val port: Int) {
     init {
         handlers = mapOf(
                 "import" to ImportSuggestionsHandler(),
-                "open" to OpenFileHandler()
+                "open" to OpenFileHandler(),
+                "goto" to GoToDefinitionHandler()
         )
     }
 

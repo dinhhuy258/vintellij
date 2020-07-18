@@ -26,7 +26,7 @@ class IdeaUtils {
 
         fun getVirtualFile(fileName: String): VirtualFile {
             val application = ApplicationManager.getApplication()
-            val file = File(FileUtil.toSystemIndependentName(fileName))
+            val file = File(FileUtil.toSystemDependentName(fileName))
             if (!file.exists()) {
                 throw FileNotFoundException("File not found: $fileName!!!")
             }
