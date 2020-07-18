@@ -2,6 +2,7 @@ package com.dinhhuy258.plugins.handlers
 
 import com.google.gson.Gson
 import com.google.gson.JsonElement
+import com.google.gson.JsonObject
 
 abstract class BaseHandler<RequestType, ResponseType>: VIHandler {
     private val gson = Gson()
@@ -13,10 +14,10 @@ abstract class BaseHandler<RequestType, ResponseType>: VIHandler {
     private fun validate(request: RequestType) {
     }
 
-    override fun handle(data: JsonElement): String {
+    override fun handle(data: JsonElement): JsonElement {
         val request = gson.fromJson(data, requestClass())
         validate(request)
 
-        return handleInternal(request).toString()
+        return gson.toJsonTree(handleInternal(request))
     }
 }

@@ -6,6 +6,8 @@ import com.dinhhuy258.plugins.handlers.ImportSuggestionsHandler
 import com.dinhhuy258.plugins.handlers.OpenFileHandler
 import com.dinhhuy258.plugins.handlers.VIHandler
 import com.google.gson.Gson
+import com.google.gson.JsonElement
+import com.google.gson.JsonParseException
 import com.google.gson.JsonStreamParser
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
@@ -50,15 +52,23 @@ class VIServer(private val port: Int) {
             val parser = JsonStreamParser(InputStreamReader(BufferedInputStream(socket.getInputStream()), StandardCharsets.UTF_8))
             val writer = OutputStreamWriter(BufferedOutputStream(socket.getOutputStream()))
             while (parser.hasNext()) {
-                val request: ServerRequest = gson.fromJson(parser.next(), ServerRequest::class.java)
-                val response = processRequest(request)
-                writer.write(response)
+                val response = try {
+                    val request: ServerRequest = gson.fromJson(parser.next(), ServerRequest::class.java)
+                    ServerResponse.success(processRequest(request), request.handler)
+                } catch (e: JsonParseException) {
+                    ServerResponse.fail("Invalid json string.")
+                } catch (e: VIException) {
+                    ServerResponse.fail(e.message ?: "Internal server error.")
+                } catch (e: Throwable) {
+                    ServerResponse.fail(e.message ?: "Internal server error.")
+                }
+                writer.write(gson.toJson(response))
                 writer.flush()
             }
         }
     }
 
-    private fun processRequest(serverRequest: ServerRequest): String {
+    private fun processRequest(serverRequest: ServerRequest): JsonElement {
         val handler = handlers[serverRequest.handler]
                 ?: throw VIException("Handler ${serverRequest.handler} not found!!!")
 

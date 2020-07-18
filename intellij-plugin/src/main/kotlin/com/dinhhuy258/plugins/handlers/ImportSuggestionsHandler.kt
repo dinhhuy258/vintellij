@@ -11,11 +11,7 @@ class ImportSuggestionsHandler : BaseHandler<ImportSuggestionsHandler.Request, I
 
     data class Request(val file: String, val offset: Int)
 
-    data class Response(val importCandidates: List<String>) {
-        override fun toString(): String {
-            return importCandidates.joinToString("|")
-        }
-    }
+    data class Response(val imports: List<String>)
 
     override fun requestClass(): Class<Request> {
         return Request::class.java
@@ -24,14 +20,14 @@ class ImportSuggestionsHandler : BaseHandler<ImportSuggestionsHandler.Request, I
     override fun handleInternal(request: Request): Response {
         val psiFile = IdeaUtils.getPsiFile(request.file)
         if (psiFile !is KtFile) {
-            throw VIException("File type not supported: ${psiFile.fileType.name}")
+            throw VIException("File type not supported: ${psiFile.fileType.name}.")
         }
 
         val element = psiFile.findElementAt(request.offset) ?: return Response(emptyList())
         if (element.parent !is KtSimpleNameExpression) {
             return Response(emptyList())
         }
-        
+
         return Response(ktImportSuggester.collectSuggestions(element.parent as KtSimpleNameExpression))
     }
 }
