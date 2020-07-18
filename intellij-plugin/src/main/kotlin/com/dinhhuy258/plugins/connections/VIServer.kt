@@ -1,6 +1,6 @@
 package com.dinhhuy258.plugins.connections
 
-import com.dinhhuy258.plugins.exceptions.HandlerNotFoundException
+import com.dinhhuy258.plugins.exceptions.VIException
 import com.dinhhuy258.plugins.handlers.GoToDefinitionHandler
 import com.dinhhuy258.plugins.handlers.ImportSuggestionsHandler
 import com.dinhhuy258.plugins.handlers.OpenFileHandler
@@ -60,7 +60,7 @@ class VIServer(private val port: Int) {
 
     private fun processRequest(serverRequest: ServerRequest): String {
         val handler = handlers[serverRequest.handler]
-                ?: throw HandlerNotFoundException("Handler ${serverRequest.handler} not found!!!")
+                ?: throw VIException("Handler ${serverRequest.handler} not found!!!")
 
         return handler.handle(serverRequest.data)
     }

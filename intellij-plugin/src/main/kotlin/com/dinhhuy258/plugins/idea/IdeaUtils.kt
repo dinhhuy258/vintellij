@@ -1,7 +1,6 @@
 package com.dinhhuy258.plugins.idea
 
-import com.dinhhuy258.plugins.exceptions.FileNotFoundException
-import com.dinhhuy258.plugins.exceptions.ProjectNotFoundException
+import com.dinhhuy258.plugins.exceptions.VIException
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -18,7 +17,7 @@ class IdeaUtils {
         fun getProject(): Project {
             val projects = ProjectManager.getInstance().openProjects
             if (projects.isEmpty()) {
-                throw ProjectNotFoundException()
+                throw VIException("Project not found. Please open a project on intellij.")
             }
 
             return projects[0]
@@ -28,11 +27,12 @@ class IdeaUtils {
             val application = ApplicationManager.getApplication()
             val file = File(FileUtil.toSystemDependentName(fileName))
             if (!file.exists()) {
-                throw FileNotFoundException("File not found: $fileName!!!")
+                throw VIException("File not found: $fileName.")
             }
             val virtualFileRef = Ref<VirtualFile>()
             application.invokeAndWait {
-                val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file) ?: throw FileNotFoundException("File not found: $fileName!!!")
+                val virtualFile = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file)
+                        ?: throw VIException("Virtual file not found: $fileName!!!")
                 virtualFileRef.set(virtualFile)
             }
 
@@ -46,7 +46,7 @@ class IdeaUtils {
             val psiFileRef = Ref<PsiFile>()
             application.runReadAction {
                 val psiManager = PsiManager.getInstance(project)
-                val psiFile = psiManager.findFile(virtualFile) ?: throw FileNotFoundException("Cannot find the PsiFile for $fileName!!!")
+                val psiFile = psiManager.findFile(virtualFile) ?: throw VIException("Cannot find the PsiFile for $fileName.")
                 psiFileRef.set(psiFile)
             }
 

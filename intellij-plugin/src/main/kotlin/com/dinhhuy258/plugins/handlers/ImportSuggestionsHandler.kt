@@ -1,6 +1,6 @@
 package com.dinhhuy258.plugins.handlers
 
-import com.dinhhuy258.plugins.exceptions.FileTypeNotSupportException
+import com.dinhhuy258.plugins.exceptions.VIException
 import com.dinhhuy258.plugins.idea.IdeaUtils
 import com.dinhhuy258.plugins.idea.imports.KtImportSuggester
 import org.jetbrains.kotlin.psi.KtFile
@@ -24,7 +24,7 @@ class ImportSuggestionsHandler : BaseHandler<ImportSuggestionsHandler.Request, I
     override fun handleInternal(request: Request): Response {
         val psiFile = IdeaUtils.getPsiFile(request.file)
         if (psiFile !is KtFile) {
-            throw FileTypeNotSupportException("File type not supported: ${psiFile.fileType.name}")
+            throw VIException("File type not supported: ${psiFile.fileType.name}")
         }
 
         val element = psiFile.findElementAt(request.offset) ?: return Response(emptyList())
