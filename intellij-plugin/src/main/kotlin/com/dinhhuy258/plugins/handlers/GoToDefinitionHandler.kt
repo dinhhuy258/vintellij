@@ -2,6 +2,7 @@ package com.dinhhuy258.plugins.handlers
 
 import com.dinhhuy258.plugins.exceptions.VIException
 import com.dinhhuy258.plugins.idea.IdeaUtils
+import com.dinhhuy258.plugins.utils.UrlUtils
 import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.ide.highlighter.JavaClassFileType
 
@@ -23,15 +24,11 @@ class GoToDefinitionHandler : BaseHandler<GoToDefinitionHandler.Request, GoToDef
             val project = IdeaUtils.getProject()
             val sourceFile = JavaEditorFileSwapper.findSourceFile(project, virtualFile)
             if (sourceFile != null) {
-                return Response(toVimOpenableFilePath(sourceFile.path))
+                return Response(UrlUtils.toVimFilePath(sourceFile.path))
             }
             throw VIException("Can not find source file: $sourceFile.path. Please using intellij to download the missing source.")
         }
 
         return Response(virtualFile.path)
-    }
-
-    private fun toVimOpenableFilePath(filePath: String): String {
-        return "zipfile:" + filePath.replaceFirst(".jar!/", ".jar::")
     }
 }

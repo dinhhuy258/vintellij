@@ -1,6 +1,7 @@
 package com.dinhhuy258.plugins.idea
 
 import com.dinhhuy258.plugins.exceptions.VIException
+import com.dinhhuy258.plugins.utils.UrlUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -8,8 +9,9 @@ import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import java.io.File
 
 class IdeaUtils {
@@ -24,6 +26,11 @@ class IdeaUtils {
         }
 
         fun getVirtualFile(fileName: String): VirtualFile {
+            if (UrlUtils.isVimFilePath(fileName)) {
+                return VirtualFileManager.getInstance().refreshAndFindFileByUrl(UrlUtils.toIntellijFilePath(fileName))
+                        ?: throw VIException("Virtual file not found: $fileName.")
+            }
+
             val application = ApplicationManager.getApplication()
             val file = File(FileUtil.toSystemDependentName(fileName))
             if (!file.exists()) {
@@ -40,17 +47,9 @@ class IdeaUtils {
         }
 
         fun getPsiFile(fileName: String): PsiFile {
-            val application = ApplicationManager.getApplication()
             val project = getProject()
             val virtualFile = getVirtualFile(fileName)
-            val psiFileRef = Ref<PsiFile>()
-            application.runReadAction {
-                val psiManager = PsiManager.getInstance(project)
-                val psiFile = psiManager.findFile(virtualFile) ?: throw VIException("Cannot find the PsiFile for $fileName.")
-                psiFileRef.set(psiFile)
-            }
-
-            return psiFileRef.get()
+            return virtualFile.toPsiFile(project) ?: throw VIException("Cannot find the PsiFile for $fileName.")
         }
     }
 }
