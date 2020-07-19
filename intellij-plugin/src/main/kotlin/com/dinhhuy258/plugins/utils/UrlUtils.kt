@@ -10,26 +10,27 @@ class UrlUtils private constructor() {
         private const val VIM_ZIP_SEPARATOR = ".zip::"
 
         fun toVimFilePath(filePath: String): String {
-            var path = filePath.replaceFirst(INTELLIJ_JAR_SEPARATOR, VIM_JAR_SEPARATOR)
-            if (path.length == filePath.length) {
-                // If is a zip file
-                path = filePath.replaceFirst(INTELLIJ_ZIP_SEPARATOR, VIM_ZIP_SEPARATOR)
+            val path = if (filePath.contains(INTELLIJ_JAR_SEPARATOR)) {
+                filePath.replaceFirst(INTELLIJ_JAR_SEPARATOR, VIM_JAR_SEPARATOR)
             }
+            else {
+                filePath.replaceFirst(INTELLIJ_ZIP_SEPARATOR, VIM_ZIP_SEPARATOR)
+            }
+
             return "$VIM_PATH_PREFIX$path"
         }
 
         fun isVimFilePath(filePath: String): Boolean = filePath.startsWith(VIM_PATH_PREFIX)
 
         fun toIntellijFilePath(filePath: String): String {
-            var path = filePath.replaceFirst(VIM_PATH_PREFIX, INTELLIJ_PATH_PREFIX)
-            val lastLength = path.length
-            path = path.replaceFirst(VIM_JAR_SEPARATOR, INTELLIJ_JAR_SEPARATOR)
-            if (path.length == lastLength) {
-                // It is a zip file
-                path = path.replaceFirst(VIM_ZIP_SEPARATOR, INTELLIJ_ZIP_SEPARATOR)
-            }
+            val path = filePath.replaceFirst(VIM_PATH_PREFIX, INTELLIJ_PATH_PREFIX)
 
-            return path
+            return if (path.contains(VIM_JAR_SEPARATOR)) {
+                path.replaceFirst(VIM_JAR_SEPARATOR, INTELLIJ_JAR_SEPARATOR)
+            }
+            else {
+                path.replaceFirst(VIM_ZIP_SEPARATOR, INTELLIJ_ZIP_SEPARATOR)
+            }
         }
     }
 }
