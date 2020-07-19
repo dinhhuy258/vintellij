@@ -140,16 +140,6 @@ function! vintellij#HealthCheck() abort
   call s:SendRequest('health-check', {})
 endfunction
 
-augroup vintellij_on_kt_java_file_save
-  autocmd!
-  autocmd BufWritePost,FileReadPost *.kt,*.java call vintellij#RefreshFile()
-augroup END
-
-augroup vintellij_on_kt_java_file_read
-  autocmd!
-  autocmd BufReadPost,FileReadPost *.kt,*.java call vintellij#HealthCheck()
-augroup END
-
 let &cpo = s:cpo_save
 unlet s:cpo_save
 
