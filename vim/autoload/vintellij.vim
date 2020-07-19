@@ -42,6 +42,10 @@ function! s:HandleOpenEvent(data) abort
   echo '[Vintellij] File successfully opened: ' . a:data.file
 endfunction
 
+function! s:HandleRefreshEvent(data) abort
+  echo '[Vintellij] File successfully refreshed: ' . a:data.file
+endfunction
+
 function! s:GetCurrentOffset()
   return line2byte(line('.')) + col('.') - 1
 endfunction
@@ -59,6 +63,8 @@ function! s:OnReceiveData(channel_id, data, event) abort
     call s:HandleImportEvent(l:json_data.data)
   elseif l:handler ==# 'open'
     call s:HandleOpenEvent(l:json_data.data)
+  elseif l:handler ==# 'refresh'
+    call s:HandleRefreshEvent(l:json_data.data)
   else
     throw '[Vintellij] Invalid handler: ' . l:handler
   endif
@@ -117,6 +123,17 @@ function! vintellij#SuggestImports() abort
         \ 'offset': s:GetCurrentOffset(),
         \ })
 endfunction
+
+function! vintellij#RefreshFile() abort
+  call s:SendRequest('refresh', {
+        \ 'file': expand('%:p'),
+        \ })
+endfunction
+
+augroup on_kt_java_file_save 
+  autocmd!
+  autocmd BufWritePost,FileReadPost *.kt,*.java call vintellij#RefreshFile()
+augroup END
 
 let &cpo = s:cpo_save
 unlet s:cpo_save

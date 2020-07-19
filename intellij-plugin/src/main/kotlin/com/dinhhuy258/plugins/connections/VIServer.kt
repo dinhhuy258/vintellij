@@ -4,6 +4,7 @@ import com.dinhhuy258.plugins.exceptions.VIException
 import com.dinhhuy258.plugins.handlers.GoToDefinitionHandler
 import com.dinhhuy258.plugins.handlers.ImportSuggestionsHandler
 import com.dinhhuy258.plugins.handlers.OpenFileHandler
+import com.dinhhuy258.plugins.handlers.RefreshFileHandler
 import com.dinhhuy258.plugins.handlers.VIHandler
 import com.google.gson.Gson
 import com.google.gson.JsonElement
@@ -29,7 +30,8 @@ class VIServer(private val port: Int) {
         handlers = mapOf(
                 "import" to ImportSuggestionsHandler(),
                 "open" to OpenFileHandler(),
-                "goto" to GoToDefinitionHandler()
+                "goto" to GoToDefinitionHandler(),
+                "refresh" to RefreshFileHandler()
         )
     }
 
