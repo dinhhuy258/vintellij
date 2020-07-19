@@ -3,6 +3,20 @@ set cpo&vim
 
 let s:channel_id = 0
 
+function! s:AddImport(import)
+  let l:lineNumber = 1
+  let l:maxLine = line('$')
+  while l:lineNumber <= l:maxLine
+    let l:line = getline(l:lineNumber)
+    if l:line =~# '^import '
+      call append(l:lineNumber - 1, 'import ' . a:import)
+      return
+    endif
+    let l:lineNumber += 1
+  endwhile
+  call append(1, 'import ' . a:import)
+endfunction
+
 function! s:HandleGoToEvent(data) abort
   if has_key(a:data, 'file')
     execute 'edit ' . a:data.file
@@ -13,7 +27,15 @@ function! s:HandleGoToEvent(data) abort
 endfunction
 
 function! s:HandleImportEvent(data) abort
-  echo 'HandleImportEvent'
+  let l:imports = a:data.imports
+  if empty(l:imports)
+    echo '[Vintellij] No import candidates found.'
+    return
+  endif
+  call fzf#run(fzf#wrap({
+        \ 'source': l:imports,
+        \ 'sink': function('s:AddImport')
+        \ }))
 endfunction
 
 function! s:HandleOpenEvent(data) abort
@@ -84,6 +106,13 @@ endfunction
 
 function! vintellij#OpenFile() abort
   call s:SendRequest('open', {
+        \ 'file': expand('%:p'),
+        \ 'offset': s:GetCurrentOffset(),
+        \ })
+endfunction
+
+function! vintellij#SuggestImports() abort
+  call s:SendRequest('import', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
         \ })
