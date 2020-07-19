@@ -25,17 +25,13 @@ import kotlin.concurrent.thread
 class VIServer(private val port: Int) {
     private val gson: Gson = Gson()
 
-    private val handlers: Map<String, VIHandler>
-
-    init {
-        handlers = mapOf(
-                "import" to ImportSuggestionsHandler(),
-                "open" to OpenFileHandler(),
-                "goto" to GoToDefinitionHandler(),
-                "refresh" to RefreshFileHandler(),
-                "health-check" to HealthCheckHandler()
-        )
-    }
+    private val handlers: Map<String, VIHandler> = mapOf(
+            "import" to ImportSuggestionsHandler(),
+            "open" to OpenFileHandler(),
+            "goto" to GoToDefinitionHandler(),
+            "refresh" to RefreshFileHandler(),
+            "health-check" to HealthCheckHandler()
+    )
 
     fun start() {
         thread(start = true) {
