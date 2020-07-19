@@ -22,14 +22,14 @@ function! s:HandleGoToEvent(data) abort
     execute 'edit ' . a:data.file
     execute 'goto ' . (a:data.offset + 1)
   else
-    echo '[Vintellij] Definition not found.'
+    echo '[vintellij] Definition not found'
   endif
 endfunction
 
 function! s:HandleImportEvent(data) abort
   let l:imports = a:data.imports
   if empty(l:imports)
-    echo '[Vintellij] No import candidates found.'
+    echo '[vintellij] No import candidates found'
     return
   endif
   call fzf#run(fzf#wrap({
@@ -39,11 +39,15 @@ function! s:HandleImportEvent(data) abort
 endfunction
 
 function! s:HandleOpenEvent(data) abort
-  echo '[Vintellij] File successfully opened: ' . a:data.file
+  echo '[vintellij] File successfully opened: ' . a:data.file
 endfunction
 
 function! s:HandleRefreshEvent(data) abort
-  echo '[Vintellij] File successfully refreshed: ' . a:data.file
+  echo '[vintellij] File successfully refreshed: ' . a:data.file
+endfunction
+
+function! s:HandleHealthCheckEvent() abort
+  echo '[vintellij] Connect to plugin server successful'
 endfunction
 
 function! s:GetCurrentOffset()
@@ -53,7 +57,7 @@ endfunction
 function! s:OnReceiveData(channel_id, data, event) abort
   let l:json_data = json_decode(a:data)
   if !l:json_data.success
-    throw '[Vintellij] ' . l:json_data.message
+    throw '[vintellij] ' . l:json_data.message
   endif
 
   let l:handler = l:json_data.handler
@@ -65,8 +69,10 @@ function! s:OnReceiveData(channel_id, data, event) abort
     call s:HandleOpenEvent(l:json_data.data)
   elseif l:handler ==# 'refresh'
     call s:HandleRefreshEvent(l:json_data.data)
+  elseif l:handler ==# 'health-check'
+    call s:HandleHealthCheckEvent()
   else
-    throw '[Vintellij] Invalid handler: ' . l:handler
+    throw '[vintellij] Invalid handler: ' . l:handler
   endif
 endfunction
 
@@ -94,7 +100,7 @@ endfunction
 function! s:SendRequest(handler, data) abort
   if !s:IsConnected()
     if s:OpenConnection() == 0
-      throw '[Vintellij] Can not connect to the plugin server. Please open intelliJ which is installed vintellij plugin.'
+      throw '[vintellij] Can not connect to the plugin server. Please open intelliJ which is installed vintellij plugin'
     endif
   endif
   call chansend(s:channel_id, json_encode({
@@ -130,9 +136,18 @@ function! vintellij#RefreshFile() abort
         \ })
 endfunction
 
-augroup on_kt_java_file_save 
+function! vintellij#HealthCheck() abort
+  call s:SendRequest('health-check', {})
+endfunction
+
+augroup vintellij_on_kt_java_file_save
   autocmd!
   autocmd BufWritePost,FileReadPost *.kt,*.java call vintellij#RefreshFile()
+augroup END
+
+augroup vintellij_on_kt_java_file_read
+  autocmd!
+  autocmd BufReadPost,FileReadPost *.kt,*.java call vintellij#HealthCheck()
 augroup END
 
 let &cpo = s:cpo_save

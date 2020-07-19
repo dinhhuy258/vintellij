@@ -2,6 +2,7 @@ package com.dinhhuy258.vintellij.connections
 
 import com.dinhhuy258.vintellij.exceptions.VIException
 import com.dinhhuy258.vintellij.handlers.GoToDefinitionHandler
+import com.dinhhuy258.vintellij.handlers.HealthCheckHandler
 import com.dinhhuy258.vintellij.handlers.ImportSuggestionsHandler
 import com.dinhhuy258.vintellij.handlers.OpenFileHandler
 import com.dinhhuy258.vintellij.handlers.RefreshFileHandler
@@ -31,7 +32,8 @@ class VIServer(private val port: Int) {
                 "import" to ImportSuggestionsHandler(),
                 "open" to OpenFileHandler(),
                 "goto" to GoToDefinitionHandler(),
-                "refresh" to RefreshFileHandler()
+                "refresh" to RefreshFileHandler(),
+                "health-check" to HealthCheckHandler()
         )
     }
 
