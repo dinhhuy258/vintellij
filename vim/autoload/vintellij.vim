@@ -55,7 +55,13 @@ function! s:GetCurrentOffset()
 endfunction
 
 function! s:OnReceiveData(channel_id, data, event) abort
-  let l:json_data = json_decode(a:data)
+  try
+    let l:json_data = json_decode(a:data)
+  catch /.*/
+    call s:CloseConnection()
+    echo '[vintellij] The plugin server has been disconnected'
+    return
+  endtry
   if !l:json_data.success
     throw '[vintellij] ' . l:json_data.message
   endif
@@ -78,6 +84,11 @@ endfunction
 
 function! s:IsConnected() abort
   return index(map(nvim_list_chans(), 'v:val.id'), s:channel_id) >= 0
+endfunction
+
+function! s:CloseConnection() abort
+  call chanclose(s:channel_id)
+  let s:channel_id = 0
 endfunction
 
 function! s:OpenConnection() abort
