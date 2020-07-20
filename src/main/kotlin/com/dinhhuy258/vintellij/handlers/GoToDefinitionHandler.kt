@@ -34,7 +34,9 @@ class GoToDefinitionHandler : BaseHandler<GoToDefinitionHandler.Request, GoToDef
             return goToDefinitionKtClassFile(virtualFile, psiElement)
         }
 
-        // Go to definition to the file in the project
+        if (UrlUtils.isIntellijJarFile(virtualFile.path)) {
+            return Response(UrlUtils.toVimJarFilePath(virtualFile.path), psiElement.textOffset)
+        }
         return Response(virtualFile.path, psiElement.textOffset)
     }
 
@@ -51,7 +53,7 @@ class GoToDefinitionHandler : BaseHandler<GoToDefinitionHandler.Request, GoToDef
                     textOffset = navigationElement.textOffset
                 }
             }
-            return Response(UrlUtils.toVimFilePath(sourceFile.path), textOffset)
+            return Response(UrlUtils.toVimJarFilePath(sourceFile.path), textOffset)
         }
         throw VIException("Can not find source file: ${virtualFile.path}. Please using intellij to download the missing source.")
     }
@@ -65,7 +67,7 @@ class GoToDefinitionHandler : BaseHandler<GoToDefinitionHandler.Request, GoToDef
             if (navigationElement != null && Comparing.equal(navigationElement.containingFile.virtualFile, sourceFile)) {
                 textOffset = navigationElement.textOffset
             }
-            return Response(UrlUtils.toVimFilePath(sourceFile.path), textOffset)
+            return Response(UrlUtils.toVimJarFilePath(sourceFile.path), textOffset)
         }
         throw VIException("Can not find source file: ${virtualFile.path}. Please using intellij to download the missing source.")
     }

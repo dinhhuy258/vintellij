@@ -9,7 +9,7 @@ class UrlUtils private constructor() {
         private const val INTELLIJ_ZIP_SEPARATOR = ".zip!/"
         private const val VIM_ZIP_SEPARATOR = ".zip::"
 
-        fun toVimFilePath(filePath: String): String {
+        fun toVimJarFilePath(filePath: String): String {
             val path = if (filePath.contains(INTELLIJ_JAR_SEPARATOR)) {
                 filePath.replaceFirst(INTELLIJ_JAR_SEPARATOR, VIM_JAR_SEPARATOR)
             }
@@ -20,9 +20,9 @@ class UrlUtils private constructor() {
             return "$VIM_PATH_PREFIX$path"
         }
 
-        fun isVimFilePath(filePath: String): Boolean = filePath.startsWith(VIM_PATH_PREFIX)
+        fun isVimJarFilePath(filePath: String): Boolean = filePath.startsWith(VIM_PATH_PREFIX)
 
-        fun toIntellijFilePath(filePath: String): String {
+        fun toIntellijJarFilePath(filePath: String): String {
             val path = filePath.replaceFirst(VIM_PATH_PREFIX, INTELLIJ_PATH_PREFIX)
 
             return if (path.contains(VIM_JAR_SEPARATOR)) {
@@ -32,5 +32,7 @@ class UrlUtils private constructor() {
                 path.replaceFirst(VIM_ZIP_SEPARATOR, INTELLIJ_ZIP_SEPARATOR)
             }
         }
+
+        fun isIntellijJarFile(filePath: String) = filePath.contains(INTELLIJ_JAR_SEPARATOR) || filePath.contains(INTELLIJ_ZIP_SEPARATOR)
     }
 }

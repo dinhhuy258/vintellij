@@ -26,8 +26,8 @@ class IdeaUtils {
         }
 
         fun getVirtualFile(fileName: String): VirtualFile {
-            if (UrlUtils.isVimFilePath(fileName)) {
-                return VirtualFileManager.getInstance().refreshAndFindFileByUrl(UrlUtils.toIntellijFilePath(fileName))
+            if (UrlUtils.isVimJarFilePath(fileName)) {
+                return VirtualFileManager.getInstance().refreshAndFindFileByUrl(UrlUtils.toIntellijJarFilePath(fileName))
                         ?: throw VIException("Virtual file not found: $fileName.")
             }
 
