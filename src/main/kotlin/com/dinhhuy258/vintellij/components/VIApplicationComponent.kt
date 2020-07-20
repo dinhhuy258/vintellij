@@ -7,7 +7,6 @@ class VIApplicationComponent: ApplicationComponent {
     private val server = VIServer(getPort())
 
     override fun initComponent() {
-        println("Application start")
         server.start()
     }
 
