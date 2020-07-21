@@ -34,10 +34,10 @@ Plug 'dinhhuy258/vintellij'
 
 | Name | Kotlin | Java |
 | ---- | ------ | ---- |
-| Go to definition | [x] | [x] |
-| Suggest imports | [x] | [] |
-| Find references | [] | [] |
-| Auto complete | [] | [] |
+| Go to definition | :heavy_check_mark: | :heavy_check_mark: |
+| Suggest imports | :heavy_check_mark: | :white_check_mark: |
+| Find references | :white_check_mark: | :white_check_mark: |
+| Auto complete | :white_check_mark: | :white_check_mark: |
 
 ## Issues
 
