@@ -27,6 +27,11 @@ nnoremap <Leader>co :VintellijOpenFile<CR>
 nnoremap <Leader>ci :VintellijSuggestImports<CR>
 ```
 
+For better syntax support
+
+```
+Plug 'udalov/kotlin-vim'
+```
 ### Intellij plugin
 
 1. Import the project into Intellij

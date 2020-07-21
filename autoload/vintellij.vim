@@ -21,8 +21,15 @@ function! s:HandleGoToEvent(data) abort
   if has_key(a:data, 'file')
     execute 'edit ' . a:data.file
     execute 'goto ' . (a:data.offset + 1)
+    call s:detectKotlinFile(a:data.file)
   else
     echo '[vintellij] Definition not found'
+  endif
+endfunction
+
+function! s:detectKotlinFile(file) abort
+  if a:file =~ 'kotlin-sdtlib' || a:file =~ '::kotlin'
+    setfiletype kotlin
   endif
 endfunction
 
