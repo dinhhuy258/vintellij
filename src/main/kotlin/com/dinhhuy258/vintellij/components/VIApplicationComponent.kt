@@ -4,13 +4,13 @@ import com.dinhhuy258.vintellij.connections.VIServer
 import com.intellij.openapi.components.ApplicationComponent
 
 class VIApplicationComponent: ApplicationComponent {
-    private val server = VIServer(getPort())
+    companion object {
+        private const val DEFAULT_PORT = 6969
+    }
+
+    private val server = VIServer(DEFAULT_PORT)
 
     override fun initComponent() {
         server.start()
-    }
-
-    private fun getPort(): Int {
-        return System.getProperty("vi.server.port")?.toInt() ?: return 6969
     }
 }

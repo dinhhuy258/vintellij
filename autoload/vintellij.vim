@@ -93,12 +93,7 @@ endfunction
 
 function! s:OpenConnection() abort
   try
-    if exists('g:vintellij_port')
-      let l:port = g:vintellij_port
-    else
-      let l:port = 6969
-    endif
-    let s:channel_id = sockconnect('tcp', 'localhost:' . l:port, {
+    let s:channel_id = sockconnect('tcp', 'localhost:6969', {
           \                        'on_data': function('s:OnReceiveData'),
           \ })
   catch /connection failed/
