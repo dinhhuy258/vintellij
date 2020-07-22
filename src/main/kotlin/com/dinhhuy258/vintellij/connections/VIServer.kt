@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij.connections
 
 import com.dinhhuy258.vintellij.exceptions.VIException
+import com.dinhhuy258.vintellij.handlers.FindHierarchyHandler
 import com.dinhhuy258.vintellij.handlers.GoToDefinitionHandler
 import com.dinhhuy258.vintellij.handlers.HealthCheckHandler
 import com.dinhhuy258.vintellij.handlers.ImportSuggestionsHandler
@@ -30,7 +31,8 @@ class VIServer(private val port: Int) {
             "open" to OpenFileHandler(),
             "goto" to GoToDefinitionHandler(),
             "refresh" to RefreshFileHandler(),
-            "health-check" to HealthCheckHandler()
+            "health-check" to HealthCheckHandler(),
+            "find-hierarchy" to FindHierarchyHandler()
     )
 
     fun start() {

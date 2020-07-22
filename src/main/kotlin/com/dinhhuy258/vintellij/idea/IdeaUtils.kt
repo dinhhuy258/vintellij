@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.idea
 
 import com.dinhhuy258.vintellij.exceptions.VIException
-import com.dinhhuy258.vintellij.utils.UrlUtils
+import com.dinhhuy258.vintellij.utils.PathUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
@@ -26,8 +26,8 @@ class IdeaUtils {
         }
 
         fun getVirtualFile(fileName: String): VirtualFile {
-            if (UrlUtils.isVimJarFilePath(fileName)) {
-                return VirtualFileManager.getInstance().refreshAndFindFileByUrl(UrlUtils.toIntellijJarFilePath(fileName))
+            if (PathUtils.isVimJarFilePath(fileName)) {
+                return VirtualFileManager.getInstance().refreshAndFindFileByUrl(PathUtils.toIntellijJarFilePath(fileName))
                         ?: throw VIException("Virtual file not found: $fileName.")
             }
 

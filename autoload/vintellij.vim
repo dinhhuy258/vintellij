@@ -3,6 +3,12 @@ set cpo&vim
 
 let s:channel_id = 0
 
+function! s:DetectKotlinFile(file) abort
+  if a:file =~ 'kotlin-sdtlib' || a:file =~ '::kotlin'
+    setfiletype kotlin
+  endif
+endfunction
+
 function! s:AddImport(import)
   let l:lineNumber = 1
   let l:maxLine = line('$')
@@ -17,19 +23,22 @@ function! s:AddImport(import)
   call append(1, 'import ' . a:import)
 endfunction
 
+function! s:GoToFile(pathWithOffset)
+  let l:index = stridx(a:pathWithOffset, '(')
+  let l:file = a:pathWithOffset[0:l:index - 1]
+  let l:offset = a:pathWithOffset[l:index + 1:strlen(a:pathWithOffset) - 2]
+  execute 'edit ' . l:file
+  execute 'goto ' . (l:offset + 1)
+  call s:DetectKotlinFile(l:file)
+endfunction
+
 function! s:HandleGoToEvent(data) abort
   if has_key(a:data, 'file')
     execute 'edit ' . a:data.file
     execute 'goto ' . (a:data.offset + 1)
-    call s:detectKotlinFile(a:data.file)
+    call s:DetectKotlinFile(a:data.file)
   else
     echo '[vintellij] Definition not found'
-  endif
-endfunction
-
-function! s:detectKotlinFile(file) abort
-  if a:file =~ 'kotlin-sdtlib' || a:file =~ '::kotlin'
-    setfiletype kotlin
   endif
 endfunction
 
@@ -42,6 +51,23 @@ function! s:HandleImportEvent(data) abort
   call fzf#run(fzf#wrap({
         \ 'source': l:imports,
         \ 'sink': function('s:AddImport')
+        \ }))
+endfunction
+
+function! s:HandleFindHierarchyEvent(data) abort
+  let l:classes = a:data.classes
+  if empty(l:classes)
+    echo '[vintellij] No hierarchy found'
+    return
+  endif
+
+  let l:subclasses = []
+  for class in l:classes
+    let l:subclasses = add(l:subclasses, class.file . '(' . class.offset . ')')
+  endfor
+  call fzf#run(fzf#wrap({
+        \ 'source': l:subclasses,
+        \ 'sink': function('s:GoToFile')
         \ }))
 endfunction
 
@@ -78,6 +104,8 @@ function! s:OnReceiveData(channel_id, data, event) abort
     call s:HandleGoToEvent(l:json_data.data)
   elseif l:handler ==# 'import'
     call s:HandleImportEvent(l:json_data.data)
+  elseif l:handler ==# 'find-hierarchy'
+    call s:HandleFindHierarchyEvent(l:json_data.data)
   elseif l:handler ==# 'open'
     call s:HandleOpenEvent(l:json_data.data)
   elseif l:handler ==# 'refresh'
@@ -143,6 +171,13 @@ function! vintellij#SuggestImports() abort
         \ })
 endfunction
 
+function! vintellij#FindHierarchy() abort
+  call s:SendRequest('find-hierarchy', {
+        \ 'file': expand('%:p'),
+        \ 'offset': s:GetCurrentOffset(),
+        \ })
+endfunction
+
 function! vintellij#RefreshFile() abort
   call s:SendRequest('refresh', {
         \ 'file': expand('%:p'),
@@ -173,4 +208,3 @@ endfunction
 
 let &cpo = s:cpo_save
 unlet s:cpo_save
-
