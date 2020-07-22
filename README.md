@@ -51,21 +51,21 @@ Plug 'udalov/kotlin-vim'
   To disable auto refresh file, use the command
   ```
     VintellijEnableAutoRefreshFile!
-    ```
+  ```
   To enable again
   ```
-      VintellijEnableAutoRefreshFile
-      ```
+    VintellijEnableAutoRefreshFile
+  ```
 - `vintellij#HealthCheck()`: check if the plugin server is working or not. This method will be called automatically each time the java/kotlin buffer is loaded. If you want to disable it, set variable `g:vintellij_health_check_on_load` to 0.
 
   To disable auto health check, use the command
-    ```
+  ```
     VintellijEnableHealthCheckOnLoad!
-        ```
+  ```
   To enable again
-    ```
+  ```
     VintellijEnableHealthCheckOnLoad
-        ```
+  ```
 ## Features
 
 | Name | Kotlin | Java |
