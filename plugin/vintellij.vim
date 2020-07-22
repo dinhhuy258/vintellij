@@ -10,7 +10,7 @@ if get(g:, 'vintellij_health_check_on_load', 1) == 1
 endif
 
 command! VintellijGoToDefinition call vintellij#GoToDefinition()
-command! VintellijOpenFile vintellij#OpenFile()
+command! VintellijOpenFile call vintellij#OpenFile()
 command! VintellijSuggestImports call vintellij#SuggestImports()
 
 if get(g:, 'vintellij_use_default_keymap', 1) == 1
@@ -18,3 +18,4 @@ if get(g:, 'vintellij_use_default_keymap', 1) == 1
   nnoremap <Leader>co :VintellijOpenFile<CR>
   nnoremap <Leader>ci :VintellijSuggestImports<CR>
 endif
+
