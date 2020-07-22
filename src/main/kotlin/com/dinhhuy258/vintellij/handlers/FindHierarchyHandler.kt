@@ -2,6 +2,7 @@ package com.dinhhuy258.vintellij.handlers
 
 import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.dinhhuy258.vintellij.utils.PathUtils
+import com.intellij.psi.PsiClass
 import com.intellij.psi.search.ProjectAndLibrariesScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import org.jetbrains.kotlin.asJava.toLightClassWithBuiltinMapping
@@ -22,11 +23,15 @@ class FindHierarchyHandler : BaseHandler<FindHierarchyHandler.Request, FindHiera
     override fun handleInternal(request: Request): Response {
         val psiFile = IdeaUtils.getPsiFile(request.file)
         val psiElement = psiFile.findElementAt(request.offset) ?: return Response(emptyList())
-        if (psiElement.context is KtClassOrObject) {
-            val psiClass = (psiElement.context as KtClassOrObject).toLightClassWithBuiltinMapping()
-                    ?: return Response(emptyList())
-            val scope = ProjectAndLibrariesScope(IdeaUtils.getProject())
+        if (psiElement.context is KtClassOrObject || psiElement.context is PsiClass) {
+            val psiClass = if (psiElement.context is PsiClass) {
+                psiElement.context as PsiClass
+            }
+            else {
+                (psiElement.context as KtClassOrObject).toLightClassWithBuiltinMapping()
+            } ?: return Response(emptyList())
 
+            val scope = ProjectAndLibrariesScope(IdeaUtils.getProject())
             val classes = ClassInheritorsSearch.search(psiClass, scope, true, true, true)
             val subClasses = classes.mapNotNull {
                 val subClass = it.unwrapped ?: return@mapNotNull null
