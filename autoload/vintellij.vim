@@ -21,8 +21,15 @@ function! s:HandleGoToEvent(data) abort
   if has_key(a:data, 'file')
     execute 'edit ' . a:data.file
     execute 'goto ' . (a:data.offset + 1)
+    call s:detectKotlinFile(a:data.file)
   else
     echo '[vintellij] Definition not found'
+  endif
+endfunction
+
+function! s:detectKotlinFile(file) abort
+  if a:file =~ 'kotlin-sdtlib' || a:file =~ '::kotlin'
+    setfiletype kotlin
   endif
 endfunction
 
@@ -144,6 +151,24 @@ endfunction
 
 function! vintellij#HealthCheck() abort
   call s:SendRequest('health-check', {})
+endfunction
+
+function! vintellij#EnableAutoRefreshFile(isDisable)
+  augroup vintellij_on_kt_java_file_save
+    autocmd!
+    if !a:isDisable
+      autocmd BufWritePost,FileReadPost *.kt,*.java call vintellij#RefreshFile()
+    endif
+  augroup END
+endfunction
+
+function! vintellij#EnableHealthCheckOnLoad(isDisable)
+  augroup vintellij_on_kt_java_file_load
+    autocmd!
+    if !a:isDisable
+      autocmd BufReadPost,FileReadPost *.kt,*.java call vintellij#HealthCheck()
+    endif
+  augroup END
 endfunction
 
 let &cpo = s:cpo_save
