@@ -3,7 +3,7 @@ package com.dinhhuy258.vintellij.handlers
 import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.dinhhuy258.vintellij.utils.PathUtils
 import com.intellij.psi.PsiClass
-import com.intellij.psi.search.ProjectAndLibrariesScope
+import com.intellij.psi.search.ProjectScopeBuilder
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import org.jetbrains.kotlin.asJava.toLightClassWithBuiltinMapping
 import org.jetbrains.kotlin.asJava.unwrapped
@@ -32,7 +32,7 @@ class FindHierarchyHandler : BaseHandler<FindHierarchyHandler.Request, FindHiera
                 (psiElement.context as KtClassOrObject).toLightClassWithBuiltinMapping()
             } ?: return Response(emptyList())
 
-            val scope = ProjectAndLibrariesScope(IdeaUtils.getProject())
+            val scope = ProjectScopeBuilder.getInstance(IdeaUtils.getProject()).buildProjectScope()
             val classes = ClassInheritorsSearch.search(psiClass, scope, true, true, true)
             val subClasses = classes.mapNotNull {
                 val subClass = it.unwrapped ?: return@mapNotNull null
