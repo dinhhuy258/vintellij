@@ -1,21 +1,24 @@
 package com.dinhhuy258.vintellij.handlers
 
 import com.dinhhuy258.vintellij.idea.IdeaUtils
-import com.dinhhuy258.vintellij.utils.PathUtils
 import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.search.ProjectScopeBuilder
 import com.intellij.psi.search.searches.ClassInheritorsSearch
+import com.intellij.psi.search.searches.OverridingMethodsSearch
+import org.jetbrains.kotlin.asJava.getRepresentativeLightMethod
 import org.jetbrains.kotlin.asJava.toLightClassWithBuiltinMapping
 import org.jetbrains.kotlin.asJava.unwrapped
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtFunction
 
 class FindHierarchyHandler : BaseHandler<FindHierarchyHandler.Request, FindHierarchyHandler.Response>() {
     data class Request(val file: String, val offset: Int)
 
-    data class SubClassData(val file: String, val offset: Int, val name: String)
+    data class HandlerData(val file: String, val offset: Int, val name: String)
 
-    data class Response(val classes: List<SubClassData>)
+    data class Response(val classes: List<HandlerData>)
 
     override fun requestClass(): Class<Request> {
         return Request::class.java
@@ -33,17 +36,32 @@ class FindHierarchyHandler : BaseHandler<FindHierarchyHandler.Request, FindHiera
             } ?: return Response(emptyList())
 
             val scope = ProjectScopeBuilder.getInstance(IdeaUtils.getProject()).buildProjectScope()
-            val classes = ClassInheritorsSearch.search(psiClass, scope, true, true, true)
-            val subClasses = classes.mapNotNull {
+            val subClasses = ClassInheritorsSearch.search(psiClass, scope, true, true, true)
+            
+            return Response(subClasses.mapNotNull {
                 val subClass = it.unwrapped ?: return@mapNotNull null
-                val pathWithOffset = PathUtils.getPathWithOffsetFromVirtualFileAndPsiElement(subClass.containingFile.virtualFile, subClass)
-                        ?: Pair(subClass.containingFile.virtualFile.path, subClass.textOffset)
-                val fqName = subClass.getKotlinFqName() ?: return@mapNotNull null
+                val className = subClass.getKotlinFqName() ?: return@mapNotNull null
 
-                SubClassData(pathWithOffset.first, pathWithOffset.second, fqName.asString())
+                HandlerData(subClass.containingFile.virtualFile.path, subClass.textOffset, className.asString())
+            })
+        } else if (psiElement.context is KtFunction || psiElement.context is PsiMethod) {
+            val psiMethod = if (psiElement.context is KtFunction) {
+                (psiElement.context as KtFunction).getRepresentativeLightMethod()
             }
+            else {
+                psiElement.context as PsiMethod
+            } ?: return Response(emptyList())
 
-            return Response(subClasses)
+            val scope = ProjectScopeBuilder.getInstance(IdeaUtils.getProject()).buildProjectScope()
+            val overridingMethods = OverridingMethodsSearch.search(psiMethod, scope, true)
+
+            return Response(overridingMethods.mapNotNull {
+                val overridingMethod = it.unwrapped ?: return@mapNotNull null
+                val className = overridingMethod.getKotlinFqName()?.parent()?.asString() ?: return@mapNotNull null
+                val methodName = psiMethod.nameIdentifier?.text ?: return@mapNotNull null
+
+                HandlerData(overridingMethod.containingFile.virtualFile.path, overridingMethod.textOffset, "$className:$methodName")
+            })
         }
 
         return Response(emptyList())
