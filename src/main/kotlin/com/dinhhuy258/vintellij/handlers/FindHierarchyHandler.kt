@@ -7,12 +7,13 @@ import com.intellij.psi.search.ProjectAndLibrariesScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import org.jetbrains.kotlin.asJava.toLightClassWithBuiltinMapping
 import org.jetbrains.kotlin.asJava.unwrapped
+import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.psi.KtClassOrObject
 
 class FindHierarchyHandler : BaseHandler<FindHierarchyHandler.Request, FindHierarchyHandler.Response>() {
     data class Request(val file: String, val offset: Int)
 
-    data class SubClassData(val file: String, val offset: Int)
+    data class SubClassData(val file: String, val offset: Int, val name: String)
 
     data class Response(val classes: List<SubClassData>)
 
@@ -37,8 +38,9 @@ class FindHierarchyHandler : BaseHandler<FindHierarchyHandler.Request, FindHiera
                 val subClass = it.unwrapped ?: return@mapNotNull null
                 val pathWithOffset = PathUtils.getPathWithOffsetFromVirtualFileAndPsiElement(subClass.containingFile.virtualFile, subClass)
                         ?: Pair(subClass.containingFile.virtualFile.path, subClass.textOffset)
+                val fqName = subClass.getKotlinFqName() ?: return@mapNotNull null
 
-                SubClassData(pathWithOffset.first, pathWithOffset.second)
+                SubClassData(pathWithOffset.first, pathWithOffset.second, fqName.asString())
             }
 
             return Response(subClasses)

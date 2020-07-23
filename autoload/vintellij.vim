@@ -2,6 +2,7 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 let s:channel_id = 0
+let s:map = {}
 
 function! s:DetectKotlinFile(file) abort
   if a:file =~ 'kotlin-sdtlib' || a:file =~ '::kotlin'
@@ -23,13 +24,10 @@ function! s:AddImport(import)
   call append(1, 'import ' . a:import)
 endfunction
 
-function! s:GoToFile(pathWithOffset)
-  let l:index = stridx(a:pathWithOffset, '(')
-  let l:file = a:pathWithOffset[0:l:index - 1]
-  let l:offset = a:pathWithOffset[l:index + 1:strlen(a:pathWithOffset) - 2]
-  execute 'edit ' . l:file
-  execute 'goto ' . (l:offset + 1)
-  call s:DetectKotlinFile(l:file)
+function! s:GoToFile(fileName)
+  execute 'edit ' . s:map[a:fileName].path
+  execute 'goto ' . (s:map[a:fileName].offset + 1)
+  call s:DetectKotlinFile(s:map[a:fileName].path)
 endfunction
 
 function! s:HandleGoToEvent(data) abort
@@ -62,9 +60,15 @@ function! s:HandleFindHierarchyEvent(data) abort
   endif
 
   let l:subclasses = []
+  let s:map = {}
   for class in l:classes
-    let l:subclasses = add(l:subclasses, class.file . '(' . class.offset . ')')
+    let s:map = extend(s:map, { class.name: { 'path': class.file, 'offset': class.offset } })
+    let l:subclasses = add(l:subclasses, class.name)
   endfor
+  if len(l:subclasses) == 1
+    call s:GoToFile(l:subclasses[0])
+    return
+  endif
   call fzf#run(fzf#wrap({
         \ 'source': l:subclasses,
         \ 'sink': function('s:GoToFile')
@@ -208,3 +212,4 @@ endfunction
 
 let &cpo = s:cpo_save
 unlet s:cpo_save
+

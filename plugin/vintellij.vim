@@ -12,9 +12,11 @@ endif
 command! VintellijGoToDefinition call vintellij#GoToDefinition()
 command! VintellijOpenFile call vintellij#OpenFile()
 command! VintellijSuggestImports call vintellij#SuggestImports()
+command! VintellijFindHierarchy call vintellij#FindHierarchy()
 
 if get(g:, 'vintellij_use_default_keymap', 1) == 1
-  nnoremap <Leader>gcd :VintellijGoToDefinition<CR>
+  nnoremap <Leader>cgd :VintellijGoToDefinition<CR>
+  nnoremap <Leader>cgh :VintellijFindHierarchy<CR>
   nnoremap <Leader>co :VintellijOpenFile<CR>
   nnoremap <Leader>ci :VintellijSuggestImports<CR>
 endif
