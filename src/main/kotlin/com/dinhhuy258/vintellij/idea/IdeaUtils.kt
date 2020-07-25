@@ -10,8 +10,15 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiMethod
+import com.intellij.psi.impl.source.PsiJavaFileImpl
+import org.jetbrains.kotlin.asJava.getRepresentativeLightMethod
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtFunction
 import java.io.File
 
 class IdeaUtils {
@@ -50,6 +57,34 @@ class IdeaUtils {
             val project = getProject()
             val virtualFile = getVirtualFile(fileName)
             return virtualFile.toPsiFile(project) ?: throw VIException("Cannot find the PsiFile for $fileName.")
+        }
+
+        fun getPsiMethod(psiElement: PsiElement): PsiMethod? {
+            return when (psiElement) {
+                is KtFunction -> {
+                    psiElement.getRepresentativeLightMethod()
+                }
+                is PsiMethod -> {
+                    psiElement
+                }
+                else -> {
+                    null
+                }
+            }
+        }
+
+        fun getClassName(psiFile: PsiFile): String? {
+            return when (psiFile) {
+                is KtFile -> {
+                    psiFile.classes[0].getKotlinFqName()?.asString()
+                }
+                is PsiJavaFileImpl -> {
+                    psiFile.classes[0].getKotlinFqName()?.asString()
+                }
+                else -> {
+                    null
+                }
+            }
         }
     }
 }
