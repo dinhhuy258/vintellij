@@ -25,9 +25,9 @@ function! s:AddImport(import)
 endfunction
 
 function! s:GoToFile(fileName)
-  execute 'edit ' . s:map[a:fileName].path
+  execute 'edit ' . s:map[a:fileName].file
   execute 'goto ' . (s:map[a:fileName].offset + 1)
-  call s:DetectKotlinFile(s:map[a:fileName].path)
+  call s:DetectKotlinFile(s:map[a:fileName].file)
 endfunction
 
 function! s:HandleGoToEvent(data) abort
@@ -75,6 +75,29 @@ function! s:HandleFindHierarchyEvent(data) abort
         \ }))
 endfunction
 
+function! s:HandleFindUsageEvent(data) abort
+  let l:usages = a:data.usages
+  if empty(l:usages)
+    echo '[vintellij] No usage found'
+    return
+  endif
+
+  let l:usagePreviews = []
+  let s:map = {}
+  for usage in l:usages
+    let s:map = extend(s:map, { usage.preview: { 'file': usage.file, 'offset': usage.offset } })
+    let l:usagePreviews = add(l:usagePreviews, usage.preview)
+  endfor
+  if len(l:usagePreviews) == 1
+    call s:GoToFile(l:usagePreviews[0])
+    return
+  endif
+  call fzf#run(fzf#wrap({
+        \ 'source': l:usagePreviews,
+        \ 'sink': function('s:GoToFile')
+        \ }))
+endfunction
+
 function! s:HandleOpenEvent(data) abort
   echo '[vintellij] File successfully opened: ' . a:data.file
 endfunction
@@ -110,6 +133,8 @@ function! s:OnReceiveData(channel_id, data, event) abort
     call s:HandleImportEvent(l:json_data.data)
   elseif l:handler ==# 'find-hierarchy'
     call s:HandleFindHierarchyEvent(l:json_data.data)
+  elseif l:handler ==# 'find-usage'
+    call s:HandleFindUsageEvent(l:json_data.data)
   elseif l:handler ==# 'open'
     call s:HandleOpenEvent(l:json_data.data)
   elseif l:handler ==# 'refresh'
@@ -177,6 +202,13 @@ endfunction
 
 function! vintellij#FindHierarchy() abort
   call s:SendRequest('find-hierarchy', {
+        \ 'file': expand('%:p'),
+        \ 'offset': s:GetCurrentOffset(),
+        \ })
+endfunction
+
+function! vintellij#FindUsage() abort
+  call s:SendRequest('find-usage', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
         \ })

@@ -13,10 +13,12 @@ command! VintellijGoToDefinition call vintellij#GoToDefinition()
 command! VintellijOpenFile call vintellij#OpenFile()
 command! VintellijSuggestImports call vintellij#SuggestImports()
 command! VintellijFindHierarchy call vintellij#FindHierarchy()
+command! VintellijFindUsage call vintellij#FindUsage()
 
 if get(g:, 'vintellij_use_default_keymap', 1) == 1
   nnoremap <Leader>cgd :VintellijGoToDefinition<CR>
   nnoremap <Leader>cgh :VintellijFindHierarchy<CR>
+  nnoremap <Leader>cgu :VintellijFindUsage<CR>
   nnoremap <Leader>co :VintellijOpenFile<CR>
   nnoremap <Leader>ci :VintellijSuggestImports<CR>
 endif

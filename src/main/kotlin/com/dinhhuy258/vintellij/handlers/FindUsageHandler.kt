@@ -54,6 +54,6 @@ class FindUsageHandler : BaseHandler<FindUsageHandler.Request, FindUsageHandler.
         val line = psiElement.getLineNumber()
         val statement = referenceDocument.getText(TextRange(referenceDocument.getLineStartOffset(line), referenceDocument.getLineEndOffset(line))).trim()
 
-        return Usage("$className:${line}:$statement", filePath, offset)
+        return Usage("$className:${line + 1} ($statement)", filePath, offset)
     }
 }
