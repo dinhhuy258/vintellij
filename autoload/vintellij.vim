@@ -24,17 +24,19 @@ function! s:AddImport(import)
   call append(1, 'import ' . a:import)
 endfunction
 
-function! s:GoToFile(fileName)
-  execute 'edit ' . s:map[a:fileName].file
-  execute 'goto ' . (s:map[a:fileName].offset + 1)
-  call s:DetectKotlinFile(s:map[a:fileName].file)
+function! s:GoToFile(file, offset)
+  execute 'edit ' . a:file
+  execute 'goto ' . a:offset
+  call s:DetectKotlinFile(a:file)
+endfunction
+
+function! s:HandleGoToFile(preview)
+  call s:GoToFile(s:map[a:preview].file, s:map[a:preview].offset + 1)
 endfunction
 
 function! s:HandleGoToEvent(data) abort
   if has_key(a:data, 'file')
-    execute 'edit ' . a:data.file
-    execute 'goto ' . (a:data.offset + 1)
-    call s:DetectKotlinFile(a:data.file)
+    call s:GoToFile(a:data.file, a:data.offset + 1)
   else
     echo '[vintellij] Definition not found'
   endif
@@ -53,25 +55,24 @@ function! s:HandleImportEvent(data) abort
 endfunction
 
 function! s:HandleFindHierarchyEvent(data) abort
-  let l:classes = a:data.classes
-  if empty(l:classes)
+  let l:hierarchies = a:data.hierarchies
+  if empty(l:hierarchies)
     echo '[vintellij] No hierarchy found'
+    return
+  elseif len(l:hierarchies) == 1
+    call s:GoToFile(l:hierarchies[0].file, l:hierarchies[0].offset + 1)
     return
   endif
 
-  let l:subclasses = []
+  let l:hierarchyPreviews = []
   let s:map = {}
-  for class in l:classes
-    let s:map = extend(s:map, { class.name: { 'path': class.file, 'offset': class.offset } })
-    let l:subclasses = add(l:subclasses, class.name)
+  for hierarchy in l:hierarchies
+    let s:map = extend(s:map, { hierarchy.preview: { 'file': hierarchy.file, 'offset': hierarchy.offset } })
+    let l:hierarchyPreviews = add(l:hierarchyPreviews, hierarchy.preview)
   endfor
-  if len(l:subclasses) == 1
-    call s:GoToFile(l:subclasses[0])
-    return
-  endif
   call fzf#run(fzf#wrap({
-        \ 'source': l:subclasses,
-        \ 'sink': function('s:GoToFile')
+        \ 'source': l:hierarchyPreviews,
+        \ 'sink': function('s:HandleGoToFile')
         \ }))
 endfunction
 
@@ -79,6 +80,9 @@ function! s:HandleFindUsageEvent(data) abort
   let l:usages = a:data.usages
   if empty(l:usages)
     echo '[vintellij] No usage found'
+    return
+  elseif len(l:usages) == 1
+    call s:GoToFile(l:usages[0].file, l:usages[0].offset + 1)
     return
   endif
 
@@ -88,13 +92,9 @@ function! s:HandleFindUsageEvent(data) abort
     let s:map = extend(s:map, { usage.preview: { 'file': usage.file, 'offset': usage.offset } })
     let l:usagePreviews = add(l:usagePreviews, usage.preview)
   endfor
-  if len(l:usagePreviews) == 1
-    call s:GoToFile(l:usagePreviews[0])
-    return
-  endif
   call fzf#run(fzf#wrap({
         \ 'source': l:usagePreviews,
-        \ 'sink': function('s:GoToFile')
+        \ 'sink': function('s:HandleGoToFile')
         \ }))
 endfunction
 
