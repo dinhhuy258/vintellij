@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij.connections
 
 import com.dinhhuy258.vintellij.exceptions.VIException
+import com.dinhhuy258.vintellij.handlers.AutocompleteHandler
 import com.dinhhuy258.vintellij.handlers.FindHierarchyHandler
 import com.dinhhuy258.vintellij.handlers.FindUsageHandler
 import com.dinhhuy258.vintellij.handlers.GoToDefinitionHandler
@@ -34,7 +35,8 @@ class VIServer(private val port: Int) {
             "refresh" to RefreshFileHandler(),
             "health-check" to HealthCheckHandler(),
             "find-hierarchy" to FindHierarchyHandler(),
-            "find-usage" to FindUsageHandler()
+            "find-usage" to FindUsageHandler(),
+            "autocomplete" to AutocompleteHandler()
     )
 
     fun start() {
