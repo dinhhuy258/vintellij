@@ -14,9 +14,11 @@ Make Intellij as a server language protocol.
 Plug 'dinhhuy258/vintellij'
 ```
 The default mapping is
-- <leader>gcd to go to the definition from the symbol under cursor
-- <leader>co to open the current file from vim by intelliJ
-- <leader>ci to suggest possible imports by the symbol under cursor
+- <Leader>cgd to go to the definition from the symbol under cursor
+- <Leader>cgh to find the hierarchies for the symbol under cursor
+- <Leader>cgu to find all of the occurrences of the symbol under cursor
+- <Leader>co to open the current file from vim by intelliJ
+- <Leader>ci to suggest possible imports by the symbol under cursor
 
 if you want to make your own custom keymap, then put the following in your `.vimrc`
 
@@ -25,6 +27,7 @@ let g:vintellij_use_default_keymap = 0
 nnoremap <Leader>gcd :VintellijGoToDefinition<CR>
 nnoremap <Leader>co :VintellijOpenFile<CR>
 nnoremap <Leader>ci :VintellijSuggestImports<CR>
+...
 ```
 
 For better syntax support
@@ -43,6 +46,10 @@ Plug 'udalov/kotlin-vim'
 - `vintellij#SuggestImports()`: suggest a list of importable classes for an element at the current cursor
 
 - `vintellij#GoToDefinition()`: go to the position where an element at the current cursor is defined
+
+- `vintellij#FindHierarchy()`: go to the subclasses or overriding methods for the class/method at the current cursor (project scope only)
+
+- `vintellij#FindUsage()`: list all the occurrences of the symbol at the current cursor (project scope only)
 
 - `vintellij#OpenFile()`: open the current file in Intellij
 
@@ -72,7 +79,8 @@ Plug 'udalov/kotlin-vim'
 | ---- | ------ | ---- |
 | Go to definition | :white_check_mark: | :white_check_mark: |
 | Suggest imports | :white_check_mark: |  |
-| Find references |   |  |
+| Find hierarchies | :white_check_mark: | :white_check_mark: |
+| Find usages | :white_check_mark: | :white_check_mark: |
 | Auto complete |   |   |
 
 ## Issues
