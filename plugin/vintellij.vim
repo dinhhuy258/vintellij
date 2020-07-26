@@ -23,3 +23,6 @@ if get(g:, 'vintellij_use_default_keymap', 1) == 1
   nnoremap <Leader>ci :VintellijSuggestImports<CR>
 endif
 
+autocmd FileType kotlin set omnifunc=vintellij#Autocomplete
+autocmd FileType java set omnifunc=vintellij#Autocomplete
+

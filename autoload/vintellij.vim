@@ -4,6 +4,14 @@ set cpo&vim
 let s:channel_id = 0
 let s:map = {}
 
+function! s:GetCompleteResult() abort
+  if exists('b:vintellij_completion_result')
+    return b:vintellij_completion_result
+  endif
+
+  return v:null
+endfunction
+
 function! s:DetectKotlinFile(file) abort
   if a:file =~ 'kotlin-sdtlib' || a:file =~ '::kotlin'
     setfiletype kotlin
@@ -98,6 +106,10 @@ function! s:HandleFindUsageEvent(data) abort
         \ }))
 endfunction
 
+function! s:HandleAutocompleteEvent(data) abort
+  let b:vintellij_completion_result = a:data.completions
+endfunction
+
 function! s:HandleOpenEvent(data) abort
   echo '[vintellij] File successfully opened: ' . a:data.file
 endfunction
@@ -135,6 +147,8 @@ function! s:OnReceiveData(channel_id, data, event) abort
     call s:HandleFindHierarchyEvent(l:json_data.data)
   elseif l:handler ==# 'find-usage'
     call s:HandleFindUsageEvent(l:json_data.data)
+  elseif l:handler ==# 'autocomplete'
+    call s:HandleAutocompleteEvent(l:json_data.data)
   elseif l:handler ==# 'open'
     call s:HandleOpenEvent(l:json_data.data)
   elseif l:handler ==# 'refresh'
@@ -222,6 +236,38 @@ endfunction
 
 function! vintellij#HealthCheck() abort
   call s:SendRequest('health-check', {})
+endfunction
+
+function! vintellij#Autocomplete(findstart, base) abort
+  if a:findstart
+    " The function is called to find the start of the text to be completed
+    let l:start = col('.') - 1
+    let l:line = getline('.')
+    while l:start > 0 && l:line[l:start - 1] =~# '\a'
+      let l:start -= 1
+    endwhile
+
+    return l:start
+  endif
+
+  " The function is called to actually find the matches
+  echo '[vintellij] Getting completions...'
+  unlet! b:vintellij_completion_result
+  call s:SendRequest('autocomplete', {
+        \ 'file': expand('%:p'),
+        \ 'offset': s:GetCurrentOffset() - 1,
+        \ 'base': a:base,
+        \ })
+
+  let l:result = s:GetCompleteResult()
+  while l:result is v:null && !complete_check()
+    sleep 2ms
+    let l:result = s:GetCompleteResult()
+  endwhile
+
+  let l:completions = l:result isnot v:null ? l:result : []
+  echo '[vintellij] Found ' . len(l:completions) . ' completion(s)'
+  return l:completions
 endfunction
 
 function! vintellij#EnableAutoRefreshFile(isDisable)
