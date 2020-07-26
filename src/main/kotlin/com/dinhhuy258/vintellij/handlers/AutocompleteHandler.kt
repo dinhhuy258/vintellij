@@ -3,6 +3,7 @@ package com.dinhhuy258.vintellij.handlers
 import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.dinhhuy258.vintellij.idea.completions.CompletionKind
 import com.dinhhuy258.vintellij.idea.completions.VICodeCompletionHandler
+import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.editor.EditorFactory
@@ -12,14 +13,24 @@ import kotlin.math.min
 
 class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, AutocompleteHandler.Response>() {
     companion object {
-        private const val MAX_COMPLETIONS = 10
+        private const val MAX_COMPLETIONS = 50
     }
 
-    data class Request(val file: String, val offset: Int)
+    data class Request(val file: String, val offset: Int, val base: String)
 
     data class Completion(val word: String, val kind: CompletionKind, val menu: String) : Comparable<Completion> {
         override fun compareTo(other: Completion): Int {
-            // Sort by keyword first
+            // Unknown is always in the last
+            val isUnknown = this.kind == CompletionKind.UNKNOWN
+            val isOtherUnknown = other.kind == CompletionKind.UNKNOWN
+            if (isUnknown && !isOtherUnknown) {
+                return -1
+            }
+            if (!isUnknown && isOtherUnknown) {
+                return 1
+            }
+
+            // Keyword always in the first
             val isKeyWord = this.kind == CompletionKind.KEYWORD
             val isOtherKeyWord = other.kind == CompletionKind.KEYWORD
             if (isKeyWord && !isOtherKeyWord) {
@@ -46,15 +57,21 @@ class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, Autocomplet
         val document = PsiDocumentManager.getInstance(project).getDocument(psiFile) ?: return Response(emptyList())
 
         val completions = ArrayList<Completion>()
-        val codeCompletionHandler = VICodeCompletionHandler { word: String, kind: CompletionKind, menu: String ->
-            completions.add(Completion(word, kind, menu))
+        val base = request.base.trim()
+        val onSuggest =  { item: String, word: String, kind: CompletionKind, menu: String ->
+            if (item.startsWith(base)) {
+                completions.add(Completion(word, kind, menu))
+            }
         }
+        val smartCompletionHandler = VICodeCompletionHandler(CompletionType.SMART, onSuggest)
+        val classNameCompleteHandler = VICodeCompletionHandler(CompletionType.CLASS_NAME, onSuggest)
 
         application.invokeAndWait {
             val editor = EditorFactory.getInstance().createEditor(document, project)
             editor.caretModel.moveToOffset(request.offset)
             CommandProcessor.getInstance().executeCommand(project, {
-                codeCompletionHandler.invokeCompletion(project, editor)
+                smartCompletionHandler.invokeCompletion(project, editor)
+                classNameCompleteHandler.invokeCompletion(project, editor)
             }, null, null)
         }
 
