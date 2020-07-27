@@ -4,11 +4,13 @@ import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.dinhhuy258.vintellij.idea.completions.CompletionKind
 import com.dinhhuy258.vintellij.idea.completions.VICodeCompletionHandler
 import com.intellij.codeInsight.completion.CompletionType
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.psi.PsiDocumentManager
-import kotlin.collections.ArrayList
+import com.intellij.psi.PsiFileFactory
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import kotlin.math.min
 
 class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, AutocompleteHandler.Response>() {
@@ -63,16 +65,34 @@ class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, Autocomplet
                 completions.add(Completion(word, kind, menu))
             }
         }
-        val smartCompletionHandler = VICodeCompletionHandler(CompletionType.SMART, onSuggest)
+        val basicCompletionHandler = VICodeCompletionHandler(CompletionType.BASIC, onSuggest)
         val classNameCompleteHandler = VICodeCompletionHandler(CompletionType.CLASS_NAME, onSuggest)
 
         application.invokeAndWait {
-            val editor = EditorFactory.getInstance().createEditor(document, project)
-            editor.caretModel.moveToOffset(request.offset)
-            CommandProcessor.getInstance().executeCommand(project, {
-                smartCompletionHandler.invokeCompletion(project, editor)
-                classNameCompleteHandler.invokeCompletion(project, editor)
-            }, null, null)
+            // Currently, I haven't found any way to do autocomplete in Kotlin language
+            // This is a little trick, to convert the content to Java file then do autocomplete on this file
+            // The accuracy of course is not going to be good
+            val editor = if (psiFile.language == KotlinLanguage.INSTANCE) {
+                val psiFileInJavaLanguage = PsiFileFactory.getInstance(project).createFileFromText(JavaLanguage.INSTANCE, document.text)
+                val documentInJavaLanguage = PsiDocumentManager.getInstance(project).getDocument(psiFileInJavaLanguage)
+                if (documentInJavaLanguage != null) {
+                    EditorFactory.getInstance().createEditor(documentInJavaLanguage, project)
+                }
+                else {
+                    null
+                }
+            }
+            else {
+                EditorFactory.getInstance().createEditor(document, project)
+            }
+
+            if (editor != null) {
+                editor.caretModel.moveToOffset(request.offset)
+                CommandProcessor.getInstance().executeCommand(project, {
+                    basicCompletionHandler.invokeCompletion(project, editor)
+                    classNameCompleteHandler.invokeCompletion(project, editor)
+                }, null, null)
+            }
         }
 
         completions.sort()
