@@ -1,16 +1,8 @@
 package com.dinhhuy258.vintellij.handlers
 
 import com.dinhhuy258.vintellij.idea.IdeaUtils
+import com.dinhhuy258.vintellij.idea.completions.CompletionFactory
 import com.dinhhuy258.vintellij.idea.completions.CompletionKind
-import com.dinhhuy258.vintellij.idea.completions.VICodeCompletionHandler
-import com.intellij.codeInsight.completion.CompletionType
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.command.CommandProcessor
-import com.intellij.openapi.editor.EditorFactory
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiFileFactory
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import kotlin.math.min
 
 class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, AutocompleteHandler.Response>() {
@@ -26,20 +18,20 @@ class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, Autocomplet
             val isUnknown = this.kind == CompletionKind.UNKNOWN
             val isOtherUnknown = other.kind == CompletionKind.UNKNOWN
             if (isUnknown && !isOtherUnknown) {
-                return -1
+                return 1
             }
             if (!isUnknown && isOtherUnknown) {
-                return 1
+                return -1
             }
 
             // Keyword always in the first
             val isKeyWord = this.kind == CompletionKind.KEYWORD
             val isOtherKeyWord = other.kind == CompletionKind.KEYWORD
             if (isKeyWord && !isOtherKeyWord) {
-                return 1
+                return -1
             }
             if (!isKeyWord && isOtherKeyWord) {
-                return -1
+                return 1
             }
 
             return this.word.compareTo(other.word)
@@ -53,11 +45,7 @@ class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, Autocomplet
     }
 
     override fun handleInternal(request: Request): Response {
-        val application = ApplicationManager.getApplication()
-        val project = IdeaUtils.getProject()
         val psiFile = IdeaUtils.getPsiFile(request.file)
-        val document = PsiDocumentManager.getInstance(project).getDocument(psiFile) ?: return Response(emptyList())
-
         val completions = ArrayList<Completion>()
         val base = request.base.trim()
         val onSuggest =  { item: String, word: String, kind: CompletionKind, menu: String ->
@@ -65,38 +53,11 @@ class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, Autocomplet
                 completions.add(Completion(word, kind, menu))
             }
         }
-        val basicCompletionHandler = VICodeCompletionHandler(CompletionType.BASIC, onSuggest)
-        val classNameCompleteHandler = VICodeCompletionHandler(CompletionType.CLASS_NAME, onSuggest)
 
-        application.invokeAndWait {
-            // Currently, I haven't found any way to do autocomplete in Kotlin language
-            // This is a little trick, to convert the content to Java file then do autocomplete on this file
-            // The accuracy of course is not going to be good
-            val editor = if (psiFile.language == KotlinLanguage.INSTANCE) {
-                val psiFileInJavaLanguage = PsiFileFactory.getInstance(project).createFileFromText(JavaLanguage.INSTANCE, document.text)
-                val documentInJavaLanguage = PsiDocumentManager.getInstance(project).getDocument(psiFileInJavaLanguage)
-                if (documentInJavaLanguage != null) {
-                    EditorFactory.getInstance().createEditor(documentInJavaLanguage, project)
-                }
-                else {
-                    null
-                }
-            }
-            else {
-                EditorFactory.getInstance().createEditor(document, project)
-            }
-
-            if (editor != null) {
-                editor.caretModel.moveToOffset(request.offset)
-                CommandProcessor.getInstance().executeCommand(project, {
-                    basicCompletionHandler.invokeCompletion(project, editor)
-                    classNameCompleteHandler.invokeCompletion(project, editor)
-                }, null, null)
-            }
-        }
+        val completion = CompletionFactory.createCompletion(psiFile.language, onSuggest)
+        completion.doCompletion(psiFile, request.offset)
 
         completions.sort()
-
         return Response(completions.subList(0, min(completions.size, MAX_COMPLETIONS)))
     }
 }
