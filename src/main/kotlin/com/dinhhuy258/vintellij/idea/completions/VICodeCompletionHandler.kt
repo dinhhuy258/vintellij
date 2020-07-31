@@ -11,7 +11,9 @@ import com.intellij.psi.PsiKeyword
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiVariable
 
-class VICodeCompletionHandler(completionType: CompletionType, private val onSuggest: (item: String, word: String, kind: CompletionKind, menu: String) -> Unit) : CodeCompletionHandlerBase(completionType) {
+class VICodeCompletionHandler(completionType: CompletionType,
+                              private val prefix: String,
+                              private val onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) : CodeCompletionHandlerBase(completionType) {
     @Suppress("UnstableApiUsage")
     override fun completionFinished(indicator: CompletionProgressIndicator?, hasModifiers: Boolean) {
         if (indicator == null) {
@@ -21,6 +23,9 @@ class VICodeCompletionHandler(completionType: CompletionType, private val onSugg
         val lookup = indicator.lookup
         for (item in lookup.items) {
             val psiElement = item.psiElement ?: continue
+            if (!item.lookupString.startsWith(prefix)) {
+                continue
+            }
             var kind = CompletionKind.UNKNOWN
             var menu = ""
             val presentation = LookupElementPresentation()
@@ -51,7 +56,7 @@ class VICodeCompletionHandler(completionType: CompletionType, private val onSugg
                 }
             }
 
-            onSuggest(item.lookupString, word, kind, menu)
+            onSuggest(word, kind, menu)
         }
     }
 }

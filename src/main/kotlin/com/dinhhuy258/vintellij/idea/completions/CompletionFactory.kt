@@ -8,7 +8,7 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 class CompletionFactory {
     companion object {
         fun createCompletion(language: Language,
-                             onSuggest: (item: String, word: String, kind: CompletionKind, menu: String) -> Unit) = when (language) {
+                             onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) = when (language) {
             KotlinLanguage.INSTANCE -> KtCompletion(onSuggest)
             JavaLanguage.INSTANCE -> JavaCompletion(onSuggest)
             else -> throw VIException("Language not support: " + language.displayName)
