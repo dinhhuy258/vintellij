@@ -1,6 +1,8 @@
 package com.dinhhuy258.vintellij.idea.completions
 
 import com.dinhhuy258.vintellij.exceptions.VIException
+import com.dinhhuy258.vintellij.idea.completions.java.JavaCompletion
+import com.dinhhuy258.vintellij.idea.completions.kotlin.KtCompletion
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import org.jetbrains.kotlin.idea.KotlinLanguage

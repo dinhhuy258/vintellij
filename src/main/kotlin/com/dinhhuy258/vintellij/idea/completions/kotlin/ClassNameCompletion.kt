@@ -1,33 +1,45 @@
-package com.dinhhuy258.vintellij.idea.completions
+package com.dinhhuy258.vintellij.idea.completions.kotlin
 
+import com.dinhhuy258.vintellij.idea.completions.CompletionKind
+import com.intellij.openapi.project.DumbService
 import com.intellij.psi.CommonClassNames
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
+import com.intellij.psi.impl.search.AllClassesSearchExecutor
+import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.search.searches.DirectClassInheritorsSearch
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
-import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 
-class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) : AbstractCompletion(onSuggest) {
-    override fun doCompletion(psiFile: PsiFile, offset: Int, prefix: String) {
-        val ktFile = psiFile as KtFile
-        val completionElement = ktFile.findElementAt(offset)?.parent ?: return
+class ClassNameCompletion(private val onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) {
+    fun findAllClasses(context: PsiElement, prefix: String) {
+        val scope = context.resolveScope
+        val project = context.project
 
-        if (completionElement is KtAnnotationEntry ||
-                (completionElement is KtSimpleNameExpression && CallTypeAndReceiver.detect(completionElement) is CallTypeAndReceiver.ANNOTATION)) {
-            findAllAnnotationClasses(completionElement, prefix)
+        val dumbService = DumbService.getInstance(project)
+        val cache = PsiShortNamesCache.getInstance(project)
+        AllClassesSearchExecutor.processClassNames(project, scope) { className: String ->
+            if (className.startsWith(prefix)) {
+                dumbService.runReadActionInSmartMode {
+                    val psiClasses = cache.getClassesByName(className, scope)
+                    psiClasses.forEach { psiClass ->
+                        val menu = psiClass.getKotlinFqName()?.asString()
+                        if (menu != null) {
+                            onSuggest(className, CompletionKind.TYPE, menu)
+                        }
+                    }
+                }
+            }
+            true
         }
     }
 
-    private fun findAllAnnotationClasses(context: PsiElement, prefix: String) {
+    fun findAllAnnotationClasses(context: PsiElement, prefix: String) {
         val scope = context.resolveScope
 
         // Get java annotations
@@ -42,8 +54,10 @@ class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String)
                 val name = psiClass.name ?: return@forEach
 
                 if (name.startsWith(prefix)) {
-                    val menu = psiClass.getKotlinFqName()?.asString() ?: ""
-                    onSuggest(name, CompletionKind.TYPE, menu)
+                    val menu = psiClass.getKotlinFqName()?.asString()
+                    if (menu != null) {
+                        onSuggest(name, CompletionKind.TYPE, menu)
+                    }
                 }
             }
         }

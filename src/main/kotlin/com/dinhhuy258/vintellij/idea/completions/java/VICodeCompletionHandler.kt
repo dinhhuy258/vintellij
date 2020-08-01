@@ -1,5 +1,6 @@
-package com.dinhhuy258.vintellij.idea.completions
+package com.dinhhuy258.vintellij.idea.completions.java
 
+import com.dinhhuy258.vintellij.idea.completions.CompletionKind
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase
 import com.intellij.codeInsight.completion.CompletionPhase.ItemsCalculated
 import com.intellij.codeInsight.completion.CompletionProgressIndicator

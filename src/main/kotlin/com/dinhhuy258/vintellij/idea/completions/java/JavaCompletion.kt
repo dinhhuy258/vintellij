@@ -1,6 +1,8 @@
-package com.dinhhuy258.vintellij.idea.completions
+package com.dinhhuy258.vintellij.idea.completions.java
 
 import com.dinhhuy258.vintellij.idea.IdeaUtils
+import com.dinhhuy258.vintellij.idea.completions.AbstractCompletion
+import com.dinhhuy258.vintellij.idea.completions.CompletionKind
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.CommandProcessor
