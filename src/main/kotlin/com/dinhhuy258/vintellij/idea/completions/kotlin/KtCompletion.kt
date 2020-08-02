@@ -4,13 +4,14 @@ import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.dinhhuy258.vintellij.idea.completions.AbstractCompletion
 import com.dinhhuy258.vintellij.idea.completions.CompletionKind
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
-import org.jetbrains.kotlin.idea.completion.CompletionBindingContextProvider
+import com.intellij.psi.PsiModifier
+import org.jetbrains.kotlin.idea.debugger.sequence.psi.resolveType
+import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
 import org.jetbrains.kotlin.idea.references.AbstractKtReference
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
@@ -22,27 +23,35 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
-import org.jetbrains.kotlin.resolve.calls.callUtil.getType
+import org.jetbrains.kotlin.types.KotlinType
 
-class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) : AbstractCompletion(onSuggest) {
+class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) :
+    AbstractCompletion(onSuggest) {
     override fun doCompletion(psiFile: PsiFile, offset: Int, prefix: String) {
         val ktFile = psiFile as KtFile
-        val project = IdeaUtils.getProject()
         val application = ApplicationManager.getApplication()
         application.runReadAction {
             if (prefix.isEmpty()) {
-                val document = PsiDocumentManager.getInstance(project).getDocument(psiFile) ?: return@runReadAction
+                val document = PsiDocumentManager.getInstance(IdeaUtils.getProject()).getDocument(psiFile) ?: return@runReadAction
                 val lineNumber = document.getLineNumber(offset)
                 val line = document.getText(TextRange(document.getLineStartOffset(lineNumber), offset))
                 var index = line.length - 1
-                var newOffset = offset
-                while (line[index] == ' ' || line[index] == '=') {
-                    --index
-                    --newOffset
-                }
-                val element = ktFile.findElementAt(newOffset)?.parent ?: return@runReadAction
-                if (element is KtExpression) {
-                    completeExpression(project, element, element, prefix)
+                if (line[index] == '.') {
+                    val element = ktFile.findElementAt(offset - 2)?.parent ?: return@runReadAction
+                    if (element is KtExpression) {
+                        val type = element.resolveType()
+                        completeMethods(element, type, prefix)
+                    }
+                } else {
+                    var newOffset = offset
+                    while (line[index] == ' ' || line[index] == '=') {
+                        --index
+                        --newOffset
+                    }
+                    val element = ktFile.findElementAt(newOffset)?.parent ?: return@runReadAction
+                    if (element is KtExpression) {
+                        completeExpression(element, element, prefix)
+                    }
                 }
                 return@runReadAction
             }
@@ -55,26 +64,60 @@ class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String)
             } else if (callTypeAndReceiver is CallTypeAndReceiver.TYPE) {
                 val classNameCompletion = ClassNameCompletion(onSuggest)
                 classNameCompletion.findAllClasses(completionElement, prefix)
+            } else if (callTypeAndReceiver is CallTypeAndReceiver.DOT) {
+                val receiver = callTypeAndReceiver.receiver
+                val type = receiver.resolveType()
+                completeMethods(completionElement, type, prefix)
             } else if (completionElement is KtElement) {
                 val reference = completionElement.mainReference
                 if (reference != null && reference is AbstractKtReference<*>) {
                     val expression = reference.expression.parent
                     if (expression is KtExpression) {
-                        completeExpression(project, completionElement, expression, prefix)
+                        completeExpression(completionElement, expression, prefix)
                     }
                 }
             }
         }
     }
 
-    private fun completeExpression(project: Project, context: KtElement, expression: KtExpression, prefix: String) {
-        val bindingContext =
-                CompletionBindingContextProvider.getInstance(project)
-                        .getBindingContext(context, context.containingKtFile.getResolutionFacade())
+    private fun completeMethods(context: PsiElement, type: KotlinType, prefix: String) {
+        val scope = context.resolveScope
+        val typeFqName = type.fqName?.asString() ?: return
+        val psiClass = JavaPsiFacade.getInstance(IdeaUtils.getProject()).findClass(typeFqName, scope) ?: return
+        psiClass.allMethods.forEach { psiMethod ->
+            val methodName = psiMethod.name
+            if (psiMethod.isConstructor ||
+                psiMethod.modifierList.hasModifierProperty(PsiModifier.PRIVATE) ||
+                !methodName.startsWith(prefix)
+            ) {
+                return@forEach
+            }
+            val menu = StringBuilder()
+            menu.append(psiMethod.returnType?.canonicalText ?: "void").append(" ")
+            menu.append(methodName).append("(")
+            var firstParameter = true
+            psiMethod.parameterList.parameters.forEach { psiParameter ->
+                if (!firstParameter) {
+                    menu.append(", ")
+                }
+                menu.append(psiParameter.type.canonicalText).append(" ")
+                menu.append(psiParameter.name)
+                firstParameter = false
+            }
+            menu.append(")")
+            val suggestName = if (firstParameter) {
+                "$methodName()"
+            } else {
+                "$methodName("
+            }
+            onSuggest(suggestName, CompletionKind.FUNCTION, menu.toString())
+        }
+    }
 
+    private fun completeExpression(context: KtElement, expression: KtExpression, prefix: String) {
         if (expression is KtBinaryExpression) {
             val leftExpression = expression.left ?: return
-            val type = leftExpression.getType(bindingContext) ?: return
+            val type = leftExpression.resolveType()
             val classNameCompletion = ClassNameCompletion(onSuggest)
             classNameCompletion.findAllClassesMatchType(context, type, prefix)
         } else if (expression is KtProperty || expression is KtDeclaration) {

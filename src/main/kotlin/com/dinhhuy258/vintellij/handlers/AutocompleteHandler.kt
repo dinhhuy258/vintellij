@@ -7,7 +7,7 @@ import kotlin.math.min
 
 class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, AutocompleteHandler.Response>() {
     companion object {
-        private const val MAX_COMPLETIONS = 75
+        private const val MAX_COMPLETIONS = 50
     }
 
     data class Request(val file: String, val offset: Int, val base: String)
