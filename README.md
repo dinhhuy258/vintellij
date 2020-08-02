@@ -38,8 +38,9 @@ Plug 'udalov/kotlin-vim'
 ### Intellij plugin
 
 1. Import the project into Intellij
-2. Run `gradle buildPlugin`
-3. Install your plugin into Intellij. (Preferences -> Plugins -> Install Plugin from Disk...)
+2. Modify intellij plugin version and intellij kotlin version in `build.gradle` file based on your version of Intellij
+3. Run `gradle buildPlugin`
+4. Install your plugin into Intellij. (Preferences -> Plugins -> Install Plugin from Disk...)
 
 ## Vim functions
 
@@ -81,12 +82,13 @@ Plug 'udalov/kotlin-vim'
 | Suggest imports | :white_check_mark: |  |
 | Find hierarchies | :white_check_mark: | :white_check_mark: |
 | Find usages | :white_check_mark: | :white_check_mark: |
-| Auto complete |   |   |
+| Auto complete | :white_check_mark: | :white_check_mark: |
 
 ## Issues
 
 - To make it work, the Intellij must open the same project as Vim.
 - Saving file before using `suggest imports`, `go to definition`... features otherwise the features will not work correctly.
+- The autocompletion does not smart
 - Always open Intellij otherwise everything will be slow - the workarround maybe:
   - Get IntelliJ focused by having it in your secondary screen
   - Get vim transparent and putting IntelliJ behind
