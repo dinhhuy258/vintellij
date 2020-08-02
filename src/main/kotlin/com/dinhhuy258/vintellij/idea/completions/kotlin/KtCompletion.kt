@@ -4,6 +4,9 @@ import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.dinhhuy258.vintellij.idea.completions.AbstractCompletion
 import com.dinhhuy258.vintellij.idea.completions.CompletionKind
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
@@ -13,7 +16,9 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.util.CallTypeAndReceiver
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtBinaryExpression
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
@@ -22,47 +27,64 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getType
 class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) : AbstractCompletion(onSuggest) {
     override fun doCompletion(psiFile: PsiFile, offset: Int, prefix: String) {
         val ktFile = psiFile as KtFile
-        val completionElement = ktFile.findElementAt(offset)?.parent ?: return
+        val project = IdeaUtils.getProject()
         val application = ApplicationManager.getApplication()
+        application.runReadAction {
+            if (prefix.isEmpty()) {
+                val document = PsiDocumentManager.getInstance(project).getDocument(psiFile) ?: return@runReadAction
+                val lineNumber = document.getLineNumber(offset)
+                val line = document.getText(TextRange(document.getLineStartOffset(lineNumber), offset))
+                var index = line.length - 1
+                var newOffset = offset
+                while (line[index] == ' ' || line[index] == '=') {
+                    --index
+                    --newOffset
+                }
+                val element = ktFile.findElementAt(newOffset)?.parent ?: return@runReadAction
+                if (element is KtExpression) {
+                    completeExpression(project, element, element, prefix)
+                }
+                return@runReadAction
+            }
 
-        val callTypeAndReceiver = getCallTypeAndReceiver(completionElement)
-
-        if (callTypeAndReceiver is CallTypeAndReceiver.ANNOTATION) {
-            val classNameCompletion = ClassNameCompletion(onSuggest)
-            application.runReadAction {
+            val completionElement = ktFile.findElementAt(offset)?.parent ?: return@runReadAction
+            val callTypeAndReceiver = getCallTypeAndReceiver(completionElement)
+            if (callTypeAndReceiver is CallTypeAndReceiver.ANNOTATION) {
+                val classNameCompletion = ClassNameCompletion(onSuggest)
                 classNameCompletion.findAllAnnotationClasses(completionElement, prefix)
-            }
-        }
-        else if (callTypeAndReceiver is CallTypeAndReceiver.TYPE) {
-            val classNameCompletion = ClassNameCompletion(onSuggest)
-            application.runReadAction {
+            } else if (callTypeAndReceiver is CallTypeAndReceiver.TYPE) {
+                val classNameCompletion = ClassNameCompletion(onSuggest)
                 classNameCompletion.findAllClasses(completionElement, prefix)
+            } else if (completionElement is KtElement) {
+                val reference = completionElement.mainReference
+                if (reference != null && reference is AbstractKtReference<*>) {
+                    val expression = reference.expression.parent
+                    if (expression is KtExpression) {
+                        completeExpression(project, completionElement, expression, prefix)
+                    }
+                }
             }
         }
-        else if (completionElement is KtElement) {
-            val reference = completionElement.mainReference
-            val bindingContext =
-                    CompletionBindingContextProvider.getInstance(IdeaUtils.getProject())
-                            .getBindingContext(completionElement, completionElement.containingKtFile.getResolutionFacade())
-            if (reference != null && reference is AbstractKtReference<*>) {
-                val expression = reference.expression
-                val parent = expression.parent
-                if (parent is KtBinaryExpression) {
-                    val leftExpression = parent.left ?: return
-                    val type = leftExpression.getType(bindingContext) ?: return
-                    val classNameCompletion = ClassNameCompletion(onSuggest)
-                    application.runReadAction {
-                        classNameCompletion.findAllClassesMatchType(completionElement, type, prefix)
-                    }
-                }
-                else if (parent is KtProperty) {
-                    val type = parent.type() ?: return
-                    val classNameCompletion = ClassNameCompletion(onSuggest)
-                    application.runReadAction {
-                        classNameCompletion.findAllClassesMatchType(completionElement, type, prefix)
-                    }
-                }
-            }
+    }
+
+    private fun completeExpression(project: Project, context: KtElement, expression: KtExpression, prefix: String) {
+        val bindingContext =
+                CompletionBindingContextProvider.getInstance(project)
+                        .getBindingContext(context, context.containingKtFile.getResolutionFacade())
+
+        if (expression is KtBinaryExpression) {
+            val leftExpression = expression.left ?: return
+            val type = leftExpression.getType(bindingContext) ?: return
+            val classNameCompletion = ClassNameCompletion(onSuggest)
+            classNameCompletion.findAllClassesMatchType(context, type, prefix)
+        } else if (expression is KtProperty || expression is KtDeclaration) {
+            val type = if (expression is KtProperty) {
+                expression.type()
+            } else {
+                (expression as KtDeclaration).type()
+            } ?: return
+            val classNameCompletion = ClassNameCompletion(onSuggest)
+            classNameCompletion.findAllClassesMatchType(context, type, prefix)
         }
     }
 

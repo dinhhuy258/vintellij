@@ -7,7 +7,7 @@ import kotlin.math.min
 
 class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, AutocompleteHandler.Response>() {
     companion object {
-        private const val MAX_COMPLETIONS = 100
+        private const val MAX_COMPLETIONS = 75
     }
 
     data class Request(val file: String, val offset: Int, val base: String)
@@ -45,9 +45,10 @@ class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, Autocomplet
     }
 
     override fun handleInternal(request: Request): Response {
-        val psiFile = IdeaUtils.getPsiFile(request.file)
         val completions = ArrayList<Completion>()
-        val onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit =  { word: String, kind: CompletionKind, menu: String ->
+        val psiFile = IdeaUtils.getPsiFile(request.file)
+
+        val onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit = { word: String, kind: CompletionKind, menu: String ->
             completions.add(Completion(word, kind, menu))
         }
 

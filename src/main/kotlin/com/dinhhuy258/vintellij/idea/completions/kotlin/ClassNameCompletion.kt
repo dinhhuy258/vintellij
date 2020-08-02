@@ -11,15 +11,14 @@ import com.intellij.psi.impl.search.AllClassesSearchExecutor
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.search.searches.DirectClassInheritorsSearch
+import org.jetbrains.kotlin.backend.common.serialization.findPackage
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.core.KotlinIndicesHelper
 import org.jetbrains.kotlin.idea.refactoring.fqName.fqName
-import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.search.declarationsSearch.isInheritable
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.isError
 
@@ -35,9 +34,9 @@ class ClassNameCompletion(private val onSuggest: (word: String, kind: Completion
 
         val addToSuggestList: (psiClass: PsiClass) -> Unit = {
             val className = it.name
-            val classFqName = it.getKotlinFqName()?.asString()
-            if (className != null && classFqName != null && className.startsWith(prefix)) {
-                onSuggest(className, CompletionKind.TYPE, classFqName)
+            val classPackage = IdeaUtils.findPackageForPsiClass(it)
+            if (className != null && classPackage != null && className.startsWith(prefix)) {
+                onSuggest(className, CompletionKind.TYPE, classPackage)
             }
         }
 
@@ -63,9 +62,9 @@ class ClassNameCompletion(private val onSuggest: (word: String, kind: Completion
                 dumbService.runReadActionInSmartMode {
                     val psiClasses = cache.getClassesByName(className, scope)
                     psiClasses.forEach { psiClass ->
-                        val menu = psiClass.getKotlinFqName()?.asString()
-                        if (menu != null) {
-                            onSuggest(className, CompletionKind.TYPE, menu)
+                        val classPackage = IdeaUtils.findPackageForPsiClass(psiClass)
+                        if (classPackage != null && !psiClass.isAnnotationType) {
+                            onSuggest(className, CompletionKind.TYPE, classPackage)
                         }
                     }
                 }
@@ -89,9 +88,9 @@ class ClassNameCompletion(private val onSuggest: (word: String, kind: Completion
                 val name = psiClass.name ?: return@forEach
 
                 if (name.startsWith(prefix)) {
-                    val menu = psiClass.getKotlinFqName()?.asString()
-                    if (menu != null) {
-                        onSuggest(name, CompletionKind.TYPE, menu)
+                    val classPackage = IdeaUtils.findPackageForPsiClass(psiClass)
+                    if (classPackage != null) {
+                        onSuggest(name, CompletionKind.TYPE, classPackage)
                     }
                 }
             }
@@ -116,8 +115,8 @@ class ClassNameCompletion(private val onSuggest: (word: String, kind: Completion
 
         val kotlinAnnotations = indicesHelper.getKotlinClasses(nameFilter, kindFilter = kindFilter).distinct()
         kotlinAnnotations.forEach { classDescriptor ->
-            val menu = classDescriptor.fqNameOrNull()?.asString() ?: ""
-            onSuggest(classDescriptor.name.asString(), CompletionKind.TYPE, menu)
+            val classPackage = classDescriptor.findPackage().fqName.asString()
+            onSuggest(classDescriptor.name.asString(), CompletionKind.TYPE, classPackage)
         }
     }
 }

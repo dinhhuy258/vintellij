@@ -17,6 +17,8 @@ import com.intellij.psi.PsiMethod
 import com.intellij.psi.impl.source.PsiJavaFileImpl
 import org.jetbrains.kotlin.asJava.getRepresentativeLightMethod
 import org.jetbrains.kotlin.asJava.toLightClassWithBuiltinMapping
+import org.jetbrains.kotlin.backend.common.serialization.findPackage
+import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaClassDescriptor
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -33,6 +35,10 @@ class IdeaUtils {
             }
 
             return projects[0]
+        }
+
+        fun findPackageForPsiClass(psiClass: PsiClass): String? {
+            return psiClass.getJavaClassDescriptor()?.findPackage()?.fqName?.asString()
         }
 
         fun getVirtualFile(fileName: String): VirtualFile {
@@ -59,7 +65,14 @@ class IdeaUtils {
         fun getPsiFile(fileName: String): PsiFile {
             val project = getProject()
             val virtualFile = getVirtualFile(fileName)
-            return virtualFile.toPsiFile(project) ?: throw VIException("Cannot find the PsiFile for $fileName.")
+            val application = ApplicationManager.getApplication()
+            val psiFileRef = Ref<PsiFile>()
+
+            application.runReadAction {
+                psiFileRef.set(virtualFile.toPsiFile(project))
+            }
+
+            return psiFileRef.get() ?: throw VIException("Cannot find the PsiFile for $fileName.")
         }
 
         fun getPsiClass(psiElement: PsiElement): PsiClass? {
