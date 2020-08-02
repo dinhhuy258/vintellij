@@ -5,7 +5,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 
-class OpenFileHandler: BaseHandler<OpenFileHandler.Request, OpenFileHandler.Response>() {
+class OpenFileHandler : BaseHandler<OpenFileHandler.Request, OpenFileHandler.Response>() {
     data class Request(val file: String, val offset: Int)
 
     data class Response(val file: String)

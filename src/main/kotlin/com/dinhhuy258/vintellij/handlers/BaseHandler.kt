@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
-abstract class BaseHandler<RequestType, ResponseType>: VIHandler {
+abstract class BaseHandler<RequestType, ResponseType> : VIHandler {
     companion object {
         private const val DEFAULT_TIMEOUT_IN_SECONDS = 10L
     }
@@ -42,17 +42,14 @@ abstract class BaseHandler<RequestType, ResponseType>: VIHandler {
 
         try {
             return response.get(DEFAULT_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
-        }
-        catch (e: InterruptedException) {
+        } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
             throw e
-        }
-        catch (e: TimeoutException) {
+        } catch (e: TimeoutException) {
             val indicator = indicatorRef.get()
             indicator?.cancel()
             throw e
-        }
-        catch (e: ExecutionException) {
+        } catch (e: ExecutionException) {
             val indicator = indicatorRef.get()
             indicator?.cancel()
             throw e

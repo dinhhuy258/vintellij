@@ -3,7 +3,7 @@ package com.dinhhuy258.vintellij.components
 import com.dinhhuy258.vintellij.connections.VIServer
 import com.intellij.openapi.components.ApplicationComponent
 
-class VIApplicationComponent: ApplicationComponent {
+class VIApplicationComponent : ApplicationComponent {
     companion object {
         private const val DEFAULT_PORT = 6969
     }

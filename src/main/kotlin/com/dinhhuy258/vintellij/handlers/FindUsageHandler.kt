@@ -43,8 +43,7 @@ class FindUsageHandler : BaseHandler<FindUsageHandler.Request, FindUsageHandler.
                     getUsage(referenceMethod) ?: return@mapNotNull null
                 })
                 responseRef.set(response)
-            }
-            else {
+            } else {
                 responseRef.set(Response(ReferencesSearch.search(ReferencesSearch.SearchParameters(psiElement, scope, false)).mapNotNull {
                     val referenceElement = it.element.parent
                     getUsage(referenceElement) ?: return@mapNotNull null

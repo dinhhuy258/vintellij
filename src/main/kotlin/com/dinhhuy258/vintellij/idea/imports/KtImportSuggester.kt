@@ -3,7 +3,11 @@ package com.dinhhuy258.vintellij.idea.imports
 import com.intellij.codeInsight.ImportFilter
 import com.intellij.packageDependencies.DependencyValidationManager
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithVisibility
+import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToCall
@@ -27,7 +31,7 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
-class KtImportSuggester: ImportSuggester {
+class KtImportSuggester : ImportSuggester {
     override fun collectSuggestions(element: KtSimpleNameExpression): List<String> {
         if (!element.isValid) {
             return emptyList()
@@ -91,7 +95,8 @@ class KtImportSuggester: ImportSuggester {
     }
 
     private fun reduceCandidatesBasedOnDependencyRuleViolation(
-            candidates: Collection<DeclarationDescriptor>, file: PsiFile
+        candidates: Collection<DeclarationDescriptor>,
+        file: PsiFile
     ): Collection<DeclarationDescriptor> {
         val project = file.project
         val validationManager = DependencyValidationManager.getInstance(project)
@@ -102,9 +107,13 @@ class KtImportSuggester: ImportSuggester {
         }
     }
 
-    private fun fillCandidates(expression: KtSimpleNameExpression, name: String,
-                               callTypeAndReceiver: CallTypeAndReceiver<*, *>,
-                               bindingContext: BindingContext, indicesHelper: KotlinIndicesHelper): List<DeclarationDescriptor> {
+    private fun fillCandidates(
+        expression: KtSimpleNameExpression,
+        name: String,
+        callTypeAndReceiver: CallTypeAndReceiver<*, *>,
+        bindingContext: BindingContext,
+        indicesHelper: KotlinIndicesHelper
+    ): List<DeclarationDescriptor> {
         val result = ArrayList<DeclarationDescriptor>()
 
         if (!expression.isImportDirectiveExpression() && !isSelectorInQualified(expression)) {
@@ -129,8 +138,10 @@ class KtImportSuggester: ImportSuggester {
 
     private fun KtExpression.getCallableDescriptor() = resolveToCall()?.resultingDescriptor
 
-    private fun KotlinIndicesHelper.getClassesByName(expressionForPlatform: KtExpression,
-                                                     name: String): Collection<ClassDescriptor> {
+    private fun KotlinIndicesHelper.getClassesByName(
+        expressionForPlatform: KtExpression,
+        name: String
+    ): Collection<ClassDescriptor> {
         val platform = TargetPlatformDetector.getPlatform(expressionForPlatform.containingKtFile)
         return when {
             platform.isJvm() -> getJvmClassesByName(name)

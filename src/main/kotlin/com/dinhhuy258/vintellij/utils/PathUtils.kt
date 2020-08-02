@@ -28,8 +28,7 @@ class PathUtils private constructor() {
 
             return if (path.contains(VIM_JAR_SEPARATOR)) {
                 path.replaceFirst(VIM_JAR_SEPARATOR, INTELLIJ_JAR_SEPARATOR)
-            }
-            else {
+            } else {
                 path.replaceFirst(VIM_ZIP_SEPARATOR, INTELLIJ_ZIP_SEPARATOR)
             }
         }
@@ -78,8 +77,7 @@ class PathUtils private constructor() {
         private fun toVimJarFilePath(filePath: String): String {
             val path = if (filePath.contains(INTELLIJ_JAR_SEPARATOR)) {
                 filePath.replaceFirst(INTELLIJ_JAR_SEPARATOR, VIM_JAR_SEPARATOR)
-            }
-            else {
+            } else {
                 filePath.replaceFirst(INTELLIJ_ZIP_SEPARATOR, VIM_ZIP_SEPARATOR)
             }
 

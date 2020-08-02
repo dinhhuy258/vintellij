@@ -12,9 +12,11 @@ import com.intellij.psi.PsiKeyword
 import com.intellij.psi.PsiMethod
 import com.intellij.psi.PsiVariable
 
-class VICodeCompletionHandler(completionType: CompletionType,
-                              private val prefix: String,
-                              private val onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) : CodeCompletionHandlerBase(completionType) {
+class VICodeCompletionHandler(
+    completionType: CompletionType,
+    private val prefix: String,
+    private val onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit
+) : CodeCompletionHandlerBase(completionType) {
     @Suppress("UnstableApiUsage")
     override fun completionFinished(indicator: CompletionProgressIndicator?, hasModifiers: Boolean) {
         if (indicator == null) {
