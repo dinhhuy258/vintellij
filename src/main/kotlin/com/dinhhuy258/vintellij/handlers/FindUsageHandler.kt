@@ -2,6 +2,8 @@ package com.dinhhuy258.vintellij.handlers
 
 import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.dinhhuy258.vintellij.idea.IdeaUtils.Companion.getPsiMethod
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -26,22 +28,31 @@ class FindUsageHandler : BaseHandler<FindUsageHandler.Request, FindUsageHandler.
 
     override fun handleInternal(request: Request): Response {
         val psiFile = IdeaUtils.getPsiFile(request.file)
-        val psiElement = psiFile.findElementAt(request.offset)?.context ?: return Response(emptyList())
-        val scope = ProjectScopeBuilder.getInstance(IdeaUtils.getProject()).buildProjectScope()
+        val application = ApplicationManager.getApplication()
+        val responseRef = Ref<Response>()
 
-        if (psiElement is KtFunction || psiElement is PsiMethod) {
-            val psiMethod = getPsiMethod(psiElement) ?: return Response(emptyList())
+        application.runReadAction {
+            val psiElement = psiFile.findElementAt(request.offset)?.context ?: return@runReadAction
+            val scope = ProjectScopeBuilder.getInstance(IdeaUtils.getProject()).buildProjectScope()
 
-            return Response(MethodReferencesSearch.search(psiMethod, scope, true).mapNotNull {
-                val referenceMethod = it.element.parent
-                getUsage(referenceMethod) ?: return@mapNotNull null
-            })
+            if (psiElement is KtFunction || psiElement is PsiMethod) {
+                val psiMethod = getPsiMethod(psiElement) ?: return@runReadAction
+
+                val response = Response(MethodReferencesSearch.search(psiMethod, scope, true).mapNotNull {
+                    val referenceMethod = it.element.parent
+                    getUsage(referenceMethod) ?: return@mapNotNull null
+                })
+                responseRef.set(response)
+            }
+            else {
+                responseRef.set(Response(ReferencesSearch.search(ReferencesSearch.SearchParameters(psiElement, scope, false)).mapNotNull {
+                    val referenceElement = it.element.parent
+                    getUsage(referenceElement) ?: return@mapNotNull null
+                }))
+            }
         }
 
-        return Response(ReferencesSearch.search(ReferencesSearch.SearchParameters(psiElement, scope, false)).mapNotNull {
-            val referenceElement = it.element.parent
-            getUsage(referenceElement) ?: return@mapNotNull null
-        })
+        return responseRef.get() ?: return Response(emptyList())
     }
 
     private fun getUsage(psiElement: PsiElement): Usage? {

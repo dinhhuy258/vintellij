@@ -3,6 +3,8 @@ package com.dinhhuy258.vintellij.handlers
 import com.dinhhuy258.vintellij.exceptions.VIException
 import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.dinhhuy258.vintellij.idea.imports.KtImportSuggester
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.util.Ref
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
@@ -23,11 +25,17 @@ class ImportSuggestionsHandler : BaseHandler<ImportSuggestionsHandler.Request, I
             throw VIException("File type not supported: ${psiFile.fileType.name}.")
         }
 
-        val element = psiFile.findElementAt(request.offset) ?: return Response(emptyList())
-        if (element.parent !is KtSimpleNameExpression) {
-            return Response(emptyList())
+        val application = ApplicationManager.getApplication()
+        val responseRef = Ref<Response>()
+        application.runReadAction {
+            val element = psiFile.findElementAt(request.offset) ?: return@runReadAction
+            if (element.parent !is KtSimpleNameExpression) {
+                return@runReadAction
+            }
+
+            responseRef.set(Response(ktImportSuggester.collectSuggestions(element.parent as KtSimpleNameExpression)))
         }
 
-        return Response(ktImportSuggester.collectSuggestions(element.parent as KtSimpleNameExpression))
+        return responseRef.get() ?: return Response(emptyList())
     }
 }
