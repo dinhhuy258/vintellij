@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.KtValueArgumentList
 import org.jetbrains.kotlin.types.KotlinType
 
 class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit) :
@@ -33,11 +34,15 @@ class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String)
         application.runReadAction {
             if (prefix.isEmpty()) {
                 val document = PsiDocumentManager.getInstance(IdeaUtils.getProject()).getDocument(psiFile) ?: return@runReadAction
-                val lineNumber = document.getLineNumber(offset)
-                val line = document.getText(TextRange(document.getLineStartOffset(lineNumber), offset))
+                val lineNumber = document.getLineNumber(offset - 1)
+                val line = document.getText(TextRange(document.getLineStartOffset(lineNumber), document.getLineEndOffset(lineNumber)))
                 var index = line.length - 1
-                if (line[index] == '.') {
-                    val element = ktFile.findElementAt(offset - 2)?.parent ?: return@runReadAction
+                if (index >= 0 && line[index] == '.') {
+                    var element = ktFile.findElementAt(offset - 2)?.parent ?: return@runReadAction
+                    if (element is KtValueArgumentList) {
+                        element = element.parent
+                    }
+
                     if (element is KtExpression) {
                         val type = element.resolveType()
                         completeMethods(element, type, prefix)

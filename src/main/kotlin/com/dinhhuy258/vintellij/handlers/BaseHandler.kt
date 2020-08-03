@@ -1,5 +1,6 @@
 package com.dinhhuy258.vintellij.handlers
 
+import com.dinhhuy258.vintellij.exceptions.VIException
 import com.google.common.util.concurrent.SettableFuture
 import com.google.gson.Gson
 import com.google.gson.JsonElement
@@ -27,7 +28,7 @@ abstract class BaseHandler<RequestType, ResponseType> : VIHandler {
     }
 
     override fun handle(data: JsonElement): JsonElement {
-        val response = SettableFuture.create<JsonElement>()
+        val responseFuture = SettableFuture.create<Any>()
         val indicatorRef: AtomicReference<ProgressIndicator> = AtomicReference()
 
         ProgressManager.getInstance().run(object : Backgroundable(
@@ -36,12 +37,24 @@ abstract class BaseHandler<RequestType, ResponseType> : VIHandler {
                 indicatorRef.set(indicator)
                 val request = gson.fromJson(data, requestClass())
                 validate(request)
-                response.set(gson.toJsonTree(handleInternal(request)))
+                try {
+                    responseFuture.set(gson.toJsonTree(handleInternal(request)))
+                }
+                catch (e: Throwable) {
+                    responseFuture.set(e)
+                }
             }
         })
 
         try {
-            return response.get(DEFAULT_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
+            val response = responseFuture.get(DEFAULT_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
+            if (response is Throwable) {
+                throw response
+            }
+            else if (response is JsonElement) {
+                return response
+            }
+            throw VIException("Response type is invalid")
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
             throw e
