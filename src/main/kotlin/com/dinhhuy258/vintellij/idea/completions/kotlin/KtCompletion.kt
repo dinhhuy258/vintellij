@@ -44,9 +44,12 @@ class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String)
                     }
                 } else {
                     var newOffset = offset
-                    while (line[index] == ' ' || line[index] == '=') {
+                    while (index >= 0 && (line[index] == ' ' || line[index] == '=')) {
                         --index
                         --newOffset
+                    }
+                    if (index == 0) {
+                        return@runReadAction
                     }
                     val element = ktFile.findElementAt(newOffset)?.parent ?: return@runReadAction
                     if (element is KtExpression) {
