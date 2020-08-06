@@ -14,6 +14,18 @@ function! s:IsRefreshDone() abort
   return exists('b:vintellij_refresh_done')
 endfunction
 
+function! s:SaveBufferAndWaitForRefresh()
+  call s:SaveCurrentBuffer()
+
+  let l:num_tries = 0
+  echo "[vintellij] Waiting to refresh file in intellij..."
+  " Waiting for refreshing the file
+  while !s:IsRefreshDone() && l:num_tries < 100 " Only wait for 100 * 2 = 200ms
+    sleep 2ms
+    let l:num_tries += 1
+  endwhile
+endfunction
+
 function! s:GetCompleteResult() abort
   if exists('b:vintellij_completion_result')
     return b:vintellij_completion_result
@@ -205,6 +217,8 @@ function! s:SendRequest(handler, data) abort
 endfunction
 
 function! vintellij#GoToDefinition() abort
+  call s:SaveBufferAndWaitForRefresh()
+
   call s:SendRequest('goto', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
@@ -212,6 +226,8 @@ function! vintellij#GoToDefinition() abort
 endfunction
 
 function! vintellij#OpenFile() abort
+  call s:SaveBufferAndWaitForRefresh()
+
   call s:SendRequest('open', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
@@ -219,6 +235,8 @@ function! vintellij#OpenFile() abort
 endfunction
 
 function! vintellij#SuggestImports() abort
+  call s:SaveBufferAndWaitForRefresh()
+
   call s:SendRequest('import', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
@@ -226,6 +244,8 @@ function! vintellij#SuggestImports() abort
 endfunction
 
 function! vintellij#FindHierarchy() abort
+  call s:SaveBufferAndWaitForRefresh()
+
   call s:SendRequest('find-hierarchy', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
@@ -233,6 +253,8 @@ function! vintellij#FindHierarchy() abort
 endfunction
 
 function! vintellij#FindUsage() abort
+  call s:SaveBufferAndWaitForRefresh()
+
   call s:SendRequest('find-usage', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
