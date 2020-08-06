@@ -39,8 +39,7 @@ abstract class BaseHandler<RequestType, ResponseType> : VIHandler {
                 validate(request)
                 try {
                     responseFuture.set(gson.toJsonTree(handleInternal(request)))
-                }
-                catch (e: Throwable) {
+                } catch (e: Throwable) {
                     responseFuture.set(e)
                 }
             }
@@ -50,8 +49,7 @@ abstract class BaseHandler<RequestType, ResponseType> : VIHandler {
             val response = responseFuture.get(DEFAULT_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS)
             if (response is Throwable) {
                 throw response
-            }
-            else if (response is JsonElement) {
+            } else if (response is JsonElement) {
                 return response
             }
             throw VIException("Response type is invalid")

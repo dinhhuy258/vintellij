@@ -44,7 +44,7 @@ class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String)
                     }
 
                     if (element is KtExpression) {
-                        val type = element.resolveType()
+                        val type = resolveType(element) ?: return@runReadAction
                         completeMethods(element, type, prefix)
                     }
                 } else {
@@ -74,7 +74,7 @@ class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String)
                 classNameCompletion.findAllClasses(completionElement, prefix)
             } else if (callTypeAndReceiver is CallTypeAndReceiver.DOT) {
                 val receiver = callTypeAndReceiver.receiver
-                val type = receiver.resolveType()
+                val type = resolveType(receiver) ?: return@runReadAction
                 completeMethods(completionElement, type, prefix)
             } else if (completionElement is KtElement) {
                 val reference = completionElement.mainReference
@@ -85,6 +85,14 @@ class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String)
                     }
                 }
             }
+        }
+    }
+
+    private fun resolveType(expression: KtExpression): KotlinType? {
+        return try {
+            expression.resolveType()
+        } catch (e: Throwable) {
+            null
         }
     }
 
@@ -125,7 +133,7 @@ class KtCompletion(onSuggest: (word: String, kind: CompletionKind, menu: String)
     private fun completeExpression(context: KtElement, expression: KtExpression, prefix: String) {
         if (expression is KtBinaryExpression) {
             val leftExpression = expression.left ?: return
-            val type = leftExpression.resolveType()
+            val type = resolveType(leftExpression) ?: return
             val classNameCompletion = ClassNameCompletion(onSuggest)
             classNameCompletion.findAllClassesMatchType(context, type, prefix)
         } else if (expression is KtProperty || expression is KtDeclaration) {

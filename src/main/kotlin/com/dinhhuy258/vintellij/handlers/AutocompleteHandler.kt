@@ -48,12 +48,16 @@ class AutocompleteHandler : BaseHandler<AutocompleteHandler.Request, Autocomplet
         val completions = ArrayList<Completion>()
         val psiFile = IdeaUtils.getPsiFile(request.file)
 
+        val prefix = request.base.trim()
         val onSuggest: (word: String, kind: CompletionKind, menu: String) -> Unit = { word: String, kind: CompletionKind, menu: String ->
-            completions.add(Completion(word, kind, menu))
+            // We will not suggest word that is the same as prefix
+            if (word != prefix) {
+                completions.add(Completion(word, kind, menu))
+            }
         }
 
         val completion = CompletionFactory.createCompletion(psiFile.language, onSuggest)
-        completion.doCompletion(psiFile, request.offset, request.base.trim())
+        completion.doCompletion(psiFile, request.offset, prefix)
 
         completions.sort()
         return Response(completions.subList(0, min(completions.size, MAX_COMPLETIONS)))

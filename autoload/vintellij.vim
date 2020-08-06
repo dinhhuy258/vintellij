@@ -4,6 +4,16 @@ set cpo&vim
 let s:channel_id = 0
 let s:map = {}
 
+function! s:SaveCurrentBuffer() abort
+  unlet! b:vintellij_refresh_done
+  silent! w
+  call vintellij#RefreshFile()
+endfunction
+
+function! s:IsRefreshDone() abort
+  return exists('b:vintellij_refresh_done')
+endfunction
+
 function! s:GetCompleteResult() abort
   if exists('b:vintellij_completion_result')
     return b:vintellij_completion_result
@@ -115,6 +125,7 @@ function! s:HandleOpenEvent(data) abort
 endfunction
 
 function! s:HandleRefreshEvent(data) abort
+  let b:vintellij_refresh_done = 1
   echo '[vintellij] File successfully refreshed: ' . a:data.file
 endfunction
 
@@ -240,6 +251,9 @@ endfunction
 
 function! vintellij#Autocomplete(findstart, base) abort
   if a:findstart
+    " Saving the buffer before doing completion
+    call s:SaveCurrentBuffer()
+
     " The function is called to find the start of the text to be completed
     let l:start = col('.') - 1
     let l:line = getline('.')
@@ -249,6 +263,12 @@ function! vintellij#Autocomplete(findstart, base) abort
 
     return l:start
   endif
+
+  echo "[vintellij] Waiting to refresh file in intellij..."
+  " Waiting for refreshing the file
+  while !s:IsRefreshDone() && !complete_check()
+    sleep 2ms
+  endwhile
 
   " The function is called to actually find the matches
   echo '[vintellij] Getting completions...'
