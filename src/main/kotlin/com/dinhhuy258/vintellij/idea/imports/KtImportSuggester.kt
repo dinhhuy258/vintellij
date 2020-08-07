@@ -2,6 +2,7 @@ package com.dinhhuy258.vintellij.idea.imports
 
 import com.intellij.codeInsight.ImportFilter
 import com.intellij.packageDependencies.DependencyValidationManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -32,8 +33,14 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 class KtImportSuggester : ImportSuggester {
-    override fun collectSuggestions(element: KtSimpleNameExpression): List<String> {
-        if (!element.isValid) {
+    override fun collectSuggestions(element: PsiElement): List<String> {
+        if (element !is KtSimpleNameExpression || !element.isValid) {
+            return emptyList()
+        }
+        val referenceName = element.getReferencedName()
+        val importList = element.containingKtFile.importDirectives.map { it.importedName?.asString() }
+        if (importList.contains(referenceName)) {
+            // Class is already imported
             return emptyList()
         }
 
@@ -53,6 +60,7 @@ class KtImportSuggester : ImportSuggester {
                 .distinct()
                 .map { it.fqNameSafe.asString() }
                 .distinct()
+                .map { "import $it" }
                 .toList()
     }
 

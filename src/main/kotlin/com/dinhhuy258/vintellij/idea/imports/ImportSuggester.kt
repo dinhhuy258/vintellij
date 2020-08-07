@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.idea.imports
 
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import com.intellij.psi.PsiElement
 
 interface ImportSuggester {
-    fun collectSuggestions(element: KtSimpleNameExpression): List<String>
+    fun collectSuggestions(element: PsiElement): List<String>
 }

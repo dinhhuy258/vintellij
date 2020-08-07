@@ -2,7 +2,6 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 let s:channel_id = 0
-let s:map = {}
 
 function! s:SaveCurrentBuffer() abort
   unlet! b:vintellij_refresh_done
@@ -46,12 +45,14 @@ function! s:AddImport(import)
   while l:lineNumber <= l:maxLine
     let l:line = getline(l:lineNumber)
     if l:line =~# '^import '
-      call append(l:lineNumber - 1, 'import ' . a:import)
+      call append(l:lineNumber - 1,  a:import)
       return
     endif
     let l:lineNumber += 1
   endwhile
-  call append(1, 'import ' . a:import)
+
+  call append(1, @a)
+  call append(2, a:import)
 endfunction
 
 function! s:GoToFile(file, offset)
@@ -61,7 +62,7 @@ function! s:GoToFile(file, offset)
 endfunction
 
 function! s:HandleGoToFile(preview)
-  call s:GoToFile(s:map[a:preview].file, s:map[a:preview].offset + 1)
+  call s:GoToFile(b:map[a:preview].file, b:map[a:preview].offset + 1)
 endfunction
 
 function! s:HandleGoToEvent(data) abort
@@ -95,9 +96,9 @@ function! s:HandleFindHierarchyEvent(data) abort
   endif
 
   let l:hierarchyPreviews = []
-  let s:map = {}
+  let b:map = {}
   for hierarchy in l:hierarchies
-    let s:map = extend(s:map, { hierarchy.preview: { 'file': hierarchy.file, 'offset': hierarchy.offset } })
+    let b:map = extend(b:map, { hierarchy.preview: { 'file': hierarchy.file, 'offset': hierarchy.offset } })
     let l:hierarchyPreviews = add(l:hierarchyPreviews, hierarchy.preview)
   endfor
   call fzf#run(fzf#wrap({
@@ -117,9 +118,9 @@ function! s:HandleFindUsageEvent(data) abort
   endif
 
   let l:usagePreviews = []
-  let s:map = {}
+  let b:map = {}
   for usage in l:usages
-    let s:map = extend(s:map, { usage.preview: { 'file': usage.file, 'offset': usage.offset } })
+    let b:map = extend(b:map, { usage.preview: { 'file': usage.file, 'offset': usage.offset } })
     let l:usagePreviews = add(l:usagePreviews, usage.preview)
   endfor
   call fzf#run(fzf#wrap({
@@ -332,4 +333,3 @@ endfunction
 
 let &cpo = s:cpo_save
 unlet s:cpo_save
-

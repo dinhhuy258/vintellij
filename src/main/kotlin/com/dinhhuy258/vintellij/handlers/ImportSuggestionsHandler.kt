@@ -1,16 +1,11 @@
 package com.dinhhuy258.vintellij.handlers
 
-import com.dinhhuy258.vintellij.exceptions.VIException
 import com.dinhhuy258.vintellij.idea.IdeaUtils
-import com.dinhhuy258.vintellij.idea.imports.KtImportSuggester
+import com.dinhhuy258.vintellij.idea.imports.ImportSuggesterFactory
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.util.Ref
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 class ImportSuggestionsHandler : BaseHandler<ImportSuggestionsHandler.Request, ImportSuggestionsHandler.Response>() {
-    private val ktImportSuggester = KtImportSuggester()
-
     data class Request(val file: String, val offset: Int)
 
     data class Response(val imports: List<String>)
@@ -21,19 +16,14 @@ class ImportSuggestionsHandler : BaseHandler<ImportSuggestionsHandler.Request, I
 
     override fun handleInternal(request: Request): Response {
         val psiFile = IdeaUtils.getPsiFile(request.file)
-        if (psiFile !is KtFile) {
-            throw VIException("File type not supported: ${psiFile.fileType.name}.")
-        }
 
         val application = ApplicationManager.getApplication()
         val responseRef = Ref<Response>()
         application.runReadAction {
-            val element = psiFile.findElementAt(request.offset) ?: return@runReadAction
-            if (element.parent !is KtSimpleNameExpression) {
-                return@runReadAction
-            }
+            val element = psiFile.findElementAt(request.offset)?.parent ?: return@runReadAction
 
-            responseRef.set(Response(ktImportSuggester.collectSuggestions(element.parent as KtSimpleNameExpression)))
+            val importSuggester = ImportSuggesterFactory.createImportSuggester(psiFile.language)
+            responseRef.set(Response(importSuggester.collectSuggestions(element)))
         }
 
         return responseRef.get() ?: return Response(emptyList())
