@@ -79,7 +79,7 @@ Plug 'udalov/kotlin-vim'
 | Name | Kotlin | Java |
 | ---- | ------ | ---- |
 | Go to definition | :white_check_mark: | :white_check_mark: |
-| Suggest imports | :white_check_mark: |  |
+| Suggest imports | :white_check_mark: | :white_check_mark: |
 | Find hierarchies | :white_check_mark: | :white_check_mark: |
 | Find usages | :white_check_mark: | :white_check_mark: |
 | Auto complete | :white_check_mark: | :white_check_mark: |
@@ -87,7 +87,6 @@ Plug 'udalov/kotlin-vim'
 ## Issues
 
 - To make it work, the Intellij must open the same project as Vim.
-- Saving file before using `suggest imports`, `go to definition`... features otherwise the features will not work correctly.
 - The autocompletion does not smart
 - Always open Intellij otherwise everything will be slow - the workarround maybe:
   - Get IntelliJ focused by having it in your secondary screen
