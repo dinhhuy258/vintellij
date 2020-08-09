@@ -19,4 +19,8 @@
             <implementation-class>com.dinhhuy258.vintellij.components.VIApplicationComponent</implementation-class>
         </component>
     </application-components>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <appStarter implementation="com.dinhhuy258.vintellij.applications.VIApplicationStarter"/>
+    </extensions>
 </idea-plugin>
