@@ -1,5 +1,5 @@
 # Vintellij
-Make Intellij as a server language protocol.
+Make IntelliJ as a server language protocol.
 
 ## Installation
 
@@ -41,6 +41,22 @@ Plug 'udalov/kotlin-vim'
 2. Modify intellij plugin version and intellij kotlin version in `build.gradle` file based on your version of Intellij
 3. Run `gradle buildPlugin`
 4. Install your plugin into Intellij. (Preferences -> Plugins -> Install Plugin from Disk...)
+
+## Run IntelliJ in headless mode
+
+Create the following script file `vintellj.sh`
+
+```sh
+#!/bin/sh
+
+IDE_BIN_HOME="/Applications/IntelliJ IDEA CE.app/Contents/MacOS"
+exec "$IDE_BIN_HOME/idea" vintellij-inspect "$@"
+```
+Execute the script to run IntelliJ in headless mode
+
+```console
+./vintellij.sh ${project-path}
+```
 
 ## Vim functions
 
@@ -91,3 +107,4 @@ Plug 'udalov/kotlin-vim'
 - Always open Intellij otherwise everything will be slow - the workarround maybe:
   - Get IntelliJ focused by having it in your secondary screen
   - Get vim transparent and putting IntelliJ behind
+  - Open IntelliJ in headless mode
