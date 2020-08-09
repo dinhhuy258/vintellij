@@ -2,11 +2,14 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 let s:channel_id = 0
+let s:auto_refresh_enabled = 0
 
 function! s:SaveCurrentBuffer() abort
   unlet! b:vintellij_refresh_done
   silent! w
-  call vintellij#RefreshFile()
+  if !s:auto_refresh_enabled
+    call vintellij#RefreshFile()
+  endif
 endfunction
 
 function! s:IsRefreshDone() abort
@@ -319,6 +322,7 @@ function! vintellij#EnableAutoRefreshFile(isDisable)
     if !a:isDisable
       autocmd BufWritePost,FileReadPost *.kt,*.java call vintellij#RefreshFile()
     endif
+    let s:auto_refresh_enabled = !a:isDisable
   augroup END
 endfunction
 
