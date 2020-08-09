@@ -11,7 +11,7 @@ import kotlin.system.exitProcess
 class VIApplicationStarter : ApplicationStarter {
     private lateinit var projectPath: String
 
-    override fun getCommandName(): String = "vintellij"
+    override fun getCommandName(): String = "vintellij-inspect" /* This is a trick to force intellij run this application in headless mode (add inspect suffix to the command name) */
 
     override fun premain(args: MutableList<String>) {
         if (args.size == 1 /* First argument is the command name */) {
