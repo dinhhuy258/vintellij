@@ -20,12 +20,16 @@ function! s:SaveBufferAndWaitForRefresh()
   call s:SaveCurrentBuffer()
 
   let l:num_tries = 0
-  echo "[vintellij] Waiting to refresh file in intellij..."
+  echo '[vintellij] Waiting to refresh file in intellij...'
   " Waiting for refreshing the file
   while !s:IsRefreshDone() && l:num_tries < 100 " Only wait for 100 * 2 = 200ms
     sleep 2ms
     let l:num_tries += 1
   endwhile
+
+  " Clear messages
+  redraw
+  echo
 endfunction
 
 function! s:GetCompleteResult() abort
@@ -142,6 +146,7 @@ endfunction
 
 function! s:HandleRefreshEvent(data) abort
   let b:vintellij_refresh_done = 1
+  redraw
   echo '[vintellij] File successfully refreshed: ' . a:data.file
 endfunction
 
