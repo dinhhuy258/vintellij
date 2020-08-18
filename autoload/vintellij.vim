@@ -322,20 +322,20 @@ function! vintellij#Autocomplete(findstart, base) abort
 endfunction
 
 function! vintellij#EnableAutoRefreshFile(isDisable)
-  augroup vintellij_on_kt_java_file_save
+  augroup vintellij_on_kt_java_php_file_save
     autocmd!
     if !a:isDisable
-      autocmd BufWritePost,FileReadPost *.kt,*.java call vintellij#RefreshFile()
+      autocmd BufWritePost,FileReadPost *.kt,*.java,*.php call vintellij#RefreshFile()
     endif
     let s:auto_refresh_enabled = !a:isDisable
   augroup END
 endfunction
 
 function! vintellij#EnableHealthCheckOnLoad(isDisable)
-  augroup vintellij_on_kt_java_file_load
+  augroup vintellij_on_kt_java_php_file_load
     autocmd!
     if !a:isDisable
-      autocmd BufReadPost,FileReadPost *.kt,*.java call vintellij#HealthCheck()
+      autocmd BufReadPost,FileReadPost *.kt,*.java,*.php call vintellij#HealthCheck()
     endif
   augroup END
 endfunction
