@@ -167,7 +167,8 @@ function! s:OnReceiveData(channel_id, data, event) abort
     return
   endtry
   if !l:json_data.success
-    throw '[vintellij] ' . l:json_data.message
+    echo '[vintellij] ' . l:json_data.message
+    return
   endif
 
   let l:handler = l:json_data.handler
@@ -216,7 +217,8 @@ endfunction
 function! s:SendRequest(handler, data) abort
   if !s:IsConnected()
     if s:OpenConnection() == 0
-      throw '[vintellij] Can not connect to the plugin server. Please open intelliJ which is installed vintellij plugin'
+      echo '[vintellij] Can not connect to the plugin server. Please open intelliJ which is installed vintellij plugin'
+      return
     endif
   endif
   call chansend(s:channel_id, json_encode({
