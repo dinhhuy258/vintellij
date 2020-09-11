@@ -5,7 +5,7 @@ if get(g:, 'vintellij_refresh_on_save', 1) == 1
   VintellijEnableAutoRefreshFile
 endif
 
-if get(g:, 'vintellij_health_check_on_load', 1) == 1
+if get(g:, 'vintellij_health_check_on_load', 0) == 1
   VintellijEnableHealthCheckOnLoad
 endif
 

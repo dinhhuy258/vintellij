@@ -70,7 +70,7 @@ Execute the script to run IntelliJ in headless mode
 
 - `vintellij#OpenFile()`: open the current file in Intellij
 
-- `vintellij#RefreshFile()`: tell IntelliJ to refresh the VirtualFile element otherwise the `suggest imports` and `go to definition` features will not work correctly. This method will be called automatically each time the java/kotlin buffer is saved to file. If you want to disable it, set variable `g:vintellij_refresh_on_save` to 0 (It may cause the problem on the `suggest imports` and `go to definition` features)
+- `vintellij#RefreshFile()`: tell IntelliJ to refresh the VirtualFile element otherwise the `suggest imports` and `go to definition` features will not work correctly. This method will be called automatically each time the java/kotlin buffer is saved to file. If you want to disable it, set variable `g:vintellij_refresh_on_save` to 0 (default: 1) (It may cause the problem on the `suggest imports` and `go to definition` features)
 
   To disable auto refresh file, use the command
   ```
@@ -80,7 +80,7 @@ Execute the script to run IntelliJ in headless mode
   ```
     VintellijEnableAutoRefreshFile
   ```
-- `vintellij#HealthCheck()`: check if the plugin server is working or not. This method will be called automatically each time the java/kotlin buffer is loaded. If you want to disable it, set variable `g:vintellij_health_check_on_load` to 0.
+- `vintellij#HealthCheck()`: check if the plugin server is working or not. This method will be called automatically each time the java/kotlin buffer is loaded. If you want to disable it, set variable `g:vintellij_health_check_on_load` to 0 (default: 0).
 
   To disable auto health check, use the command
   ```

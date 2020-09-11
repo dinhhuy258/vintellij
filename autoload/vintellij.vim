@@ -144,10 +144,8 @@ function! s:HandleOpenEvent(data) abort
   echo '[vintellij] File successfully opened: ' . a:data.file
 endfunction
 
-function! s:HandleRefreshEvent(data) abort
+function! s:HandleRefreshEvent() abort
   let b:vintellij_refresh_done = 1
-  redraw
-  echo '[vintellij] File successfully refreshed: ' . a:data.file
 endfunction
 
 function! s:HandleHealthCheckEvent() abort
@@ -185,7 +183,7 @@ function! s:OnReceiveData(channel_id, data, event) abort
   elseif l:handler ==# 'open'
     call s:HandleOpenEvent(l:json_data.data)
   elseif l:handler ==# 'refresh'
-    call s:HandleRefreshEvent(l:json_data.data)
+    call s:HandleRefreshEvent()
   elseif l:handler ==# 'health-check'
     call s:HandleHealthCheckEvent()
   else
@@ -214,10 +212,12 @@ function! s:OpenConnection() abort
   return s:channel_id
 endfunction
 
-function! s:SendRequest(handler, data) abort
+function! s:SendRequest(handler, data, ignore_message) abort
   if !s:IsConnected()
     if s:OpenConnection() == 0
-      echo '[vintellij] Can not connect to the plugin server. Please open intelliJ which is installed vintellij plugin'
+      if a:ignore_message == v:false
+        echo '[vintellij] Can not connect to the plugin server. Please open intelliJ which is installed vintellij plugin'
+      endif
       return
     endif
   endif
@@ -233,7 +233,7 @@ function! vintellij#GoToDefinition() abort
   call s:SendRequest('goto', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
-        \ })
+        \ }, v:false)
 endfunction
 
 function! vintellij#OpenFile() abort
@@ -242,7 +242,7 @@ function! vintellij#OpenFile() abort
   call s:SendRequest('open', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
-        \ })
+        \ }, v:false)
 endfunction
 
 function! vintellij#SuggestImports() abort
@@ -251,7 +251,7 @@ function! vintellij#SuggestImports() abort
   call s:SendRequest('import', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
-        \ })
+        \ }, v:false)
 endfunction
 
 function! vintellij#FindHierarchy() abort
@@ -260,7 +260,7 @@ function! vintellij#FindHierarchy() abort
   call s:SendRequest('find-hierarchy', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
-        \ })
+        \ }, v:false)
 endfunction
 
 function! vintellij#FindUsage() abort
@@ -269,17 +269,17 @@ function! vintellij#FindUsage() abort
   call s:SendRequest('find-usage', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
-        \ })
+        \ }, v:false)
 endfunction
 
 function! vintellij#RefreshFile() abort
   call s:SendRequest('refresh', {
         \ 'file': expand('%:p'),
-        \ })
+        \ }, v:true)
 endfunction
 
 function! vintellij#HealthCheck() abort
-  call s:SendRequest('health-check', {})
+  call s:SendRequest('health-check', {}, v:false)
 endfunction
 
 function! vintellij#Autocomplete(findstart, base) abort
@@ -310,7 +310,7 @@ function! vintellij#Autocomplete(findstart, base) abort
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset() - 1,
         \ 'base': a:base,
-        \ })
+        \ }, v:false)
 
   let l:result = s:GetCompleteResult()
   while l:result is v:null && !complete_check()
