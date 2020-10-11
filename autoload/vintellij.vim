@@ -2,35 +2,6 @@ let s:cpo_save = &cpo
 set cpo&vim
 
 let s:channel_id = 0
-let s:auto_refresh_enabled = 0
-
-function! s:SaveCurrentBuffer() abort
-  unlet! b:vintellij_refresh_done
-  silent! w
-  if !s:auto_refresh_enabled
-    call vintellij#RefreshFile()
-  endif
-endfunction
-
-function! s:IsRefreshDone() abort
-  return exists('b:vintellij_refresh_done')
-endfunction
-
-function! s:SaveBufferAndWaitForRefresh()
-  call s:SaveCurrentBuffer()
-
-  let l:num_tries = 0
-  echo '[vintellij] Waiting to refresh file in intellij...'
-  " Waiting for refreshing the file
-  while !s:IsRefreshDone() && l:num_tries < 100 " Only wait for 100 * 2 = 200ms
-    sleep 2ms
-    let l:num_tries += 1
-  endwhile
-
-  " Clear messages
-  redraw
-  echo
-endfunction
 
 function! s:GetCompleteResult() abort
   if exists('b:vintellij_completion_result')
@@ -144,10 +115,6 @@ function! s:HandleOpenEvent(data) abort
   echo '[vintellij] File successfully opened: ' . a:data.file
 endfunction
 
-function! s:HandleRefreshEvent() abort
-  let b:vintellij_refresh_done = 1
-endfunction
-
 function! s:HandleHealthCheckEvent() abort
   echo '[vintellij] Connect to plugin server successful'
 endfunction
@@ -182,8 +149,6 @@ function! s:OnReceiveData(channel_id, data, event) abort
     call s:HandleAutocompleteEvent(l:json_data.data)
   elseif l:handler ==# 'open'
     call s:HandleOpenEvent(l:json_data.data)
-  elseif l:handler ==# 'refresh'
-    call s:HandleRefreshEvent()
   elseif l:handler ==# 'health-check'
     call s:HandleHealthCheckEvent()
   else
@@ -228,8 +193,6 @@ function! s:SendRequest(handler, data, ignore_message) abort
 endfunction
 
 function! vintellij#GoToDefinition() abort
-  call s:SaveBufferAndWaitForRefresh()
-
   call s:SendRequest('goto', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
@@ -237,8 +200,6 @@ function! vintellij#GoToDefinition() abort
 endfunction
 
 function! vintellij#OpenFile() abort
-  call s:SaveBufferAndWaitForRefresh()
-
   call s:SendRequest('open', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
@@ -246,8 +207,6 @@ function! vintellij#OpenFile() abort
 endfunction
 
 function! vintellij#SuggestImports() abort
-  call s:SaveBufferAndWaitForRefresh()
-
   call s:SendRequest('import', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
@@ -255,8 +214,6 @@ function! vintellij#SuggestImports() abort
 endfunction
 
 function! vintellij#FindHierarchy() abort
-  call s:SaveBufferAndWaitForRefresh()
-
   call s:SendRequest('find-hierarchy', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
@@ -264,18 +221,10 @@ function! vintellij#FindHierarchy() abort
 endfunction
 
 function! vintellij#FindUsage() abort
-  call s:SaveBufferAndWaitForRefresh()
-
   call s:SendRequest('find-usage', {
         \ 'file': expand('%:p'),
         \ 'offset': s:GetCurrentOffset(),
         \ }, v:false)
-endfunction
-
-function! vintellij#RefreshFile() abort
-  call s:SendRequest('refresh', {
-        \ 'file': expand('%:p'),
-        \ }, v:true)
 endfunction
 
 function! vintellij#HealthCheck() abort
@@ -284,9 +233,6 @@ endfunction
 
 function! vintellij#Autocomplete(findstart, base) abort
   if a:findstart
-    " Saving the buffer before doing completion
-    call s:SaveCurrentBuffer()
-
     " The function is called to find the start of the text to be completed
     let l:start = col('.') - 1
     let l:line = getline('.')
@@ -296,12 +242,6 @@ function! vintellij#Autocomplete(findstart, base) abort
 
     return l:start
   endif
-
-  echo "[vintellij] Waiting to refresh file in intellij..."
-  " Waiting for refreshing the file
-  while !s:IsRefreshDone() && !complete_check()
-    sleep 2ms
-  endwhile
 
   " The function is called to actually find the matches
   echo '[vintellij] Getting completions...'
@@ -323,16 +263,6 @@ function! vintellij#Autocomplete(findstart, base) abort
   return l:completions
 endfunction
 
-function! vintellij#EnableAutoRefreshFile(isDisable)
-  augroup vintellij_on_kt_java_php_file_save
-    autocmd!
-    if !a:isDisable
-      autocmd BufWritePost,FileReadPost *.kt,*.java,*.php call vintellij#RefreshFile()
-    endif
-    let s:auto_refresh_enabled = !a:isDisable
-  augroup END
-endfunction
-
 function! vintellij#EnableHealthCheckOnLoad(isDisable)
   augroup vintellij_on_kt_java_php_file_load
     autocmd!
@@ -340,6 +270,59 @@ function! vintellij#EnableHealthCheckOnLoad(isDisable)
       autocmd BufReadPost,FileReadPost *.kt,*.java,*.php call vintellij#HealthCheck()
     endif
   augroup END
+endfunction
+
+"=============================================================================
+" AUTHOR:  beeender <chenmulong at gmail.com>
+" License: GPLv3
+"=============================================================================
+
+" Called by JetBrains to set the code insight result.
+" insight_map format:
+" { start_line_number :
+"   [
+"     {id: , s_line: , e_line: , s_col: , e_col: , severity: }
+"     {id: , s_line: , e_line: , s_col: , e_col: , severity: }
+"   ]
+" }
+" Line number is 0 based.
+function! vintellij#SetInsights(channel, buf, insight_map)
+    let l:channel = vintellij#bvar#get(a:buf, 'channel')
+    if l:channel == a:channel
+        call vintellij#bvar#set(a:buf, 'insight_map', a:insight_map)
+        call vintellij#sign#SetSigns(a:buf)
+        call vintellij#highlight#SetHighlights(a:buf)
+    endif
+endfunction
+
+" Called by python when deoplete wants do completion.
+function! vintellij#RequestCompletion(buf, param)
+    if vintellij#bvar#has(a:buf, 'channel')
+        try
+            let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_complete', a:param])
+            return result
+        catch /./ " The channel has been probably closed
+            call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
+            call vintellij#bvar#remove(a:buf, 'channel')
+        endtry
+    endif
+    return []
+endfunction
+
+function! vintellij#RequestQuickFix(buf, insight, fix) abort
+    if vintellij#bvar#has(a:buf, 'channel')
+        try
+            let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_quick_fix',
+                        \ {'buf' : a:buf, 'insight' : a:insight, 'fix' : a:fix}])
+            if !empty(result)
+                call vintellij#util#TruncatedEcho(result)
+            endif
+        catch /./ " The channel has been probably closed
+            call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
+            call vintellij#bvar#remove(a:buf, 'channel')
+        endtry
+    endif
+    return []
 endfunction
 
 let &cpo = s:cpo_save
