@@ -1,9 +1,3 @@
-command! -bang VintellijEnableHealthCheckOnLoad call vintellij#EnableHealthCheckOnLoad(<bang>0)
-
-if get(g:, 'vintellij_health_check_on_load', 0) == 1
-  VintellijEnableHealthCheckOnLoad
-endif
-
 command! VintellijGoToDefinition call vintellij#GoToDefinition()
 command! VintellijOpenFile call vintellij#OpenFile()
 command! VintellijSuggestImports call vintellij#SuggestImports()

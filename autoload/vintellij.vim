@@ -115,10 +115,6 @@ function! s:HandleOpenEvent(data) abort
   echo '[vintellij] File successfully opened: ' . a:data.file
 endfunction
 
-function! s:HandleHealthCheckEvent() abort
-  echo '[vintellij] Connect to plugin server successful'
-endfunction
-
 function! s:GetCurrentOffset()
   return line2byte(line('.')) + col('.') - 1
 endfunction
@@ -149,8 +145,6 @@ function! s:OnReceiveData(channel_id, data, event) abort
     call s:HandleAutocompleteEvent(l:json_data.data)
   elseif l:handler ==# 'open'
     call s:HandleOpenEvent(l:json_data.data)
-  elseif l:handler ==# 'health-check'
-    call s:HandleHealthCheckEvent()
   else
     throw '[vintellij] Invalid handler: ' . l:handler
   endif
@@ -227,10 +221,6 @@ function! vintellij#FindUsage() abort
         \ }, v:false)
 endfunction
 
-function! vintellij#HealthCheck() abort
-  call s:SendRequest('health-check', {}, v:false)
-endfunction
-
 function! vintellij#Autocomplete(findstart, base) abort
   if a:findstart
     " The function is called to find the start of the text to be completed
@@ -261,15 +251,6 @@ function! vintellij#Autocomplete(findstart, base) abort
   let l:completions = l:result isnot v:null ? l:result : []
   echo '[vintellij] Found ' . len(l:completions) . ' completion(s)'
   return l:completions
-endfunction
-
-function! vintellij#EnableHealthCheckOnLoad(isDisable)
-  augroup vintellij_on_kt_java_php_file_load
-    autocmd!
-    if !a:isDisable
-      autocmd BufReadPost,FileReadPost *.kt,*.java,*.php call vintellij#HealthCheck()
-    endif
-  augroup END
 endfunction
 
 "=============================================================================
