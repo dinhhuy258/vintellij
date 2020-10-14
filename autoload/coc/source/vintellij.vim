@@ -7,19 +7,35 @@ function! coc#source#vintellij#init() abort
         \}
 endfunction
 
+let s:autocomplete_candidates = v:null
+let s:last_buffer_id = v:null
+let s:last_changedtick = v:null
+
 function! coc#source#vintellij#complete(opt, cb) abort
-  let l:request = {
+  if s:autocomplete_candidates is v:null
+    let l:request = {
           \ "buf_id": a:opt["bufnr"],
           \ "buf_name": a:opt["filepath"],
           \ "buf_changedtick": a:opt["changedtick"],
           \ "row": a:opt["linenr"] - 1,
-          \ "col": a:opt["colnr"],
+          \ "col": a:opt["colnr"] - 1,
           \ }
 
-  call vintellij#RequestCompletion(a:opt["bufnr"], l:request)
-  let s:autocomplete_callback = a:cb
+    let s:last_buffer_id = a:opt["bufnr"]
+    let s:last_changedtick = a:opt["changedtick"]
+    call vintellij#RequestCompletion(a:opt["bufnr"], l:request)
+    call a:cb([])
+    return
+  endif
+  call a:cb(s:autocomplete_candidates)
+  let s:autocomplete_candidates = v:null
 endfunction
 
 function! coc#source#vintellij#OnAutocompleteCallback(result) abort
-  call s:autocomplete_callback(a:result.candidates)
+  if !empty(a:result.candidates)
+    let s:autocomplete_candidates = a:result.candidates
+    call coc#start()
+  elseif bufnr("%") == s:last_buffer_id && s:last_changedtick != b:changedtick
+    call coc#start()
+  endif
 endfunction
