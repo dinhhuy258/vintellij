@@ -12,7 +12,7 @@ buildscript {
 
 plugins {
     id("org.jetbrains.intellij") version "0.4.21"
-    id("org.jetbrains.kotlin.jvm") version "1.3.61"
+    kotlin("jvm") version "1.3.61"
     id("org.jlleitschuh.gradle.ktlint") version "9.0.0"
 }
 
@@ -21,7 +21,11 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    compile("org.msgpack", "msgpack-core", "0.8.16")
+    compile("org.msgpack", "jackson-dataformat-msgpack", "0.8.16")
+    compile("com.fasterxml.jackson.module", "jackson-module-kotlin", "2.9.8")
+    compile("org.scala-sbt.ipcsocket", "ipcsocket", "1.0.0")
+    implementation(kotlin("stdlib"))
 }
 
 tasks.withType<KotlinCompile> {
