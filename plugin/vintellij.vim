@@ -20,9 +20,9 @@ autocmd FileType java set omnifunc=vintellij#Autocomplete
 " License: GPLv3
 "=============================================================================
 
-let s:comrade_major_version = 0
-let s:comrade_minor_version = 1
-let s:comrade_patch_version = 1
+let s:comrade_major_version = 1
+let s:comrade_minor_version = 0
+let s:comrade_patch_version = 0
 let g:comrade_version = s:comrade_major_version .
       \ '.' . s:comrade_minor_version .
       \ '.' . s:comrade_patch_version

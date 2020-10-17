@@ -23,7 +23,7 @@ import com.dinhhuy258.vintellij.comrade.insight.InsightProcessor
 val ComradeScope = ComradeNeovimPlugin.instance.coroutineScope
 
 object Version {
-    val versionString = PluginManager.getPlugin(PluginId.getId("com.dinhhuy258.vintellij.comrade"))!!.version
+    val versionString = PluginManager.getPlugin(PluginId.getId("com.dinhhuy258.vintellij"))!!.version
     val major: Int
     val minor: Int
     val patch: Int
