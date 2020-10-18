@@ -8,11 +8,9 @@ import com.dinhhuy258.vintellij.comrade.core.NvimInstance
 import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
 import com.dinhhuy258.vintellij.neovim.rpc.Request
 import com.intellij.codeInsight.completion.*
-import com.intellij.codeInsight.completion.CompletionPhase.CommittingDocuments
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.concurrency.AppExecutorUtil
 import kotlinx.coroutines.launch
 import java.lang.Thread.sleep
 
@@ -22,8 +20,6 @@ class CompletionManager(private val bufManager: SyncBufferManager) {
     companion object {
         private const val ACCEPTABLE_NUM_CANDIDATES = 20
     }
-
-    private val executor = AppExecutorUtil.createBoundedApplicationPoolExecutor("Vintellij Completion Preparation", 1)
 
     private class Results {
 
@@ -67,32 +63,30 @@ class CompletionManager(private val bufManager: SyncBufferManager) {
 
         try {
             scheduleAsyncCompletion(syncedBuf, row, col)
-            getCompletionResult(syncedBuf.nvimInstance, tmpResults)
+            val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator()
+            // Wait until completion begins
+            while (indicator.parameters == null && results == this.results) {
+                sleep(50)
+            }
+            getCompletionResult(syncedBuf.nvimInstance, indicator, tmpResults)
         } catch (e: Exception) {
             log.warn("Completion failed")
         }
     }
 
-    private fun getCompletionResult(nvimInstance: NvimInstance, results: Results, wait: Boolean = false) {
-        if (wait) {
-            sleep(50)
+    private fun getCompletionResult(nvimInstance: NvimInstance, indicator: CompletionProgressIndicator, results: Results) {
+        if (results != this.results) {
+            return
         }
-        executor.submit {
-            ApplicationManager.getApplication().invokeLater {
-                val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator()
-                if (indicator == null && results == this.results) {
-                    getCompletionResult(nvimInstance, results, true)
-                } else {
-                    while (indicator.isRunning &&
-                            !indicator.isCanceled &&
-                            indicator.lookup.arranger.matchingItems.size < ACCEPTABLE_NUM_CANDIDATES &&
-                            results == this.results) {
-                        sleep(50)
-                    }
-                    if (results == this.results) {
-                        onIndicatorCompletionFinish(indicator, nvimInstance, results)
-                    }
-                }
+        ApplicationManager.getApplication().invokeLater {
+            while (indicator.isRunning &&
+                    !indicator.isCanceled &&
+                    indicator.lookup.arranger.matchingItems.size < ACCEPTABLE_NUM_CANDIDATES &&
+                    results == this.results) {
+                sleep(50)
+            }
+            if (results == this.results) {
+                onIndicatorCompletionFinish(indicator, nvimInstance, results)
             }
         }
     }
@@ -101,7 +95,6 @@ class CompletionManager(private val bufManager: SyncBufferManager) {
         val lookupArranger = indicator.lookup?.arranger ?: return
         val matchingItems = lookupArranger.matchingItems
         if (matchingItems.isEmpty()) {
-            getCompletionResult(nvimInstance, results)
             return
         }
 
@@ -124,12 +117,11 @@ class CompletionManager(private val bufManager: SyncBufferManager) {
         ApplicationManager.getApplication().invokeAndWait {
             syncedBuf.moveCaretToPosition(row, col)
             val editor = syncedBuf.editor.editor
-            val project = syncedBuf.project
 
             // Stop the running completion
             CompletionServiceImpl.getCurrentCompletionProgressIndicator()?.closeAndFinish(false)
-            CompletionServiceImpl.setCompletionPhase(CompletionPhase.NoCompletion)
-            CommittingDocuments.scheduleAsyncCompletion(editor, CompletionType.BASIC, null, project, null)
+            val handler = CodeCompletionHandlerBase(CompletionType.BASIC, false, false, false)
+            handler.invokeCompletion(syncedBuf.project, editor)
         }
     }
 }
