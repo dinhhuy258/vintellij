@@ -1,5 +1,6 @@
 package com.dinhhuy258.vintellij.comrade.core
 
+import com.dinhhuy258.vintellij.VintellijManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.dinhhuy258.vintellij.comrade.Version
@@ -37,6 +38,7 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
         client.registerHandler(bufManager)
         client.registerHandler(CompletionManager(bufManager))
         client.registerHandler(InsightProcessor)
+        client.registerHandler(VintellijManager(this))
         log.info("NvimInstance has been created for connection '$connection'")
         connected = true
     }

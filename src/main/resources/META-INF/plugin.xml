@@ -16,7 +16,6 @@
 
     <application-components>
         <component>
-            <implementation-class>com.dinhhuy258.vintellij.components.VIApplicationComponent</implementation-class>
             <implementation-class>com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin</implementation-class>
         </component>
     </application-components>

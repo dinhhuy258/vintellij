@@ -119,14 +119,20 @@ function! s:GetCurrentOffset()
   return line2byte(line('.')) + col('.') - 1
 endfunction
 
-function! s:OnReceiveData(channel_id, data, event) abort
-  try
-    let l:json_data = json_decode(a:data)
-  catch /.*/
-    call s:CloseConnection()
-    echo '[vintellij] The plugin server has been disconnected'
-    return
-  endtry
+function! s:SendRequest(handler, data, ignore_message) abort
+  let l:buf = bufnr('')
+  if vintellij#bvar#has(l:buf, 'channel')
+    try
+      let result = call('rpcrequest', [vintellij#bvar#get(l:buf, 'channel'), 'vintellij_handler',
+                        \ {'handler' : a:handler, 'data' : a:data}])
+    catch /./ " The channel has been probably closed
+      call vintellij#util#TruncatedEcho('Failed to send request to JetBrains instance. \n' . v:exception)
+    endtry
+  endif
+endfunction
+
+function! vintellij#VintellijResponseCallback(data) abort
+  let l:json_data = json_decode(a:data)
   if !l:json_data.success
     echo '[vintellij] ' . l:json_data.message
     return
@@ -148,42 +154,6 @@ function! s:OnReceiveData(channel_id, data, event) abort
   else
     throw '[vintellij] Invalid handler: ' . l:handler
   endif
-endfunction
-
-function! s:IsConnected() abort
-  return index(map(nvim_list_chans(), 'v:val.id'), s:channel_id) >= 0
-endfunction
-
-function! s:CloseConnection() abort
-  call chanclose(s:channel_id)
-  let s:channel_id = 0
-endfunction
-
-function! s:OpenConnection() abort
-  try
-    let s:channel_id = sockconnect('tcp', 'localhost:6969', {
-          \                        'on_data': function('s:OnReceiveData'),
-          \ })
-  catch /connection failed/
-    let s:channel_id = 0
-  endtry
-
-  return s:channel_id
-endfunction
-
-function! s:SendRequest(handler, data, ignore_message) abort
-  if !s:IsConnected()
-    if s:OpenConnection() == 0
-      if a:ignore_message == v:false
-        echo '[vintellij] Can not connect to the plugin server. Please open intelliJ which is installed vintellij plugin'
-      endif
-      return
-    endif
-  endif
-  call chansend(s:channel_id, json_encode({
-        \ 'handler': a:handler,
-        \ 'data': a:data
-        \ }))
 endfunction
 
 function! vintellij#GoToDefinition() abort
