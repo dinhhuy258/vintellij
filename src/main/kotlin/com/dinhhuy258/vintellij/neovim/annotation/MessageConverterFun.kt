@@ -1,6 +1,8 @@
 package com.dinhhuy258.vintellij.neovim.annotation
 
-import com.dinhhuy258.vintellij.neovim.rpc.*
+import com.dinhhuy258.vintellij.neovim.rpc.Message
+import com.dinhhuy258.vintellij.neovim.rpc.Notification
+import com.dinhhuy258.vintellij.neovim.rpc.Request
 
 /**
  * When register message handlers, instead of taking [Notification]/[Request] as the input parameter, a specific class

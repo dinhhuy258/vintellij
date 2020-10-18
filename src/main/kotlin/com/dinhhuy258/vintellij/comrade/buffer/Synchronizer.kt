@@ -1,20 +1,20 @@
 package com.dinhhuy258.vintellij.comrade.buffer
 
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.editor.event.DocumentEvent
-import com.intellij.openapi.editor.event.DocumentListener
-import com.intellij.openapi.diagnostic.Logger
-import kotlinx.coroutines.launch
 import com.dinhhuy258.vintellij.comrade.ComradeScope
 import com.dinhhuy258.vintellij.comrade.core.FUN_BUFFER_REGISTER
 import com.dinhhuy258.vintellij.neovim.Constants.Companion.FUN_NVIM_BUF_ATTACH
 import com.dinhhuy258.vintellij.neovim.Constants.Companion.FUN_NVIM_BUF_GET_CHANGEDTICK
 import com.dinhhuy258.vintellij.neovim.Constants.Companion.FUN_NVIM_BUF_SET_LINES
 import com.dinhhuy258.vintellij.neovim.Constants.Companion.FUN_NVIM_CALL_FUNCTION
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.editor.event.DocumentListener
+import kotlinx.coroutines.launch
 
 @Suppress("MemberVisibilityCanBePrivate")
 class BufferOutOfSyncException(val syncBuffer: SyncBuffer, val nextTick: Int) :
-        IllegalStateException () {
+        IllegalStateException() {
     override val message: String?
         get() = "Buffer: ${syncBuffer.id} '${syncBuffer.path}' is out of sync.\n" +
                 "Current changedtick is ${syncBuffer.synchronizer.changedtick}, the next changedtick should be $nextTick."
@@ -50,8 +50,7 @@ internal class Synchronizer(private val syncBuffer: SyncBuffer) : DocumentListen
                 }
                 BufferChange.Source.JetBrain -> onJetBrainChange(change)
             }
-        }
-        catch (t: Throwable) {
+        } catch (t: Throwable) {
             handleException(t)
         }
     }
@@ -64,7 +63,7 @@ internal class Synchronizer(private val syncBuffer: SyncBuffer) : DocumentListen
                 val result = client.api.callAtomic(listOf(
                         FUN_NVIM_CALL_FUNCTION to
                                 listOf(FUN_BUFFER_REGISTER, listOf(bufId, nvimInstance.apiInfo.channelId, lines)),
-                        FUN_NVIM_BUF_ATTACH  to listOf(bufId, false, emptyMap<Any, Any>())
+                        FUN_NVIM_BUF_ATTACH to listOf(bufId, false, emptyMap<Any, Any>())
                 ))
                 if (result[1] != null) {
                     val e = java.lang.IllegalArgumentException("Register buffer failed. $result")
@@ -76,7 +75,7 @@ internal class Synchronizer(private val syncBuffer: SyncBuffer) : DocumentListen
         }
     }
 
-    private fun checkNeovimChangedTick(change: BufferChange) : Boolean {
+    private fun checkNeovimChangedTick(change: BufferChange): Boolean {
         val pendingChange = pendingChanges.remove(change.tick)
         // The change is made by JetBrain.
         if (pendingChange != null) {
@@ -144,9 +143,7 @@ internal class Synchronizer(private val syncBuffer: SyncBuffer) : DocumentListen
         }
         if (lastLine == -1) {
             syncBuffer.setText(stringBuilder)
-        }
-        else
-        {
+        } else {
             val curLineCount = syncBuffer.document.lineCount
             val document = syncBuffer.document
             // start should include the previous EOL
@@ -174,8 +171,7 @@ internal class Synchronizer(private val syncBuffer: SyncBuffer) : DocumentListen
                     }
                     if (start != 0) {
                         stringBuilder.insert(0, '\n')
-                    }
-                    else {
+                    } else {
                         stringBuilder.append('\n')
                     }
                     // Insertion

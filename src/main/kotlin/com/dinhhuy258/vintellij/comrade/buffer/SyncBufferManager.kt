@@ -1,19 +1,14 @@
 package com.dinhhuy258.vintellij.comrade.buffer
 
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Disposer
-import com.intellij.util.containers.ContainerUtil.newConcurrentSet
-import com.intellij.util.messages.Topic
-import kotlinx.coroutines.launch
 import com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin
 import com.dinhhuy258.vintellij.comrade.ComradeScope
-import com.dinhhuy258.vintellij.comrade.core.*
-import com.dinhhuy258.vintellij.comrade.invokeOnMainLater
+import com.dinhhuy258.vintellij.comrade.core.ComradeBufEnterParams
+import com.dinhhuy258.vintellij.comrade.core.ComradeBufWriteParams
+import com.dinhhuy258.vintellij.comrade.core.MSG_COMRADE_BUF_ENTER
+import com.dinhhuy258.vintellij.comrade.core.MSG_COMRADE_BUF_WRITE
+import com.dinhhuy258.vintellij.comrade.core.NvimInstance
 import com.dinhhuy258.vintellij.comrade.invokeOnMainAndWait
+import com.dinhhuy258.vintellij.comrade.invokeOnMainLater
 import com.dinhhuy258.vintellij.neovim.BufChangedtickEvent
 import com.dinhhuy258.vintellij.neovim.BufDetachEvent
 import com.dinhhuy258.vintellij.neovim.BufLinesEvent
@@ -22,8 +17,17 @@ import com.dinhhuy258.vintellij.neovim.Constants.Companion.MSG_NVIM_BUF_DETACH_E
 import com.dinhhuy258.vintellij.neovim.Constants.Companion.MSG_NVIM_BUF_LINES_EVENT
 import com.dinhhuy258.vintellij.neovim.annotation.NotificationHandler
 import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
+import com.intellij.util.containers.ContainerUtil.newConcurrentSet
+import com.intellij.util.messages.Topic
 import java.lang.IllegalStateException
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.launch
 
 class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     companion object {
@@ -35,7 +39,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
         /**
          * Return all opened [SyncBuffer] globally.
          */
-        fun listAllBuffers() : Set<SyncBuffer> {
+        fun listAllBuffers(): Set<SyncBuffer> {
             return allBuffers.toHashSet()
         }
     }
@@ -50,7 +54,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
         Disposer.register(nvimInstance, this)
     }
 
-    fun findBufferById(id: Int) : SyncBuffer? {
+    fun findBufferById(id: Int): SyncBuffer? {
         return bufferMap[id]
     }
 
@@ -172,11 +176,10 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
      * This has to be a request instead of notification since we have to handle cases like fugitive :Gwrite call.
      */
     @RequestHandler(MSG_COMRADE_BUF_WRITE)
-    fun comradeBufWrite(event: ComradeBufWriteParams) : Boolean
-    {
+    fun comradeBufWrite(event: ComradeBufWriteParams): Boolean {
         invokeOnMainAndWait {
-            val syncedBuffer = findBufferById(event.id) ?:
-                throw IllegalStateException("Buffer ${event.id} has been detached from JetBrain.")
+            val syncedBuffer = findBufferById(event.id)
+                ?: throw IllegalStateException("Buffer ${event.id} has been detached from JetBrain.")
             FileDocumentManager.getInstance().saveDocument(syncedBuffer.document)
         }
         return true

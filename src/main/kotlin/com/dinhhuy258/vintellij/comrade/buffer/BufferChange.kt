@@ -1,9 +1,9 @@
 package com.dinhhuy258.vintellij.comrade.buffer
 
-import com.intellij.openapi.editor.event.DocumentEvent
-import com.intellij.openapi.util.TextRange
 import com.dinhhuy258.vintellij.neovim.BufChangedtickEvent
 import com.dinhhuy258.vintellij.neovim.BufLinesEvent
+import com.intellij.openapi.editor.event.DocumentEvent
+import com.intellij.openapi.util.TextRange
 
 /**
  * @param firstLine integer line number of the first line that was replaced. Zero-indexed.
@@ -11,18 +11,20 @@ import com.dinhhuy258.vintellij.neovim.BufLinesEvent
  * @param lines list of strings contains the content of new buffer lines.
  * @param source which side initialized this change request.
  */
-class BufferChange private constructor(val syncBuffer: SyncBuffer,
-                                       val firstLine: Int,
-                                       val lastLine: Int,
-                                       val lines: List<String>?,
-                                       val source: Source,
-                                       val tick: Int) {
+class BufferChange private constructor(
+    val syncBuffer: SyncBuffer,
+    val firstLine: Int,
+    val lastLine: Int,
+    val lines: List<String>?,
+    val source: Source,
+    val tick: Int
+) {
     enum class Source {
         NEOVIM,
         JetBrain
     }
 
-    fun contentEquals(other: BufferChange) : Boolean {
+    fun contentEquals(other: BufferChange): Boolean {
         return firstLine == other.firstLine &&
                 lastLine == other.lastLine &&
                 tick == other.tick &&

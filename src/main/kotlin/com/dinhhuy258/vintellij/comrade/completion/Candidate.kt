@@ -9,7 +9,7 @@ class Candidate(lookupElement: LookupElement) : LookupElementPresentation() {
     }
 
     // This should be added as candidate
-    val valuable : Boolean get() {
+    val valuable: Boolean get() {
         // When isTypedGrayed is true, for at least IDEA, it is the snippet completion.
         return itemText != null && itemText!!.isNotBlank() && !isTypeGrayed
     }
@@ -18,8 +18,7 @@ class Candidate(lookupElement: LookupElement) : LookupElementPresentation() {
         return false
     }
 
-    fun toMap() : Map<String, String>
-    {
+    fun toMap(): Map<String, String> {
         return mapOf(
                 "word" to (itemText ?: ""),
                 "abbr" to (itemText ?: "") + (tailText ?: ""),

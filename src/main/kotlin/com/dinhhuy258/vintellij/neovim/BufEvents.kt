@@ -3,11 +3,17 @@ package com.dinhhuy258.vintellij.neovim
 import com.dinhhuy258.vintellij.neovim.annotation.MessageConverterFun
 import com.dinhhuy258.vintellij.neovim.rpc.Notification
 
-class BufLinesEvent(val id: Int, val changedTick: Int, val firstLine: Int, val lastLine: Int, val lineData: List<String>,
-                    val hasMore: Boolean) {
+class BufLinesEvent(
+    val id: Int,
+    val changedTick: Int,
+    val firstLine: Int,
+    val lastLine: Int,
+    val lineData: List<String>,
+    val hasMore: Boolean
+) {
     companion object {
         @MessageConverterFun
-        fun fromNotification(notification: Notification) : BufLinesEvent {
+        fun fromNotification(notification: Notification): BufLinesEvent {
             @Suppress("UNCHECKED_CAST")
             return BufLinesEvent(
                     BufferApi.decodeBufId(notification),
@@ -23,7 +29,7 @@ class BufLinesEvent(val id: Int, val changedTick: Int, val firstLine: Int, val l
 class BufChangedtickEvent(val id: Int, val changedTick: Int) {
     companion object {
         @MessageConverterFun
-        fun fromNotification(notification: Notification) : BufChangedtickEvent {
+        fun fromNotification(notification: Notification): BufChangedtickEvent {
             val bufId = BufferApi.decodeBufId(notification)
             val tick = notification.args[1] as Int
             return BufChangedtickEvent(bufId, tick)
@@ -34,7 +40,7 @@ class BufChangedtickEvent(val id: Int, val changedTick: Int) {
 class BufDetachEvent(val id: Int) {
     companion object {
         @MessageConverterFun
-        fun fromNotification(notification: Notification) : BufDetachEvent {
+        fun fromNotification(notification: Notification): BufDetachEvent {
             val bufId = BufferApi.decodeBufId(notification)
             return BufDetachEvent(bufId)
         }

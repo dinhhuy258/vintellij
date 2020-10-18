@@ -1,9 +1,9 @@
 package com.dinhhuy258.vintellij.neovim.rpc
 
+import com.dinhhuy258.vintellij.neovim.annotation.MessageConverterFun
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.fasterxml.jackson.annotation.JsonValue
-import com.dinhhuy258.vintellij.neovim.annotation.MessageConverterFun
 import java.util.concurrent.atomic.AtomicLong
 
 private val requestId = AtomicLong(0)
@@ -23,11 +23,10 @@ abstract class Message(val type: MessageType)
 
 @JsonFormat(shape = JsonFormat.Shape.ARRAY)
 @JsonPropertyOrder("type", "id", "method", "args")
-class Request(val id: Long, val method: String, val args: List<Any?>) : Message(MessageType.REQUEST)
-{
+class Request(val id: Long, val method: String, val args: List<Any?>) : Message(MessageType.REQUEST) {
     companion object {
         @MessageConverterFun
-        fun noConvert(request: Request) : Request {
+        fun noConvert(request: Request): Request {
             return request
         }
     }
@@ -41,11 +40,10 @@ class Request(val id: Long, val method: String, val args: List<Any?>) : Message(
 
 @JsonFormat(shape = JsonFormat.Shape.ARRAY)
 @JsonPropertyOrder("type", "id", "error", "result")
-class Response(val id: Long, val error: Any?, val result: Any?) : Message(MessageType.RESPONSE)
-{
+class Response(val id: Long, val error: Any?, val result: Any?) : Message(MessageType.RESPONSE) {
     companion object {
         @MessageConverterFun
-        fun noConvert(response: Response) : Response {
+        fun noConvert(response: Response): Response {
             return response
         }
     }
@@ -61,7 +59,7 @@ class Response(val id: Long, val error: Any?, val result: Any?) : Message(Messag
 class Notification(val name: String, val args: List<Any?>) : Message(MessageType.NOTIFICATION) {
     companion object {
         @MessageConverterFun
-        fun noConvert(notification: Notification) : Notification {
+        fun noConvert(notification: Notification): Notification {
             return notification
         }
     }
@@ -70,4 +68,3 @@ class Notification(val name: String, val args: List<Any?>) : Message(MessageType
         return "Notification '$name', $args"
     }
 }
-

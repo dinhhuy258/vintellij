@@ -1,9 +1,9 @@
 package com.dinhhuy258.vintellij.neovim.rpc
 
+import com.dinhhuy258.vintellij.neovim.NeovimConnection
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
-import com.dinhhuy258.vintellij.neovim.NeovimConnection
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -39,8 +39,7 @@ class Receiver(private val connection: NeovimConnection) {
                     }
                     log.debug("Received message: $msg")
                     onReceive(msg)
-                }
-                catch (t: Throwable) {
+                } catch (t: Throwable) {
                     Thread.currentThread().interrupt()
                     onStop(t)
                 }

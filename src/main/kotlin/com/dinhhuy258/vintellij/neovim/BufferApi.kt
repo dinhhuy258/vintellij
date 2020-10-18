@@ -1,9 +1,9 @@
 package com.dinhhuy258.vintellij.neovim
 
 import com.dinhhuy258.vintellij.neovim.rpc.Notification
+import java.lang.IllegalArgumentException
 import org.msgpack.core.MessagePack
 import org.msgpack.jackson.dataformat.MessagePackExtensionType
-import java.lang.IllegalArgumentException
 
 class BufferApi internal constructor(private val client: Client) {
     suspend fun attach(id: Int, sendBuf: Boolean) {
@@ -20,7 +20,7 @@ class BufferApi internal constructor(private val client: Client) {
         }
     }
 
-    suspend fun getName(id: Int) : String {
+    suspend fun getName(id: Int): String {
         val rsp = client.request(Constants.FUN_NVIM_BUF_GET_NAME, listOf(id))
         if (rsp.error != null) {
             throw Exception(rsp.error.toString())
@@ -28,8 +28,7 @@ class BufferApi internal constructor(private val client: Client) {
         return rsp.result as String
     }
 
-    suspend fun getLines(id: Int, start: Int, end: Int, strictIndexing: Boolean) : List<String>
-    {
+    suspend fun getLines(id: Int, start: Int, end: Int, strictIndexing: Boolean): List<String> {
         val rsp = client.request(Constants.FUN_NVIM_BUF_GET_LINES, listOf(id, start, end, strictIndexing))
         if (rsp.error != null) {
             throw Exception(rsp.error.toString())
@@ -39,11 +38,10 @@ class BufferApi internal constructor(private val client: Client) {
     }
 
     companion object {
-        fun decodeBufId(obj: Any?) : Int {
+        fun decodeBufId(obj: Any?): Int {
             if (obj is Notification) {
                 return MessagePack.newDefaultUnpacker((obj.args[0] as MessagePackExtensionType).data).unpackInt()
-            }
-            else if (obj is MessagePackExtensionType) {
+            } else if (obj is MessagePackExtensionType) {
                 return MessagePack.newDefaultUnpacker(obj.data).unpackInt()
             }
             throw IllegalArgumentException("The given object cannot be decoded as a Buffer ID. \n $obj")

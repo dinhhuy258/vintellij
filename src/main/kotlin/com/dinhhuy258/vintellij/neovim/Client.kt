@@ -1,12 +1,15 @@
 package com.dinhhuy258.vintellij.neovim
 
-import com.intellij.openapi.diagnostic.Logger
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.*
 import com.dinhhuy258.vintellij.neovim.annotation.NotificationHandler
 import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
-import com.dinhhuy258.vintellij.neovim.rpc.*
+import com.dinhhuy258.vintellij.neovim.rpc.Message
+import com.dinhhuy258.vintellij.neovim.rpc.MessageConverter
+import com.dinhhuy258.vintellij.neovim.rpc.Notification
+import com.dinhhuy258.vintellij.neovim.rpc.Receiver
+import com.dinhhuy258.vintellij.neovim.rpc.Request
+import com.dinhhuy258.vintellij.neovim.rpc.Response
+import com.dinhhuy258.vintellij.neovim.rpc.Sender
+import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.reflect.KClass
@@ -14,6 +17,11 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.KType
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.memberFunctions
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newSingleThreadContext
+import kotlinx.coroutines.selects.select
 
 private val log = Logger.getInstance(Client::class.java)
 
@@ -28,7 +36,7 @@ class Client(connection: NeovimConnection, onClose: (Throwable?) -> Unit) {
                 try {
                     while (true) {
                         select<Unit> {
-                            ReceiverChannel.onReceive{ pair ->
+                            ReceiverChannel.onReceive { pair ->
                                 pair.first.handleMessage(pair.second)
                             }
                             SenderChannel.onReceive { pair ->
@@ -54,12 +62,12 @@ class Client(connection: NeovimConnection, onClose: (Throwable?) -> Unit) {
     val bufferApi = BufferApi(this)
 
     init {
-        receiver.start({msg ->
+        receiver.start({ msg ->
             ReceiverChannel.offer(this to msg)
         }, onClose)
     }
 
-    suspend fun request(method: String, args: List<Any?>) : Response {
+    suspend fun request(method: String, args: List<Any?>): Response {
         val req = Request(method, args)
         val ret = AtomicReference<Response>()
         val channel = Channel<Response>()
@@ -104,7 +112,7 @@ class Client(connection: NeovimConnection, onClose: (Throwable?) -> Unit) {
         MessageConverter.registerConverterFun(function.parameters[1].type.classifier as KClass<*>)
     }
 
-    private fun convertParam(ktype: KType, message: Message) : Any {
+    private fun convertParam(ktype: KType, message: Message): Any {
         return MessageConverter.convert(ktype.classifier as KClass<*>, message)
     }
 
@@ -117,8 +125,7 @@ class Client(connection: NeovimConnection, onClose: (Throwable?) -> Unit) {
             } else {
                 log.warn("'$msg' is not handled.")
             }
-        }
-        else if (msg is Request) {
+        } else if (msg is Request) {
             val handler = reqHandlers[msg.method]
             val rsp: Response = when (handler) {
                 null -> Response(msg, "There is no request handler registered for ${msg.method}", null)
@@ -126,13 +133,12 @@ class Client(connection: NeovimConnection, onClose: (Throwable?) -> Unit) {
                     try {
                         val rspArgs = handler.invoke(msg)
                         Response(msg, null, rspArgs)
-                    } catch (t : Throwable) {
+                    } catch (t: Throwable) {
                         Response(msg, t.toString(), null)
                     }
             }
             SenderChannel.offer(this to rsp)
-        }
-        else if (msg is Notification) {
+        } else if (msg is Notification) {
             if (notiHandlers.containsKey(msg.name)) {
                 val handler = notiHandlers[msg.name]
                 if (handler != null) handler(msg)

@@ -30,15 +30,14 @@ object MessageConverter {
         throw createException(clazz)
     }
 
-    fun convert(clazz: KClass<*>, message: Message) : Any {
+    fun convert(clazz: KClass<*>, message: Message): Any {
         val convertFun = funMap[clazz] ?: throw createException(clazz)
 
         return convertFun.invoke(message)
     }
 }
 
-private fun createException(clazz: KClass<*>) : Exception {
+private fun createException(clazz: KClass<*>): Exception {
     return IllegalArgumentException(
             "A companion function needs to be annotated with '@MessageConverterFun' in class '${clazz.simpleName}'")
 }
-

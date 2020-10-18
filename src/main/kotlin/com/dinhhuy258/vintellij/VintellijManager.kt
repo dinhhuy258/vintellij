@@ -4,7 +4,12 @@ import com.dinhhuy258.vintellij.comrade.ComradeScope
 import com.dinhhuy258.vintellij.comrade.core.FUN_VINTELLIJ_RESPONSE_CALLBACK
 import com.dinhhuy258.vintellij.comrade.core.NvimInstance
 import com.dinhhuy258.vintellij.exceptions.VIException
-import com.dinhhuy258.vintellij.handlers.*
+import com.dinhhuy258.vintellij.handlers.FindHierarchyHandler
+import com.dinhhuy258.vintellij.handlers.FindUsageHandler
+import com.dinhhuy258.vintellij.handlers.GoToDefinitionHandler
+import com.dinhhuy258.vintellij.handlers.ImportSuggestionsHandler
+import com.dinhhuy258.vintellij.handlers.OpenFileHandler
+import com.dinhhuy258.vintellij.handlers.VIHandler
 import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
 import com.dinhhuy258.vintellij.neovim.rpc.Request
 import com.google.gson.Gson

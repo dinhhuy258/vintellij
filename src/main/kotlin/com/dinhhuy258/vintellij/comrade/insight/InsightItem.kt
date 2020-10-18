@@ -1,5 +1,7 @@
 package com.dinhhuy258.vintellij.comrade.insight
 
+import com.dinhhuy258.vintellij.comrade.buffer.NotSupportedByUIDelegateException
+import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.IntentionActionDelegate
@@ -9,8 +11,6 @@ import com.intellij.codeInspection.SuppressIntentionActionFromFix
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbService
 import com.intellij.util.ThreeState
-import com.dinhhuy258.vintellij.comrade.buffer.NotSupportedByUIDelegateException
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
 
 private val log = Logger.getInstance(InsightItem::class.java)
 
@@ -37,7 +37,7 @@ class InsightItem(private val syncBuffer: SyncBuffer, val highlightInfo: Highlig
      * Create a unique ID for InsightItem. This ID can be used as the sign name in vim sign column.
      */
     private fun computeId(): Int {
-        var id= highlightInfo.severity.hashCode() * 31
+        var id = highlightInfo.severity.hashCode() * 31
         id = id * 31 + highlightInfo.startOffset
         id = id * 31 + highlightInfo.endOffset
         id = id * 31 + if (highlightInfo.description == null) 0 else highlightInfo.description.hashCode()
@@ -66,10 +66,10 @@ class InsightItem(private val syncBuffer: SyncBuffer, val highlightInfo: Highlig
         return true
     }
 
-    fun toMap():Map<String, Any> {
+    fun toMap(): Map<String, Any> {
         return mapOf(
                 "s_line" to startLine,
-                "s_col"  to startColumn,
+                "s_col" to startColumn,
                 "e_line" to endLine,
                 "e_col" to endColumn,
                 "desc" to highlightInfo.description,
@@ -83,7 +83,7 @@ class InsightItem(private val syncBuffer: SyncBuffer, val highlightInfo: Highlig
      * Check if an [IntentionAction] can be applied as a fix. Most logic is referred from
      * ShowIntentionsPass.addAvailableFixesForGroups().
      */
-    private fun getAvailableFixes(info: HighlightInfo) : List<HighlightInfo.IntentionActionDescriptor> {
+    private fun getAvailableFixes(info: HighlightInfo): List<HighlightInfo.IntentionActionDescriptor> {
         val file = syncBuffer.psiFile
         val editorToUse = syncBuffer.editor
         val project = syncBuffer.project
@@ -98,7 +98,7 @@ class InsightItem(private val syncBuffer: SyncBuffer, val highlightInfo: Highlig
             }
             val range = pair.second
             if (a is LowPriorityAction || (a is PriorityAction && a.priority == PriorityAction.Priority.LOW)) {
-                //e.g.: EnableOptimizeImportsOnTheFlyFix . Those fixes are not quite necessary and may create problems.
+                // e.g.: EnableOptimizeImportsOnTheFlyFix . Those fixes are not quite necessary and may create problems.
                 false
             } else if (!a.startInWriteAction()) {
                 // It seems when this is false, the fixer needs to open a dialog to ask for user's input to do the next
@@ -129,7 +129,7 @@ class InsightItem(private val syncBuffer: SyncBuffer, val highlightInfo: Highlig
  *
  * Copied from CacheIntentions.java with modifications.
  */
-private fun getWeight(action : HighlightInfo.IntentionActionDescriptor) : Int {
+private fun getWeight(action: HighlightInfo.IntentionActionDescriptor): Int {
     var a = action.action
     var weight = 0
 
@@ -141,16 +141,16 @@ private fun getWeight(action : HighlightInfo.IntentionActionDescriptor) : Int {
         weight = getPriorityWeight(a.priority)
     } else if (a is SuppressIntentionActionFromFix) {
         if (a.isShouldBeAppliedToInjectionHost == ThreeState.NO) {
-            weight =-1
+            weight = -1
         }
     }
     return weight
 }
 
-private fun getPriorityWeight(priority: PriorityAction.Priority) : Int{
-    return when(priority) {
+private fun getPriorityWeight(priority: PriorityAction.Priority): Int {
+    return when (priority) {
         PriorityAction.Priority.TOP -> 666
-        PriorityAction.Priority.HIGH-> 3
+        PriorityAction.Priority.HIGH -> 3
         PriorityAction.Priority.LOW -> -33
         else -> 0
     }

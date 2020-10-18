@@ -1,8 +1,12 @@
 package com.dinhhuy258.vintellij.comrade
 
-import com.intellij.openapi.actionSystem.*
 import com.dinhhuy258.vintellij.comrade.core.NvimInfo
 import com.dinhhuy258.vintellij.comrade.core.NvimInstanceManager
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.Separator
+import com.intellij.openapi.actionSystem.ToggleAction
 
 class NvimInstanceAction(private val nvimInfo: NvimInfo, private val connected: Boolean) : ToggleAction() {
 
@@ -37,8 +41,7 @@ class NvimToggleAllAction(private val enable: Boolean) : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
         if (enable) {
             NvimInstanceManager.connectAll()
-        }
-        else {
+        } else {
             NvimInstanceManager.disconnectAll()
         }
     }

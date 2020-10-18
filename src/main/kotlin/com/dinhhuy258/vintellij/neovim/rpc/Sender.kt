@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.neovim.rpc
 
-import com.intellij.openapi.diagnostic.Logger
 import com.dinhhuy258.vintellij.neovim.NeovimConnection
+import com.intellij.openapi.diagnostic.Logger
 
 class Sender(private val connection: NeovimConnection) {
 

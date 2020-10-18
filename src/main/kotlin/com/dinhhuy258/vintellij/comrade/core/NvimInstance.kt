@@ -1,8 +1,6 @@
 package com.dinhhuy258.vintellij.comrade.core
 
 import com.dinhhuy258.vintellij.VintellijManager
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.diagnostic.Logger
 import com.dinhhuy258.vintellij.comrade.Version
 import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
 import com.dinhhuy258.vintellij.comrade.completion.CompletionManager
@@ -12,10 +10,12 @@ import com.dinhhuy258.vintellij.neovim.ApiInfo
 import com.dinhhuy258.vintellij.neovim.Client
 import com.dinhhuy258.vintellij.neovim.NeovimConnection
 import com.dinhhuy258.vintellij.neovim.SocketConnection
-import org.scalasbt.ipcsocket.UnixDomainSocket
-import org.scalasbt.ipcsocket.Win32NamedPipeSocketPatched
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import java.io.File
 import java.net.Socket
+import org.scalasbt.ipcsocket.UnixDomainSocket
+import org.scalasbt.ipcsocket.Win32NamedPipeSocketPatched
 
 private val Log = Logger.getInstance(NvimInstance::class.java)
 
@@ -24,7 +24,7 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
     private val log = Logger.getInstance(NvimInstance::class.java)
     private val connection = createRPCConnection(address)
     val client = Client(connection, onClose)
-    lateinit var apiInfo:ApiInfo
+    lateinit var apiInfo: ApiInfo
     val bufManager = SyncBufferManager(this)
     @Volatile var connected = false
         private set
@@ -57,7 +57,7 @@ private fun createRPCConnection(address: String): NeovimConnection {
     Log.info("Creating RPC connection from '$address'")
 
     val ipInfo = parseIPV4String(address)
-    if (ipInfo!= null)
+    if (ipInfo != null)
         return SocketConnection(Socket(ipInfo.first, ipInfo.second))
     else {
         val file = File(address)

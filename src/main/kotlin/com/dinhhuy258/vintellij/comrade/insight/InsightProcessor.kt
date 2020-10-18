@@ -1,5 +1,16 @@
 package com.dinhhuy258.vintellij.comrade.insight
 
+import com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin
+import com.dinhhuy258.vintellij.comrade.ComradeScope
+import com.dinhhuy258.vintellij.comrade.buffer.NotSupportedByUIDelegateException
+import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
+import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManagerListener
+import com.dinhhuy258.vintellij.comrade.core.ComradeQuickFixParams
+import com.dinhhuy258.vintellij.comrade.core.FUN_SET_INSIGHT
+import com.dinhhuy258.vintellij.comrade.core.MSG_COMRADE_QUICK_FIX
+import com.dinhhuy258.vintellij.comrade.invokeOnMainAndWait
+import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
@@ -12,22 +23,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.util.messages.MessageBusConnection
+import java.util.IdentityHashMap
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin
-import com.dinhhuy258.vintellij.comrade.ComradeScope
-import com.dinhhuy258.vintellij.comrade.buffer.NotSupportedByUIDelegateException
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManagerListener
-import com.dinhhuy258.vintellij.comrade.core.ComradeQuickFixParams
-import com.dinhhuy258.vintellij.comrade.core.FUN_SET_INSIGHT
-import com.dinhhuy258.vintellij.comrade.core.MSG_COMRADE_QUICK_FIX
-import com.dinhhuy258.vintellij.comrade.invokeOnMainAndWait
-import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
-import java.util.*
 
 private const val PROCESS_INTERVAL = 200L
 
@@ -89,10 +89,9 @@ object InsightProcessor : SyncBufferManagerListener, DaemonCodeAnalyzer.DaemonLi
         }
     }
 
-    private fun createInsights(itemMap: Map<Int, InsightItem>) : Map<Int, List<Map<String, Any>>>
-    {
+    private fun createInsights(itemMap: Map<Int, InsightItem>): Map<Int, List<Map<String, Any>>> {
         val ret = mutableMapOf<Int, List<Map<String, Any>>>()
-        itemMap.values.forEach {item ->
+        itemMap.values.forEach { item ->
             val insight = item.toMap()
             val startLine = insight["s_line"] as Int
             if (!ret.containsKey(startLine)) {
@@ -107,7 +106,7 @@ object InsightProcessor : SyncBufferManagerListener, DaemonCodeAnalyzer.DaemonLi
         return ret
     }
 
-    private fun createJobAsync(syncBuffer: SyncBuffer) : Deferred<Unit> {
+    private fun createJobAsync(syncBuffer: SyncBuffer): Deferred<Unit> {
         return ComradeScope.async {
             delay(PROCESS_INTERVAL)
             process(syncBuffer)
@@ -115,8 +114,8 @@ object InsightProcessor : SyncBufferManagerListener, DaemonCodeAnalyzer.DaemonLi
     }
 
     @RequestHandler(MSG_COMRADE_QUICK_FIX)
-    fun comradeQuickFix(params: ComradeQuickFixParams) : String {
-        var failedFix:String? = null
+    fun comradeQuickFix(params: ComradeQuickFixParams): String {
+        var failedFix: String? = null
         invokeOnMainAndWait({
             log.info("comradeQuickFix failed.", it)
         }, {

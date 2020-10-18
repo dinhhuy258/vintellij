@@ -1,17 +1,17 @@
 package com.dinhhuy258.vintellij.comrade.core
 
+import com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin
+import com.dinhhuy258.vintellij.comrade.ComradeNeovimService
+import com.dinhhuy258.vintellij.comrade.ComradeScope
+import com.dinhhuy258.vintellij.comrade.Version
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
-import com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin
-import com.dinhhuy258.vintellij.comrade.ComradeNeovimService
-import com.dinhhuy258.vintellij.comrade.ComradeScope
-import com.dinhhuy258.vintellij.comrade.Version
-import java.util.concurrent.ConcurrentHashMap
 
 object NvimInstanceManager : Disposable {
 
@@ -58,7 +58,7 @@ object NvimInstanceManager : Disposable {
      *
      * @return List of running [NvimInfo] and its connection status.
      */
-    fun list() : List<Pair<NvimInfo, Boolean>> {
+    fun list(): List<Pair<NvimInfo, Boolean>> {
         val instances = instanceMap.toMap()
         return NvimInfoCollector.all.map { Pair(it, instances.containsKey(it)) }
     }
@@ -78,7 +78,7 @@ object NvimInstanceManager : Disposable {
         infoSet.forEach { disconnect(it) }
     }
 
-    private fun isCompatible(nvimInfo: NvimInfo) : Boolean {
+    private fun isCompatible(nvimInfo: NvimInfo): Boolean {
         return Version.major == nvimInfo.majorVersion
     }
 

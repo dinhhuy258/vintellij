@@ -7,12 +7,14 @@ import com.dinhhuy258.vintellij.comrade.core.FUN_COC_AUTOCOMPLETE_CALLBACK
 import com.dinhhuy258.vintellij.comrade.core.NvimInstance
 import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
 import com.dinhhuy258.vintellij.neovim.rpc.Request
-import com.intellij.codeInsight.completion.*
+import com.intellij.codeInsight.completion.CodeCompletionHandlerBase
+import com.intellij.codeInsight.completion.CompletionProgressIndicator
+import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import kotlinx.coroutines.launch
 import java.lang.Thread.sleep
+import kotlinx.coroutines.launch
 
 private val log = Logger.getInstance(SyncBufferManager::class.java)
 
