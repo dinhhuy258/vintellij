@@ -18,3 +18,10 @@ function! vintellij#events#Init() abort
         autocmd InsertLeave * call vintellij#cursor#EchoCursorWarning()
     augroup END
 endfunction
+
+function! vintellij#events#RegisterAutoImportOnCompletionDone() abort
+  augroup vintellij_autoimport_when_completiondone
+    autocmd!
+    autocmd CompleteDone *.{java,kt,kts} call vintellij#autoimport#OnCompletionDone()
+  augroup END
+endfunction

@@ -40,6 +40,7 @@ function! s:VintellijComradeEnable() abort
 
   exe 'py3file' s:init_path
   call vintellij#events#Init()
+  call vintellij#events#RegisterAutoImportOnCompletionDone()
   let &runtimepath .= ',' . s:coc_completion_path
 
   let s:comrade_loaded = v:true
