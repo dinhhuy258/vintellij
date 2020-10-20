@@ -238,42 +238,53 @@ endfunction
 " }
 " Line number is 0 based.
 function! vintellij#SetInsights(channel, buf, insight_map)
-    let l:channel = vintellij#bvar#get(a:buf, 'channel')
-    if l:channel == a:channel
-        call vintellij#bvar#set(a:buf, 'insight_map', a:insight_map)
-        call vintellij#sign#SetSigns(a:buf)
-        call vintellij#highlight#SetHighlights(a:buf)
-    endif
+  let l:channel = vintellij#bvar#get(a:buf, 'channel')
+  if l:channel == a:channel
+    call vintellij#bvar#set(a:buf, 'insight_map', a:insight_map)
+    call vintellij#sign#SetSigns(a:buf)
+    call vintellij#highlight#SetHighlights(a:buf)
+  endif
 endfunction
 
-" Called by python when deoplete wants do completion.
 function! vintellij#RequestCompletion(buf, param)
-    if vintellij#bvar#has(a:buf, 'channel')
-        try
-            let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_complete', a:param])
-            return result
-        catch /./ " The channel has been probably closed
-            call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
-            call vintellij#bvar#remove(a:buf, 'channel')
-        endtry
-    endif
-    return []
+  if vintellij#bvar#has(a:buf, 'channel')
+    try
+      let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_complete', a:param])
+      return result
+    catch /./ " The channel has been probably closed
+      call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
+      call vintellij#bvar#remove(a:buf, 'channel')
+    endtry
+  endif
+
+  return []
+endfunction
+
+function! vintellij#RequestAsyncCompletion(buf, param)
+  if vintellij#bvar#has(a:buf, 'channel')
+    try
+      let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_async_complete', a:param])
+    catch /./ " The channel has been probably closed
+      call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
+      call vintellij#bvar#remove(a:buf, 'channel')
+    endtry
+  endif
 endfunction
 
 function! vintellij#RequestQuickFix(buf, insight, fix) abort
-    if vintellij#bvar#has(a:buf, 'channel')
-        try
-            let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_quick_fix',
-                        \ {'buf' : a:buf, 'insight' : a:insight, 'fix' : a:fix}])
-            if !empty(result)
-                call vintellij#util#TruncatedEcho(result)
-            endif
-        catch /./ " The channel has been probably closed
-            call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
-            call vintellij#bvar#remove(a:buf, 'channel')
-        endtry
+  if vintellij#bvar#has(a:buf, 'channel')
+  try
+    let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_quick_fix',
+          \ {'buf' : a:buf, 'insight' : a:insight, 'fix' : a:fix}])
+    if !empty(result)
+      call vintellij#util#TruncatedEcho(result)
     endif
-    return []
+  catch /./ " The channel has been probably closed
+    call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
+    call vintellij#bvar#remove(a:buf, 'channel')
+  endtry
+  endif
+  return []
 endfunction
 
 let &cpo = s:cpo_save
