@@ -34,7 +34,7 @@ function! s:AddImport(import)
 endfunction
 
 function! s:GoToFile(file, offset)
-  execute 'edit ' . a:file
+  execute 'silent! edit ' . a:file
   execute 'goto ' . a:offset
   call s:DetectKotlinFile(a:file)
 endfunction
