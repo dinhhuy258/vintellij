@@ -132,28 +132,32 @@ function! s:SendRequest(handler, data, ignore_message) abort
 endfunction
 
 function! vintellij#VintellijResponseCallback(data) abort
-  let l:json_data = json_decode(a:data)
-  if !l:json_data.success
-    echo '[vintellij] ' . l:json_data.message
-    return
-  endif
+  try
+    let l:json_data = json_decode(a:data)
+    if !l:json_data.success
+      echo '[vintellij] ' . l:json_data.message
+      return
+    endif
 
-  let l:handler = l:json_data.handler
-  if l:handler ==# 'goto'
-    call s:HandleGoToEvent(l:json_data.data)
-  elseif l:handler ==# 'import'
-    call s:HandleImportEvent(l:json_data.data)
-  elseif l:handler ==# 'find-hierarchy'
-    call s:HandleFindHierarchyEvent(l:json_data.data)
-  elseif l:handler ==# 'find-usage'
-    call s:HandleFindUsageEvent(l:json_data.data)
-  elseif l:handler ==# 'autocomplete'
-    call s:HandleAutocompleteEvent(l:json_data.data)
-  elseif l:handler ==# 'open'
-    call s:HandleOpenEvent(l:json_data.data)
-  else
-    throw '[vintellij] Invalid handler: ' . l:handler
-  endif
+    let l:handler = l:json_data.handler
+    if l:handler ==# 'goto'
+      call s:HandleGoToEvent(l:json_data.data)
+    elseif l:handler ==# 'import'
+      call s:HandleImportEvent(l:json_data.data)
+    elseif l:handler ==# 'find-hierarchy'
+      call s:HandleFindHierarchyEvent(l:json_data.data)
+    elseif l:handler ==# 'find-usage'
+      call s:HandleFindUsageEvent(l:json_data.data)
+    elseif l:handler ==# 'autocomplete'
+      call s:HandleAutocompleteEvent(l:json_data.data)
+    elseif l:handler ==# 'open'
+      call s:HandleOpenEvent(l:json_data.data)
+    else
+      throw '[vintellij] Invalid handler: ' . l:handler
+    endif
+  catch /.*/
+    echo "Error during vintellij response callback: " . v:exception
+  endtry
 endfunction
 
 function! vintellij#GoToDefinition() abort
