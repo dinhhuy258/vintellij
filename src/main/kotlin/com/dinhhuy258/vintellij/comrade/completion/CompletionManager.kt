@@ -16,84 +16,140 @@ import com.intellij.openapi.diagnostic.Logger
 import java.lang.Thread.sleep
 import kotlinx.coroutines.launch
 
-private val log = Logger.getInstance(SyncBufferManager::class.java)
-
-class CompletionManager(private val bufManager: SyncBufferManager) {
-    companion object {
-        private const val ACCEPTABLE_NUM_CANDIDATES = 20
-    }
-
-    private class Results {
-
-        private var candidates = mutableListOf<Map<String, String>>()
-
-        @Synchronized
-        fun add(candidate: Candidate) {
-            candidates.add(candidate.toMap())
-        }
-
-        @Synchronized
-        private fun retrieve(): List<Map<String, String>> {
-            val ret = candidates.toList()
-            candidates.clear()
-            return ret
-        }
-
-        fun toResponseArgs(): Map<Any, Any> {
-            return mapOf("candidates" to retrieve())
-        }
-
-        companion object {
-            val EMPTY = Results()
-        }
-    }
+class CompletionManager(private val nvimInstance: NvimInstance, private val bufManager: SyncBufferManager) {
+    private val logger = Logger.getInstance(CompletionManager::class.java)
 
     @Volatile
-    private var results: Results = Results.EMPTY
+    private var completionResult: CompletionResult = AsyncCompletionResult()
 
     @RequestHandler("comrade_complete")
-    fun intellijComplete(req: Request) {
-        val tmpResults = Results()
-        results = tmpResults
+    fun intellijComplete(request: Request): Map<Any, Any> {
+        val requestArgs = request.args.first() as Map<*, *>
+        if (requestArgs["new_request"] as Boolean) {
+            val tempCompletionResult = SyncCompletionResult()
+            completionResult = tempCompletionResult
+            ApplicationManager.getApplication().invokeLater {
+                try {
+                    doSyncComplete(request, tempCompletionResult)
+                } catch (t: Throwable) {
+                    logger.warn("Completion failed.", t)
+                } finally {
+                    tempCompletionResult.isFinished = true
+                }
+            }
+        }
 
-        val map = req.args.first() as Map<*, *>
+        return completionResult.toResponseArgs()
+    }
+
+    @RequestHandler("comrade_async_complete")
+    fun intellijAsyncComplete(request: Request) {
+        val tempCompletionResult = AsyncCompletionResult()
+        completionResult = tempCompletionResult
+
+        val requestArgs = request.args.first() as Map<*, *>
+        val bufId = requestArgs["buf_id"] as Int
+        val row = requestArgs["row"] as Int
+        val col = requestArgs["col"] as Int
+        var acceptableNumOfCandidates = requestArgs["acceptable_num_candidates"] as Int
+        if (acceptableNumOfCandidates <= 0) {
+            acceptableNumOfCandidates = Int.MAX_VALUE
+        }
+
+        val syncedBuf = bufManager.findBufferById(bufId) ?: throw IllegalStateException()
+
+        doAsyncComplete(syncedBuf, row, col, acceptableNumOfCandidates, tempCompletionResult)
+    }
+
+    private fun doSyncComplete(request: Request, completionResult: SyncCompletionResult) {
+        val map = request.args.first() as Map<*, *>
         val bufId = map["buf_id"] as Int
         val row = map["row"] as Int
         val col = map["col"] as Int
 
         val syncedBuf = bufManager.findBufferById(bufId) ?: throw IllegalStateException()
+        syncedBuf.moveCaretToPosition(row, col)
+        // We need the real editor instead of the delegate here since the completion needs caret.
+        val editor = syncedBuf.editor.editor
 
-        try {
-            scheduleAsyncCompletion(syncedBuf, row, col)
-            val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator()
-            // Wait until completion begins
-            while (indicator.parameters == null && results == this.results) {
-                sleep(50)
+        // Stop the running completion
+        CompletionServiceImpl.getCurrentCompletionProgressIndicator()?.closeAndFinish(false)
+        val handler = CodeCompletionHandler {
+            it.forEach { lookupElement ->
+                val candidate = Candidate(lookupElement)
+                if (candidate.valuable) {
+                    completionResult.add(candidate)
+                }
             }
-            getCompletionResult(syncedBuf.nvimInstance, indicator, tmpResults)
-        } catch (e: Exception) {
-            log.warn("Completion failed")
+        }
+
+        handler.invokeCompletion(syncedBuf.project, editor)
+    }
+
+    private fun doAsyncComplete(
+        syncedBuf: SyncBuffer,
+        row: Int,
+        col: Int,
+        acceptableNumOfCandidates: Int,
+        completionResult: AsyncCompletionResult
+    ) {
+        scheduleAsyncCompletion(syncedBuf, row, col)
+
+        val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator() ?: return
+        // Wait until completion begins
+        while (indicator.parameters == null && completionResult == this.completionResult) {
+            sleep(50)
+        }
+
+        getCompletionResult(indicator, acceptableNumOfCandidates, completionResult)
+    }
+
+    private fun scheduleAsyncCompletion(syncedBuf: SyncBuffer, row: Int, col: Int) {
+        ApplicationManager.getApplication().invokeAndWait {
+            try {
+                syncedBuf.moveCaretToPosition(row, col)
+                val editor = syncedBuf.editor.editor
+
+                // Stop the running completion
+                CompletionServiceImpl.getCurrentCompletionProgressIndicator()?.closeAndFinish(false)
+
+                val handler = CodeCompletionHandlerBase(CompletionType.BASIC, false, false, false)
+                handler.invokeCompletion(syncedBuf.project, editor)
+            } catch (t: Throwable) {
+                logger.warn("Completion failed.", t)
+            }
         }
     }
 
-    private fun getCompletionResult(nvimInstance: NvimInstance, indicator: CompletionProgressIndicator, results: Results) {
-        if (results != this.results) {
+    private fun getCompletionResult(
+        indicator: CompletionProgressIndicator,
+        acceptableNumOfCandidates: Int,
+        completionResult: AsyncCompletionResult
+    ) {
+        if (completionResult != this.completionResult) {
             return
         }
         ApplicationManager.getApplication().invokeLater {
-            while (indicator.isRunning &&
-                    !indicator.isCanceled &&
-                    indicator.lookup.arranger.matchingItems.size < ACCEPTABLE_NUM_CANDIDATES &&
-                    results == this.results) {
-                sleep(50)
-            }
-            if (results == this.results) {
-                onIndicatorCompletionFinish(indicator, nvimInstance, results)
+            try {
+                while (indicator.isRunning &&
+                        !indicator.isCanceled &&
+                        indicator.lookup.arranger.matchingItems.size < acceptableNumOfCandidates &&
+                        completionResult == this.completionResult) {
+                    sleep(50)
+                }
+                if (completionResult == this.completionResult) {
+                    onIndicatorCompletionFinish(indicator, completionResult)
+                }
+            } catch (t: Throwable) {
+                logger.warn("Completion failed.", t)
             }
         }
     }
 
-    private fun onIndicatorCompletionFinish(indicator: CompletionProgressIndicator, nvimInstance: NvimInstance, results: Results) {
+    private fun onIndicatorCompletionFinish(
+        indicator: CompletionProgressIndicator,
+        completionResult: AsyncCompletionResult
+    ) {
         val lookupArranger = indicator.lookup?.arranger ?: return
         val matchingItems = lookupArranger.matchingItems
         if (matchingItems.isEmpty()) {
@@ -103,27 +159,15 @@ class CompletionManager(private val bufManager: SyncBufferManager) {
         matchingItems.forEach { lookupElement ->
             val candidate = Candidate(lookupElement)
             if (candidate.valuable) {
-                results.add(candidate)
+                completionResult.add(candidate)
             }
         }
 
-        if (results == this.results) {
+        if (completionResult == this.completionResult) {
             ComradeScope.launch {
                 nvimInstance.client.api.callFunction(FUN_COC_AUTOCOMPLETE_CALLBACK,
-                        listOf(results.toResponseArgs()))
+                        listOf(completionResult.toResponseArgs()))
             }
-        }
-    }
-
-    private fun scheduleAsyncCompletion(syncedBuf: SyncBuffer, row: Int, col: Int) {
-        ApplicationManager.getApplication().invokeAndWait {
-            syncedBuf.moveCaretToPosition(row, col)
-            val editor = syncedBuf.editor.editor
-
-            // Stop the running completion
-            CompletionServiceImpl.getCurrentCompletionProgressIndicator()?.closeAndFinish(false)
-            val handler = CodeCompletionHandlerBase(CompletionType.BASIC, false, false, false)
-            handler.invokeCompletion(syncedBuf.project, editor)
         }
     }
 }

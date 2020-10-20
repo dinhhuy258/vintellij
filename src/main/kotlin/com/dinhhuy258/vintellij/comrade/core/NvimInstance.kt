@@ -36,7 +36,7 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
         client.api.command("echom \"ComradeNeovim connected. ID: ${apiInfo.channelId}\"")
 
         client.registerHandler(bufManager)
-        client.registerHandler(CompletionManager(bufManager))
+        client.registerHandler(CompletionManager(this, bufManager))
         client.registerHandler(InsightProcessor)
         client.registerHandler(VintellijManager(this))
         log.info("NvimInstance has been created for connection '$connection'")
