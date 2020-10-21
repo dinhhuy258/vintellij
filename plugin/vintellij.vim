@@ -12,8 +12,10 @@ if get(g:, 'vintellij_use_default_keymap', 1) == 1
   nnoremap <Leader>ci :VintellijSuggestImports<CR>
 endif
 
-autocmd FileType kotlin set omnifunc=vintellij#Autocomplete
-autocmd FileType java set omnifunc=vintellij#Autocomplete
+if get(g:, 'huy_duong_workspace', 0) == 1
+  let g:vintellij_acceptable_num_candidates = 15
+endif
+
 
 "=============================================================================
 " AUTHOR:  beeender <chenmulong at gmail.com>
@@ -30,7 +32,6 @@ let g:comrade_enabled = get(g:, 'comrade_enabled', v:false)
 
 let s:path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 let s:init_path = s:path . '/vintellij_init.py'
-let s:coc_completion_path = s:path . '/../coc-vintellij'
 
 function! s:VintellijComradeEnable() abort
   if exists('s:comrade_loaded')
@@ -41,7 +42,6 @@ function! s:VintellijComradeEnable() abort
   exe 'py3file' s:init_path
   call vintellij#events#Init()
   call vintellij#events#RegisterAutoImportOnCompletionDone()
-  let &runtimepath .= ',' . s:coc_completion_path
 
   let s:comrade_loaded = v:true
   echomsg "Vintellij comrade: ON"
