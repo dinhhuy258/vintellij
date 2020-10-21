@@ -42,7 +42,9 @@ java {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
+    version = "IU-202.6397.94"
+    updateSinceUntilBuild = false
+
     // See https://plugins.jetbrains.com/plugin/6954-kotlin/versions/stable
     setPlugins("java", "org.jetbrains.kotlin:1.4.10-release-IJ2020.2-1")
-    version = "2020.2"
 }

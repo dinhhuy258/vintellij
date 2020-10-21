@@ -9,6 +9,9 @@
         The intellij plugin which is used as a language server protocol
     </description>
 
+    <!-- please see http://confluence.jetbrains.com/display/IDEADEV/Build+Number+Ranges for description -->
+    <idea-version since-build="201.6668"/>
+
     <!-- Enable plugin in all products -->
     <depends>com.intellij.modules.lang</depends>
     <depends>com.intellij.modules.platform</depends>
