@@ -39,7 +39,11 @@ class CompletionManager(private val nvimInstance: NvimInstance, private val bufM
             }
         }
 
-        return completionResult.toResponseArgs()
+        if (completionResult is SyncCompletionResult) {
+            return completionResult.toResponseArgs()
+        }
+
+        return SyncCompletionResult.EMPTY.toResponseArgs()
     }
 
     @RequestHandler("comrade_async_complete")

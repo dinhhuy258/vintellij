@@ -139,7 +139,7 @@ class SyncBuffer(
     }
 
     private fun checkReleased() {
-        if (isReleased) throw IllegalStateException("This SyncBuffer has been released already.")
+        if (isReleased) throw IllegalStateException("This SyncBuffer has been released already: $path")
     }
 
     override fun toString(): String {

@@ -26,6 +26,9 @@ class AsyncCompletionResult : CompletionResult() {
 }
 
 class SyncCompletionResult(@Volatile var isFinished: Boolean = false) : CompletionResult() {
+    companion object {
+        val EMPTY = SyncCompletionResult(true)
+    }
     override fun toResponseArgs(): Map<Any, Any> {
         return mapOf("is_finished" to isFinished, "candidates" to retrieve())
     }
