@@ -25,6 +25,7 @@ dependencies {
     compile("org.msgpack", "jackson-dataformat-msgpack", "0.8.16")
     compile("com.fasterxml.jackson.module", "jackson-module-kotlin", "2.9.8")
     compile("org.scala-sbt.ipcsocket", "ipcsocket", "1.0.0")
+    compile("org.eclipse.lsp4j", "org.eclipse.lsp4j", "0.9.0")
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7")
 }
