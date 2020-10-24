@@ -15,7 +15,7 @@ import org.eclipse.lsp4j.Position
 private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 15
 
 @Volatile
-private var currentCompletionItems = ArrayList<CompletionItem>()
+private var currentCompletionList = CompletionList()
 
 private val logger = Logger.getInstance("COMPLETION")
 
@@ -24,25 +24,26 @@ fun doCompletion(buffer: Buffer?, position: Position): CompletionList {
         return CompletionList(false, emptyList())
     }
 
-    val completionItems = ArrayList<CompletionItem>()
-    currentCompletionItems = completionItems
+    val completionList = CompletionList()
+    completionList.setIsIncomplete(false)
+    currentCompletionList = completionList
 
-    doAsyncComplete(buffer, position, completionItems)
+    doAsyncComplete(buffer, position, completionList)
 
-    return CompletionList(true, completionItems)
+    return completionList
 }
 
 @Synchronized
-private fun doAsyncComplete(buffer: Buffer, position: Position, completionItems: ArrayList<CompletionItem>) {
+private fun doAsyncComplete(buffer: Buffer, position: Position, completionList: CompletionList) {
     scheduleAsyncCompletion(buffer, position)
 
     val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator() ?: return
     // Wait until completion begins
-    while (indicator.parameters == null && completionItems == currentCompletionItems) {
+    while (indicator.parameters == null && completionList == currentCompletionList) {
         Thread.sleep(50)
     }
 
-    getCompletionResult(indicator, completionItems)
+    getCompletionResult(indicator, completionList)
 }
 
 private fun scheduleAsyncCompletion(buffer: Buffer, position: Position) {
@@ -64,9 +65,9 @@ private fun scheduleAsyncCompletion(buffer: Buffer, position: Position) {
 
 private fun getCompletionResult(
     indicator: CompletionProgressIndicator,
-    completionItems: ArrayList<CompletionItem>
+    completionList: CompletionList
 ) {
-    if (completionItems != currentCompletionItems) {
+    if (completionList != currentCompletionList) {
         return
     }
 
@@ -75,12 +76,12 @@ private fun getCompletionResult(
             while (indicator.isRunning &&
                     !indicator.isCanceled &&
                     indicator.lookup.arranger.matchingItems.size < ACCEPTABLE_NUM_OF_COMPLETION_ITEMS &&
-                    completionItems == currentCompletionItems) {
+                    completionList == currentCompletionList) {
                 Thread.sleep(50)
             }
 
-            if (completionItems == currentCompletionItems) {
-                onIndicatorCompletionFinish(indicator, completionItems)
+            if (completionList == currentCompletionList) {
+                onIndicatorCompletionFinish(indicator, completionList)
             }
         } catch (t: Throwable) {
             logger.warn("Completion failed.", t)
@@ -90,7 +91,7 @@ private fun getCompletionResult(
 
 private fun onIndicatorCompletionFinish(
     indicator: CompletionProgressIndicator,
-    completionResult: ArrayList<CompletionItem>
+    completionList: CompletionList
 ) {
     val lookupArranger = indicator.lookup?.arranger ?: return
     val matchingItems = lookupArranger.matchingItems
@@ -98,10 +99,16 @@ private fun onIndicatorCompletionFinish(
         return
     }
 
+    val completionItems = ArrayList<CompletionItem>()
     matchingItems.forEach { lookupElement ->
         val candidate = Candidate(lookupElement)
         if (candidate.valuable) {
-            completionResult.add(CompletionItem(candidate.itemText))
+            completionItems.add(CompletionItem(candidate.itemText))
         }
+    }
+
+    if (completionList == currentCompletionList) {
+        completionList.setIsIncomplete(indicator.isRunning)
+        completionList.items = completionItems
     }
 }
