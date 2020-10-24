@@ -51,8 +51,7 @@ fun uriToPath(uri: String): String {
     val isWindowsPath = """^file:/+\w:""".toRegex().containsMatchIn(newUri)
     return if (isWindowsPath) {
         Paths.get("^file:/+".toRegex().replace(newUri, "")).toString().replace("\\", "/")
-    }
-    else {
+    } else {
         "^file:/+".toRegex().replace(newUri, "/")
     }
 }

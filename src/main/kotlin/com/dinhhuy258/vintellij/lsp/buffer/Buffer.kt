@@ -1,7 +1,5 @@
 package com.dinhhuy258.vintellij.lsp.buffer
 
-import com.dinhhuy258.vintellij.comrade.buffer.BufferNotInProjectException
-import com.dinhhuy258.vintellij.comrade.buffer.EditorDelegate
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.LogicalPosition
@@ -72,7 +70,11 @@ class Buffer(private val path: String, private val project: Project) {
         return document
     }
 
-    private fun navigate() {
+    fun getProject(): Project {
+        return project
+    }
+
+    fun navigate() {
         val selectedFiles = fileEditorManager.selectedFiles
         if (selectedFiles.isEmpty() || selectedFiles.first() != psiFile.virtualFile) {
             OpenFileDescriptor(project, psiFile.virtualFile).navigate(false)

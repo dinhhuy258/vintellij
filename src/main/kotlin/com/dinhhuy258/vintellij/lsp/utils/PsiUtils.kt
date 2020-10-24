@@ -12,4 +12,3 @@ fun Range.toTextRange(document: Document) =
                 this.start.toOffset(document),
                 this.end.toOffset(document)
         )
-

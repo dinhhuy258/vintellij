@@ -1,10 +1,9 @@
 package com.dinhhuy258.vintellij.lsp.utils
 
-import java.time.Duration
-import java.util.function.Supplier
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.function.Supplier
 
 private var threadCount = 0
 
@@ -33,4 +32,3 @@ class AsyncExecutor {
         }
     }
 }
-

@@ -3,6 +3,8 @@ package com.dinhhuy258.vintellij.lsp
 import com.dinhhuy258.vintellij.utils.getProject
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedFuture
 import org.eclipse.lsp4j.CodeLensOptions
 import org.eclipse.lsp4j.CompletionOptions
 import org.eclipse.lsp4j.ExecuteCommandOptions
@@ -13,16 +15,18 @@ import org.eclipse.lsp4j.ServerCapabilities
 import org.eclipse.lsp4j.TextDocumentSyncKind
 import org.eclipse.lsp4j.TextDocumentSyncOptions
 import org.eclipse.lsp4j.jsonrpc.messages.Either
-import org.eclipse.lsp4j.services.*
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletableFuture.completedFuture
+import org.eclipse.lsp4j.services.LanguageClient
+import org.eclipse.lsp4j.services.LanguageClientAware
+import org.eclipse.lsp4j.services.LanguageServer
+import org.eclipse.lsp4j.services.TextDocumentService
+import org.eclipse.lsp4j.services.WorkspaceService
 
 class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     private var client: LanguageClient? = null
 
     private var project: Project? = null
 
-    private val workspaceService = VintellijWorkspaceService(this)
+    private val workspaceService = VintellijWorkspaceService()
 
     private val textDocumentService = VintellijTextDocumentService(this)
 
@@ -55,10 +59,11 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         textDocumentSync = Either.forRight(TextDocumentSyncOptions().apply {
             openClose = true
             change = TextDocumentSyncKind.Incremental
-            save = SaveOptions(true)
+            save = SaveOptions(false)
+            willSave = true
         })
         hoverProvider = true
-        completionProvider = CompletionOptions(true, listOf(".", "@", "#"))
+        completionProvider = CompletionOptions(true, listOf("."))
         signatureHelpProvider = null
         definitionProvider = true
         typeDefinitionProvider = Either.forLeft(false)

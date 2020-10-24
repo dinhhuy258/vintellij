@@ -14,6 +14,8 @@ class BufferManager(private val languageServer: VintellijLanguageServer) {
         ApplicationManager.getApplication().invokeLater {
             if (bufferMap[path] == null) {
                 bufferMap[path] = Buffer(path, project)
+            } else {
+                bufferMap[path]?.navigate()
             }
         }
     }

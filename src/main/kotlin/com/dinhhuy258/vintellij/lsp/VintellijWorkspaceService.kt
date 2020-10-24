@@ -4,7 +4,7 @@ import org.eclipse.lsp4j.DidChangeConfigurationParams
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams
 import org.eclipse.lsp4j.services.WorkspaceService
 
-class VintellijWorkspaceService(val languageServer: VintellijLanguageServer): WorkspaceService {
+class VintellijWorkspaceService() : WorkspaceService {
     override fun didChangeConfiguration(params: DidChangeConfigurationParams) {
     }
 
