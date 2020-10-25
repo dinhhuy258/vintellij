@@ -1,6 +1,10 @@
 package com.dinhhuy258.vintellij.lsp
 
+import com.dinhhuy258.vintellij.comrade.core.NvimInfoCollector
+import com.dinhhuy258.vintellij.comrade.core.NvimInstance
+import com.dinhhuy258.vintellij.comrade.core.NvimInstanceManager
 import com.dinhhuy258.vintellij.utils.getProject
+import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
@@ -10,7 +14,6 @@ import org.eclipse.lsp4j.CompletionOptions
 import org.eclipse.lsp4j.ExecuteCommandOptions
 import org.eclipse.lsp4j.InitializeParams
 import org.eclipse.lsp4j.InitializeResult
-import org.eclipse.lsp4j.SaveOptions
 import org.eclipse.lsp4j.ServerCapabilities
 import org.eclipse.lsp4j.TextDocumentSyncKind
 import org.eclipse.lsp4j.TextDocumentSyncOptions
@@ -26,6 +29,8 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     private var project: Project? = null
 
+    private var nvimInstance: NvimInstance? = null
+
     private val workspaceService = VintellijWorkspaceService()
 
     private val textDocumentService = VintellijTextDocumentService(this)
@@ -34,6 +39,11 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         return CompletableFuture.supplyAsync {
             ApplicationManager.getApplication().invokeAndWait {
                 project = getProject(params.rootUri)
+                val nvimInfo = NvimInfoCollector.getNvimInfo(uriToPath(params.rootUri))
+                if (nvimInfo != null) {
+                    nvimInstance = NvimInstanceManager.connect(nvimInfo)
+                }
+                // TODO: Handle the case when NvimInfo not found
             }
 
             InitializeResult(getServerCapabilities())
@@ -58,11 +68,10 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     private fun getServerCapabilities() = ServerCapabilities().apply {
         textDocumentSync = Either.forRight(TextDocumentSyncOptions().apply {
             openClose = true
-            change = TextDocumentSyncKind.Incremental
-            save = SaveOptions(false)
-            willSave = true
+            change = TextDocumentSyncKind.None
+            willSave = false
         })
-        hoverProvider = true
+        hoverProvider = false
         completionProvider = CompletionOptions(true, listOf("."))
         signatureHelpProvider = null
         definitionProvider = true
@@ -74,8 +83,8 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         workspaceSymbolProvider = true
         codeActionProvider = Either.forLeft(false)
         codeLensProvider = CodeLensOptions(false)
-        documentFormattingProvider = true
-        documentRangeFormattingProvider = true
+        documentFormattingProvider = false
+        documentRangeFormattingProvider = false
         documentOnTypeFormattingProvider = null
         renameProvider = Either.forLeft(false)
         documentLinkProvider = null
@@ -85,5 +94,9 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     fun getProject(): Project? {
         return project
+    }
+
+    fun getNvimInstance(): NvimInstance? {
+        return nvimInstance
     }
 }

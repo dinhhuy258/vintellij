@@ -77,6 +77,17 @@ internal object NvimInfoCollector {
             return backingAll
         }
 
+    fun getNvimInfo(startDir: String): NvimInfo? {
+        watchPath.toFile().walk().forEach { file ->
+            val nvimInfo = parseInfoFile(file)
+            if (nvimInfo?.startDir.equals(startDir)) {
+                return nvimInfo
+            }
+        }
+
+        return null
+    }
+
     fun start(callback: (NvimInfo) -> Unit) {
         if (started) throw IllegalStateException("NvimInfoCollector has been started already.")
         started = true
@@ -128,9 +139,10 @@ internal object NvimInfoCollector {
         val version = lines[1]
         val startDir = lines[2]
 
-        if (all.firstOrNull { it.pid == pid } != null) {
+        val existingNvimInfo = all.firstOrNull { it.pid == pid }
+        if (existingNvimInfo != null) {
             log.warn("NvimInfo with pid '$pid' has been discovered before.")
-            return null
+            return existingNvimInfo
         }
 
         val info = NvimInfo(pid, address, version, startDir)

@@ -1,6 +1,5 @@
 package com.dinhhuy258.vintellij.comrade.core
 
-import com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin
 import com.dinhhuy258.vintellij.comrade.ComradeNeovimService
 import com.dinhhuy258.vintellij.comrade.ComradeScope
 import com.dinhhuy258.vintellij.comrade.Version
@@ -17,15 +16,6 @@ object NvimInstanceManager : Disposable {
 
     private val instanceMap = ConcurrentHashMap<NvimInfo, NvimInstance>()
     private val log = Logger.getInstance(NvimInfoCollector::class.java)
-
-    /**
-     * Start monitoring nvim instances.
-     */
-    fun start() {
-        NvimInfoCollector.start {
-            if (ComradeNeovimPlugin.autoConnect) connect(it)
-        }
-    }
 
     /**
      * Stop monitoring nvim instances and close all the nvim connections.
@@ -63,21 +53,6 @@ object NvimInstanceManager : Disposable {
         return NvimInfoCollector.all.map { Pair(it, instances.containsKey(it)) }
     }
 
-    /**
-     * Try to connect to all running nvim instances.
-     */
-    fun connectAll() {
-        NvimInfoCollector.all.forEach { connect(it) }
-    }
-
-    /**
-     * Disconnect from any nvim instances.
-     */
-    fun disconnectAll() {
-        val infoSet = instanceMap.keys
-        infoSet.forEach { disconnect(it) }
-    }
-
     private fun isCompatible(nvimInfo: NvimInfo): Boolean {
         return Version.major == nvimInfo.majorVersion
     }
@@ -85,14 +60,14 @@ object NvimInstanceManager : Disposable {
     /**
      * Connect to the given nvim.
      */
-    fun connect(nvimInfo: NvimInfo) {
-        if (instanceMap.containsKey(nvimInfo)) return
+    fun connect(nvimInfo: NvimInfo): NvimInstance? {
+        if (instanceMap.containsKey(nvimInfo)) return null
         if (!isCompatible(nvimInfo)) {
             ComradeNeovimService.instance.showBalloon(
                     "Failed to connect to Neovim instance ${nvimInfo.address}.\n" +
                             "Incompatible FatBrain version '${nvimInfo.versionString}'",
                     NotificationType.ERROR)
-            return
+            return null
         }
 
         val address = nvimInfo.address
@@ -115,11 +90,14 @@ object NvimInstanceManager : Disposable {
                         NotificationType.INFORMATION)
             }
             log.info("Try to connect to Neovim instance '$nvimInfo'.")
+
+            return instance
         } catch (t: Throwable) {
             log.warn("Failed to create Neovim instance for $nvimInfo", t)
-            val toDispose = instanceMap.remove(nvimInfo) ?: return
+            val toDispose = instanceMap.remove(nvimInfo) ?: return null
             Disposer.dispose(toDispose)
         }
+        return null
     }
 
     /**

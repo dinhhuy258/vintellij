@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     companion object {
         val TOPIC = Topic<SyncBufferManagerListener>(
-            "SyncBuffer related events", SyncBufferManagerListener::class.java)
+                "SyncBuffer related events", SyncBufferManagerListener::class.java)
         private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(TOPIC)
         private val allBuffers = newConcurrentSet<SyncBuffer>()
 
@@ -47,6 +47,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     // Although this is a ConcurrentHashMap, all create/delete SyncBuffer operations still have to be happened on the
     // UI thread.
     private val bufferMap = ConcurrentHashMap<Int, SyncBuffer>()
+    private val bufferPathMap = ConcurrentHashMap<String, SyncBuffer>()
     private val client = nvimInstance.client
 
     init {
@@ -55,6 +56,10 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
 
     fun findBufferById(id: Int): SyncBuffer? {
         return bufferMap[id]
+    }
+
+    fun findBufferByPath(path: String): SyncBuffer? {
+        return bufferPathMap[path]
     }
 
     suspend fun loadCurrentBuffer() {
@@ -80,10 +85,11 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
                 return
             }
             bufferMap[bufId] = syncedBuffer
+            bufferPathMap[syncedBuffer.path] = syncedBuffer
             allBuffers.add(syncedBuffer)
             val synchronizer = Synchronizer(syncedBuffer)
             synchronizer.exceptionHandler = {
-                    t ->
+                t ->
                 log.warn("Error happened when synchronize buffers.", t)
                 invokeOnMainAndWait { releaseBuffer(syncedBuffer) }
                 ComradeScope.launch {
@@ -95,7 +101,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
         }
 
         syncedBuffer.navigate()
-        if (!syncedBuffer.isReleased && syncedBuffer.isSynchronizable) {
+        if (!syncedBuffer.isReleased) {
             publisher.bufferCreated(syncedBuffer)
         }
     }
@@ -103,6 +109,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     fun releaseBuffer(syncBuffer: SyncBuffer) {
         log.debug("releaseBuffer $syncBuffer")
         ApplicationManager.getApplication().assertIsDispatchThread()
+        bufferPathMap.remove(syncBuffer.path)
         val bufferInMap = bufferMap.remove(syncBuffer.id) != null
         allBuffers.remove(syncBuffer)
         syncBuffer.release()
@@ -115,6 +122,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
         val list = bufferMap.map { it.value }
         allBuffers.removeAll(bufferMap.values)
         bufferMap.clear()
+        bufferPathMap.clear()
         ApplicationManager.getApplication().invokeLater {
             list.forEach {
                 releaseBuffer(it)

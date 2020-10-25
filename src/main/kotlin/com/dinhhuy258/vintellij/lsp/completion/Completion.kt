@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.lsp.completion
 
+import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
 import com.dinhhuy258.vintellij.comrade.completion.Candidate
-import com.dinhhuy258.vintellij.lsp.buffer.Buffer
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase
 import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionType
@@ -19,7 +19,7 @@ private var currentCompletionList = CompletionList()
 
 private val logger = Logger.getInstance("COMPLETION")
 
-fun doCompletion(buffer: Buffer?, position: Position): CompletionList {
+fun doCompletion(buffer: SyncBuffer?, position: Position): CompletionList {
     if (buffer == null) {
         return CompletionList(false, emptyList())
     }
@@ -34,7 +34,7 @@ fun doCompletion(buffer: Buffer?, position: Position): CompletionList {
 }
 
 @Synchronized
-private fun doAsyncComplete(buffer: Buffer, position: Position, completionList: CompletionList) {
+private fun doAsyncComplete(buffer: SyncBuffer, position: Position, completionList: CompletionList) {
     scheduleAsyncCompletion(buffer, position)
 
     val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator() ?: return
@@ -46,7 +46,7 @@ private fun doAsyncComplete(buffer: Buffer, position: Position, completionList: 
     getCompletionResult(indicator, completionList)
 }
 
-private fun scheduleAsyncCompletion(buffer: Buffer, position: Position) {
+private fun scheduleAsyncCompletion(buffer: SyncBuffer, position: Position) {
     ApplicationManager.getApplication().invokeAndWait {
         try {
             buffer.moveCaretToPosition(position.line, position.character)
@@ -56,7 +56,7 @@ private fun scheduleAsyncCompletion(buffer: Buffer, position: Position) {
             CompletionServiceImpl.getCurrentCompletionProgressIndicator()?.closeAndFinish(false)
 
             val handler = CodeCompletionHandlerBase(CompletionType.BASIC, false, false, false)
-            handler.invokeCompletion(buffer.getProject(), editor)
+            handler.invokeCompletion(buffer.project, editor)
         } catch (t: Throwable) {
             logger.warn("Completion failed.", t)
         }

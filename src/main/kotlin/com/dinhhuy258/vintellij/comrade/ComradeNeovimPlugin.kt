@@ -57,20 +57,6 @@ class ComradeNeovimPlugin : BaseComponent, PersistentStateComponent<Settings>, D
         val instance: ComradeNeovimPlugin by lazy {
             ApplicationManager.getApplication().getComponent(ComradeNeovimPlugin::class.java)
         }
-
-        var autoConnect: Boolean
-            get() { return instance.settings.autoConnect }
-            set(value) {
-                if (value) {
-                    instance.settings.autoConnect = true
-                    NvimInstanceManager.connectAll()
-                } else {
-                    instance.settings.autoConnect = false
-                }
-            }
-        var showEditorInSync: Boolean
-            get() { return instance.settings.showEditorInSync }
-            set(value) { instance.settings.showEditorInSync = value }
     }
 
     private var settings = Settings()
@@ -95,7 +81,6 @@ class ComradeNeovimPlugin : BaseComponent, PersistentStateComponent<Settings>, D
 
     override fun initComponent() {
         job = Job()
-        NvimInstanceManager.start()
         Disposer.register(this, NvimInstanceManager)
         msgBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
         msgBusConnection.subscribe(ProjectManager.TOPIC, projectManagerListener)
