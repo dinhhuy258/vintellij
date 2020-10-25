@@ -8,7 +8,7 @@ import vim
 
 from pathlib import Path
 
-CONFIG_DIR = os.path.join(Path.home(), ".ComradeNeovim")
+CONFIG_DIR = os.path.join(Path.home(), ".vintellij")
 
 def pid_exists_unix(pid):
     try:
@@ -65,11 +65,11 @@ def init():
     # Use PID as the file name
     pid = vim.funcs.getpid()
     addr = os.getenv("NVIM_LISTEN_ADDRESS")
-    version = vim.vars['comrade_version']
     cwd = os.getcwd()
+    project_name = cwd.split("/")[-1]
     with open(os.path.join(CONFIG_DIR, f"{pid}"), "w") as pid_file:
         pid_file.write(addr + "\n")
-        pid_file.write(version + "\n")
+        pid_file.write(project_name + "\n")
         pid_file.write(cwd)
 
 

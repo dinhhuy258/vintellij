@@ -9,31 +9,23 @@ command! VintellijFindUsage call vintellij#FindUsage()
 " License: GPLv3
 "=============================================================================
 
-let s:comrade_major_version = 1
-let s:comrade_minor_version = 0
-let s:comrade_patch_version = 0
-let g:comrade_version = s:comrade_major_version .
-      \ '.' . s:comrade_minor_version .
-      \ '.' . s:comrade_patch_version
-let g:comrade_enabled = get(g:, 'comrade_enabled', v:false)
-
 let s:path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 let s:init_path = s:path . '/vintellij_init.py'
 
 function! s:VintellijComradeEnable() abort
-  if exists('s:comrade_loaded')
-    echomsg "Vintellij comrade was already loaded"
+  if exists('s:vintellij_loaded')
+    echomsg "Vintellij was already loaded"
     return
   endif
 
-  let s:comrade_loaded = 1
+  let s:vintellij_loaded = 1
 
   exe 'py3file' s:init_path
   call vintellij#events#Init()
   call vintellij#events#RegisterAutoImportOnCompletionDone()
 
-  let s:comrade_loaded = v:true
-  echomsg "Vintellij comrade: ON"
+  let s:vintellij_loaded = v:true
+  echomsg "Vintellij loaded"
 endfunction
 
 call <SID>VintellijComradeEnable()
@@ -52,6 +44,3 @@ if get(g:, 'vintellij_use_default_keymap', 1) == 1
   nnoremap g] :VintellijNextInsight<CR>
 endif
 
-if get(g:, 'huy_duong_workspace', 0) == 1
-  let g:vintellij_acceptable_num_candidates = 15
-endif

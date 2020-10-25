@@ -15,7 +15,7 @@ function! vintellij#jetbrain#Channels()
         endif
 
         let l:client = l:channel['client']
-        if has_key(l:client, 'name') && l:client['name'] ==# 'ComradeNeovim'
+        if has_key(l:client, 'name') && l:client['name'] ==# 'Vintellij'
             let list = add(list, l:channel['id'])
         endif
     endfor
