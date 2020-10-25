@@ -2,7 +2,6 @@ package com.dinhhuy258.vintellij.comrade.core
 
 import com.dinhhuy258.vintellij.comrade.ComradeNeovimService
 import com.dinhhuy258.vintellij.comrade.ComradeScope
-import com.dinhhuy258.vintellij.comrade.Version
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.diagnostic.Logger
@@ -53,23 +52,11 @@ object NvimInstanceManager : Disposable {
         return NvimInfoCollector.all.map { Pair(it, instances.containsKey(it)) }
     }
 
-    private fun isCompatible(nvimInfo: NvimInfo): Boolean {
-        return Version.major == nvimInfo.majorVersion
-    }
-
     /**
      * Connect to the given nvim.
      */
     fun connect(nvimInfo: NvimInfo): NvimInstance? {
         if (instanceMap.containsKey(nvimInfo)) return null
-        if (!isCompatible(nvimInfo)) {
-            ComradeNeovimService.instance.showBalloon(
-                    "Failed to connect to Neovim instance ${nvimInfo.address}.\n" +
-                            "Incompatible FatBrain version '${nvimInfo.versionString}'",
-                    NotificationType.ERROR)
-            return null
-        }
-
         val address = nvimInfo.address
         try {
             val instance = NvimInstance(address) {

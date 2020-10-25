@@ -67,7 +67,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     private fun getServerCapabilities() = ServerCapabilities().apply {
         textDocumentSync = Either.forRight(TextDocumentSyncOptions().apply {
-            openClose = true
+            openClose = false
             change = TextDocumentSyncKind.None
             willSave = false
         })

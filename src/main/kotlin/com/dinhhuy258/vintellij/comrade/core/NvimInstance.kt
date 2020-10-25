@@ -1,7 +1,6 @@
 package com.dinhhuy258.vintellij.comrade.core
 
 import com.dinhhuy258.vintellij.VintellijManager
-import com.dinhhuy258.vintellij.comrade.Version
 import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
 import com.dinhhuy258.vintellij.comrade.completion.CompletionManager
 import com.dinhhuy258.vintellij.comrade.insight.InsightProcessor
@@ -20,6 +19,14 @@ import org.scalasbt.ipcsocket.Win32NamedPipeSocketPatched
 private val Log = Logger.getInstance(NvimInstance::class.java)
 
 class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) : Disposable {
+    companion object {
+        private val VERSION: Map<String, String> = mapOf(
+                "major" to "1",
+                "minor" to "0",
+                "patch" to "0",
+                "prerelease" to ""
+        )
+    }
 
     private val log = Logger.getInstance(NvimInstance::class.java)
     private val connection = createRPCConnection(address)
@@ -32,14 +39,14 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
     suspend fun connect() {
         apiInfo = client.api.getApiInfo()
 
-        client.api.setClientInfo("ComradeNeovim", Version.toMap())
-        client.api.command("echom \"ComradeNeovim connected. ID: ${apiInfo.channelId}\"")
+        client.api.setClientInfo("Vintellij", VERSION)
+        client.api.command("echom \"Vintellij LSP connected.\"")
 
         client.registerHandler(bufManager)
         client.registerHandler(CompletionManager(this, bufManager))
         client.registerHandler(InsightProcessor)
         client.registerHandler(VintellijManager(this))
-        log.info("NvimInstance has been created for connection '$connection'")
+        log.info("Vintelilj LSP has been created for connection '$connection'")
         connected = true
     }
 

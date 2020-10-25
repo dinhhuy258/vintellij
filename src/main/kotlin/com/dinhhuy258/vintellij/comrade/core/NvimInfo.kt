@@ -1,25 +1,13 @@
 package com.dinhhuy258.vintellij.comrade.core
 
 import com.dinhhuy258.vintellij.comrade.isIPV4String
-import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.util.io.createDirectories
 import com.intellij.util.io.exists
-import com.intellij.util.io.isDirectory
 import java.io.File
-import java.lang.IllegalArgumentException
-import java.lang.IllegalStateException
-import java.nio.file.ClosedWatchServiceException
-import java.nio.file.FileSystems
-import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardWatchEventKinds
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.Executors
 
-private val INSTANCE_WATCHER_THREAD_FACTORY = ThreadFactoryBuilder()
-        .setNameFormat("ComradeNeovim-Watcher-%d").build()
-private const val CONFIG_DIR_NAME = ".ComradeNeovim"
+private const val CONFIG_DIR_NAME = ".vintellij"
 private var HOME = System.getProperty("user.home")
 private val CONFIG_DIR = File(HOME, CONFIG_DIR_NAME)
 
@@ -27,33 +15,17 @@ private val CONFIG_DIR = File(HOME, CONFIG_DIR_NAME)
  * Information about the running neovim instances on the system.
  * @param pid nvim instance pid.
  * @param address nvim listen address.
- * @param versionString ComradeFatBrains version.
+ * @param projectName the current project name.
  * @param startDir the starting director where nvim starts at.
  */
 class NvimInfo(
     val pid: Int,
     val address: String,
-    val versionString: String,
+    val projectName: String,
     val startDir: String
 ) {
-    val majorVersion: Int
-    val minorVersion: Int
-    val patchVersion: Int
-    init {
-        val versions = versionString.split(".")
-        if (versions.size < 3) {
-            majorVersion = -1
-            minorVersion = -1
-            patchVersion = -1
-        } else {
-            majorVersion = versions[0].toIntOrNull() ?: -1
-            minorVersion = versions[1].toIntOrNull() ?: -1
-            patchVersion = versions[2].toIntOrNull() ?: -1
-        }
-    }
-
     override fun toString(): String {
-        return "Nvim Listen Address: $address, Start Directory: $startDir, ComradeFatBrains Version: $versionString"
+        return "Nvim Listen Address: $address, Start Directory: $startDir, Project Name: $projectName"
     }
 }
 
@@ -61,12 +33,9 @@ class NvimInfo(
  * Monitor the system to collect all the running Neovim instance information.
  */
 internal object NvimInfoCollector {
-    private val watcher = FileSystems.getDefault().newWatchService()
     private val watchPath = Paths.get(CONFIG_DIR.canonicalPath)
-    private val executor = Executors.newSingleThreadExecutor(INSTANCE_WATCHER_THREAD_FACTORY)
     private val log = Logger.getInstance(NvimInfoCollector::class.java)
     private val backingAll = CopyOnWriteArrayList<NvimInfo>()
-    private var started = false
 
     /**
      * All running nvim instances's information.
@@ -88,40 +57,6 @@ internal object NvimInfoCollector {
         return null
     }
 
-    fun start(callback: (NvimInfo) -> Unit) {
-        if (started) throw IllegalStateException("NvimInfoCollector has been started already.")
-        started = true
-        if (!watchPath.exists()) watchPath.createDirectories()
-        if (!watchPath.isDirectory()) throw IllegalArgumentException("'$watchPath' is not a directory.")
-
-        executor.submit {
-            watchPath.register(watcher, StandardWatchEventKinds.ENTRY_CREATE)
-            // Walk the directory first before any new nvim instances started.
-            watchPath.toFile().walk().forEach { file ->
-                val nvimInfo = parseInfoFile(file)
-                nvimInfo?.let { callback(it) }
-            }
-            while (!Thread.interrupted() && !executor.isTerminated) {
-                try {
-                    val key = watcher.take()
-                    key.pollEvents().forEach { event ->
-                        val path = event.context()
-                        if (path is Path) {
-                            log.info("New neovim instance started: $path")
-                            val nvimInfo = parseInfoFile(watchPath.resolve(path).toFile())
-                            nvimInfo?.let { callback(it) }
-                        }
-                    }
-                    key.reset()
-                } catch (e: InterruptedException) {
-                    Thread.currentThread().interrupt()
-                } catch (e: ClosedWatchServiceException) {
-                    Thread.currentThread().interrupt()
-                }
-            }
-        }
-    }
-
     private fun parseInfoFile(file: File): NvimInfo? {
         if (!file.isFile) return null
 
@@ -136,7 +71,7 @@ internal object NvimInfoCollector {
         val address = lines.first()
         if (!checkAddress(address)) return null
 
-        val version = lines[1]
+        val projectName = lines[1]
         val startDir = lines[2]
 
         val existingNvimInfo = all.firstOrNull { it.pid == pid }
@@ -145,7 +80,7 @@ internal object NvimInfoCollector {
             return existingNvimInfo
         }
 
-        val info = NvimInfo(pid, address, version, startDir)
+        val info = NvimInfo(pid, address, projectName, startDir)
         backingAll.add(info)
         return info
     }
@@ -165,7 +100,5 @@ internal object NvimInfoCollector {
     }
 
     fun stop() {
-        executor.shutdownNow()
-        watcher.close()
     }
 }

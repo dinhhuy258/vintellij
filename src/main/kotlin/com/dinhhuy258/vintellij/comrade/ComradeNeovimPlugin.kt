@@ -2,64 +2,31 @@ package com.dinhhuy258.vintellij.comrade
 
 import com.dinhhuy258.vintellij.comrade.core.NvimInstanceManager
 import com.dinhhuy258.vintellij.comrade.insight.InsightProcessor
-import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseComponent
-import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.ProjectManagerListener
 import com.intellij.openapi.util.Disposer
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.util.xmlb.XmlSerializerUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 
 val ComradeScope = ComradeNeovimPlugin.instance.coroutineScope
 
-object Version {
-    val versionString = PluginManager.getPlugin(PluginId.getId("com.dinhhuy258.vintellij"))!!.version
-    val major: Int
-    val minor: Int
-    val patch: Int
-    val prerelese: String
-
-    init {
-        val vers = versionString.split('.', '-')
-        major = vers[0].toInt()
-        minor = vers[1].toInt()
-        patch = vers[2].toInt()
-        prerelese = when (vers.size > 3) {
-            true -> vers[3]
-            else -> ""
-        }
-    }
-
-    fun toMap(): Map<String, String> {
-        return mapOf(
-                "major" to major.toString(),
-                "minor" to minor.toString(),
-                "patch" to patch.toString(),
-                "prerelease" to prerelese
-        )
-    }
-}
-
 @State(name = "ComradeNeovim",
         storages = [Storage(file = "\$APP_CONFIG\$/comrade_neovim_settings.xml")])
-class ComradeNeovimPlugin : BaseComponent, PersistentStateComponent<Settings>, Disposable {
+class ComradeNeovimPlugin : BaseComponent, Disposable {
     companion object {
         val instance: ComradeNeovimPlugin by lazy {
             ApplicationManager.getApplication().getComponent(ComradeNeovimPlugin::class.java)
         }
     }
 
-    private var settings = Settings()
     private lateinit var msgBusConnection: MessageBusConnection
     private lateinit var job: Job
     // Retain a reference to make sure the singleton get initialized
@@ -88,14 +55,6 @@ class ComradeNeovimPlugin : BaseComponent, PersistentStateComponent<Settings>, D
 
     override fun disposeComponent() {
         Disposer.dispose(this)
-    }
-
-    override fun getState(): Settings {
-        return settings
-    }
-
-    override fun loadState(state: Settings) {
-        XmlSerializerUtil.copyBean(state, settings)
     }
 
     override fun dispose() {

@@ -12,7 +12,7 @@ import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionList
 import org.eclipse.lsp4j.Position
 
-private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 15
+private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 10
 
 @Volatile
 private var currentCompletionList = CompletionList()
@@ -103,7 +103,9 @@ private fun onIndicatorCompletionFinish(
     matchingItems.forEach { lookupElement ->
         val candidate = Candidate(lookupElement)
         if (candidate.valuable) {
-            completionItems.add(CompletionItem(candidate.itemText))
+            val completionItem = CompletionItem(candidate.itemText + candidate.tailText)
+            completionItem.insertText = candidate.itemText
+            completionItems.add(completionItem)
         }
     }
 

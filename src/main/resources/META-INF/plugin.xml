@@ -30,12 +30,12 @@
     </extensions>
 
     <actions>
-        <group id="ComradeNeovim.Menu" text="Neovim" description="ComradeNeovim">
+        <group id="Vintellij.Menu" text="Vintellij" description="Vintellij menu">
             <add-to-group group-id="MainMenu" anchor="last"/>
-            <group id="ComradeNeovim.Connection" class="com.dinhhuy258.vintellij.comrade.MainAction"
-                   text="Neovim Connections"
+            <group id="Vintellij.Clients" class="com.dinhhuy258.vintellij.comrade.MainAction"
+                   text="LSP Clients"
                    popup="true"
-                   description="Choose com.dinhhuy258.vintellij.nvim instance to connect"/>
+                   description="List of LSP clients that connected to server"/>
         </group>
     </actions>
 </idea-plugin>
