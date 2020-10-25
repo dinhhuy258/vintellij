@@ -36,7 +36,7 @@ function! s:VintellijComradeEnable() abort
   echomsg "Vintellij comrade: ON"
 endfunction
 
-command! VintellijComradeEnable call <SID>VintellijComradeEnable()
+call <SID>VintellijComradeEnable()
 
 command! -nargs=0 VintellijQuickFix call vintellij#fixer#FixAtCursor()
 command! -nargs=0 VintellijNextInsight call vintellij#insight#Jump("after")
