@@ -1,15 +1,16 @@
 package com.dinhhuy258.vintellij.lsp
 
+import com.dinhhuy258.vintellij.comrade.ComradeNeovimService
 import com.dinhhuy258.vintellij.comrade.core.NvimInfoCollector
 import com.dinhhuy258.vintellij.comrade.core.NvimInstance
 import com.dinhhuy258.vintellij.comrade.core.NvimInstanceManager
 import com.dinhhuy258.vintellij.utils.getProject
 import com.dinhhuy258.vintellij.utils.uriToPath
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
-import org.eclipse.lsp4j.CodeLensOptions
 import org.eclipse.lsp4j.CompletionOptions
 import org.eclipse.lsp4j.ExecuteCommandOptions
 import org.eclipse.lsp4j.InitializeParams
@@ -43,7 +44,10 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                 if (nvimInfo != null) {
                     nvimInstance = NvimInstanceManager.connect(nvimInfo)
                 }
-                // TODO: Handle the case when NvimInfo not found
+
+                if (nvimInfo == null || nvimInstance == null) {
+                    ComradeNeovimService.instance.showBalloon("Failed to connect to ${params.rootUri}", NotificationType.ERROR)
+                }
             }
 
             InitializeResult(getServerCapabilities())
@@ -55,7 +59,6 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     }
 
     override fun exit() {
-        println("HUY DUONG")
     }
 
     override fun getTextDocumentService(): TextDocumentService = textDocumentService
@@ -73,17 +76,17 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
             willSave = false
         })
         hoverProvider = false
-        completionProvider = CompletionOptions(true, listOf("."))
+        completionProvider = CompletionOptions(false, listOf("."))
         signatureHelpProvider = null
         definitionProvider = true
         typeDefinitionProvider = Either.forLeft(false)
-        implementationProvider = Either.forLeft(true)
-        referencesProvider = true
-        documentHighlightProvider = true
-        documentSymbolProvider = true
-        workspaceSymbolProvider = true
+        implementationProvider = Either.forLeft(false)
+        referencesProvider = false
+        documentHighlightProvider = false
+        documentSymbolProvider = false
+        workspaceSymbolProvider = false
         codeActionProvider = Either.forLeft(false)
-        codeLensProvider = CodeLensOptions(false)
+        codeLensProvider = null
         documentFormattingProvider = false
         documentRangeFormattingProvider = false
         documentOnTypeFormattingProvider = null

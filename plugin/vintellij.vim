@@ -25,7 +25,6 @@ function! s:VintellijComradeEnable() abort
   call vintellij#events#RegisterAutoImportOnCompletionDone()
 
   let s:vintellij_loaded = v:true
-  echomsg "Vintellij loaded"
 endfunction
 
 call <SID>VintellijComradeEnable()
