@@ -101,7 +101,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
         }
 
         syncedBuffer.navigate()
-        if (!syncedBuffer.isReleased) {
+        if (!syncedBuffer.isReleased && syncedBuffer.isSynchronizable) {
             publisher.bufferCreated(syncedBuffer)
         }
     }

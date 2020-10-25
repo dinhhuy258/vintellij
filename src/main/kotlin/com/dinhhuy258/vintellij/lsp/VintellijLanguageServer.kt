@@ -55,6 +55,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     }
 
     override fun exit() {
+        println("HUY DUONG")
     }
 
     override fun getTextDocumentService(): TextDocumentService = textDocumentService
