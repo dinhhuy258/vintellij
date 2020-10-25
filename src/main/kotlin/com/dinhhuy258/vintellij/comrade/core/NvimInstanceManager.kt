@@ -65,7 +65,7 @@ object NvimInstanceManager : Disposable {
             Disposer.register(this, instance)
             instanceMap[nvimInfo] = instance
             val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-                ComradeNeovimService.showBalloon("Failed to connect to nvim '$address': $exception",
+                ComradeNeovimService.showBalloon("Failed to connect to LSP client ${nvimInfo.projectName}: $exception",
                         NotificationType.ERROR)
                 val toDispose = instanceMap.remove(nvimInfo) ?: return@CoroutineExceptionHandler
                 Disposer.dispose(toDispose)
@@ -73,7 +73,7 @@ object NvimInstanceManager : Disposable {
             ComradeScope.launch(exceptionHandler) {
                 instance.connect()
                 instance.bufManager.loadCurrentBuffer()
-                ComradeNeovimService.instance.showBalloon("Connected to Neovim instance $address",
+                ComradeNeovimService.instance.showBalloon("Connected to LSP client ${nvimInfo.projectName}",
                         NotificationType.INFORMATION)
             }
             log.info("Try to connect to Neovim instance '$nvimInfo'.")
