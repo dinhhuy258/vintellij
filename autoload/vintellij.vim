@@ -27,7 +27,7 @@ endfunction
 
 function! s:GoToFile(file, offset)
   execute 'silent! edit ' . a:file
-  execute 'goto ' . a:offset
+  execute 'keepjumps goto ' . a:offset
   call s:DetectKotlinFile(a:file)
 endfunction
 
