@@ -14,7 +14,7 @@ class AsyncExecutor {
             CompletableFuture.runAsync(Runnable(task), workerThread)
 
     fun <R> compute(task: () -> R) =
-            CompletableFuture.supplyAsync(Supplier(task), workerThread).orTimeout(10, TimeUnit.SECONDS)
+            CompletableFuture.supplyAsync(Supplier(task), workerThread)
 
     fun <R> computeOr(defaultValue: R, task: () -> R?) =
             CompletableFuture.supplyAsync(Supplier {

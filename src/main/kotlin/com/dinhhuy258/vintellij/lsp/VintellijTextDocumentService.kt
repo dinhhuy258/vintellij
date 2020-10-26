@@ -34,19 +34,38 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun didSave(params: DidSaveTextDocumentParams) {
     }
 
-    override fun definition(params: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> = async.compute {
-        val syncBuffer = languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+    override fun definition(params: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
+        async.compute {
+            val syncBuffer =
+                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
 
-        Either.forLeft(goToDefinition(syncBuffer, params.position))
-    }
+            Either.forLeft(tryCatch({
+                goToDefinition(syncBuffer, params.position)
+            }, emptyList()))
+        }
 
-    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> = async.compute {
-        val syncBuffer = languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(position.textDocument.uri))
+    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> =
+        async.compute {
+            val syncBuffer =
+                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(position.textDocument.uri))
 
-        Either.forRight(doCompletion(syncBuffer, position.position))
-    }
+            Either.forRight(
+                tryCatch({
+                    doCompletion(syncBuffer, position.position)
+                }, CompletionList(false, emptyList()))
+
+            )
+        }
 
     override fun close() {
         async.shutdown(true)
+    }
+
+    private inline fun <T> tryCatch(block: () -> T, fallback: T): T {
+        return try {
+            block()
+        } catch (e: Throwable) {
+            fallback
+        }
     }
 }
