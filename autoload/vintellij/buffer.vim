@@ -55,17 +55,15 @@ function! vintellij#buffer#Notify() abort
     let l:bufId = bufnr('%')
     let l:bufPath = expand('%:p')
 
-    if (filereadable(l:bufPath))
-        let l:channels = vintellij#jetbrain#Channels()
+    let l:channels = vintellij#jetbrain#Channels()
 
-        for channel in l:channels
-            try
-                call call('rpcnotify', [channel, 'comrade_buf_enter', {'id' : l:bufId, 'path' : l:bufPath}])
-            catch /./
-                call vintellij#util#TruncatedEcho('Failed to send new buffer notification to JetBrains instance ' . channel . '.\n' . v:exception)
-            endtry
-        endfor
-    endif
+    for channel in l:channels
+      try
+        call call('rpcnotify', [channel, 'comrade_buf_enter', {'id' : l:bufId, 'path' : l:bufPath}])
+      catch /./
+        call vintellij#util#TruncatedEcho('Failed to send new buffer notification to JetBrains instance ' . channel . '.\n' . v:exception)
+      endtry
+    endfor
 endfunction
 
 function! s:WriteBuffer(buffer)
@@ -90,3 +88,4 @@ function! s:WriteBuffer(buffer)
     endtry
 
 endfunction
+
