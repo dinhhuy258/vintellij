@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij.comrade.buffer
 
 import com.dinhhuy258.vintellij.comrade.core.NvimInstance
+import com.dinhhuy258.vintellij.utils.PathUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
@@ -40,6 +41,7 @@ class SyncBuffer(
             return _editor!!
         }
 
+    val isSynchronizable: Boolean
     val project: Project
     val text get() = document.text
     var isReleased: Boolean = false
@@ -51,9 +53,15 @@ class SyncBuffer(
 
     init {
         val pair = locateFile(path)
-            ?: throw BufferNotInProjectException(id, path, "'locateFile' cannot locate the corresponding document.")
+                ?: throw BufferNotInProjectException(id, path, "'locateFile' cannot locate the corresponding document.")
         project = pair.first
         psiFile = pair.second
+
+        isSynchronizable = (when (ApplicationManager.getApplication().isUnitTestMode) {
+            true -> TempFileSystem.getInstance().findFileByPath(path)
+            false -> LocalFileSystem.getInstance().refreshAndFindFileByIoFile(File(path))
+        }) != null && psiFile.isWritable
+
         document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
                 ?: throw BufferNotInProjectException(id, path, "'PsiDocumentManager' cannot locate the corresponding document.")
 
@@ -63,7 +71,7 @@ class SyncBuffer(
     private fun createEditorDelegate(): EditorDelegate {
         val fileEditors = fileEditorManager.openFile(psiFile.virtualFile, false, true)
         val fileEditor = fileEditors.firstOrNull { it is TextEditor && it.editor is EditorEx }
-        ?: throw BufferNotInProjectException(id, path, "FileEditorManger cannot open a TextEditor.")
+                ?: throw BufferNotInProjectException(id, path, "FileEditorManger cannot open a TextEditor.")
         return EditorDelegate((fileEditor as TextEditor).editor as EditorEx)
     }
 
@@ -148,10 +156,11 @@ class SyncBuffer(
 }
 
 private fun locateFile(name: String): Pair<Project, PsiFile>? {
-    val vf1 = when (ApplicationManager.getApplication().isUnitTestMode) {
-        true -> TempFileSystem.getInstance().findFileByPath(name)
-        false -> LocalFileSystem.getInstance().refreshAndFindFileByIoFile(File(name))
-    } ?: return null
+    val filePath = if (PathUtils.isVimJarFilePath(name)) {
+        PathUtils.toIntellijJarFilePath(name).removePrefix(PathUtils.INTELLIJ_PATH_PREFIX)
+    } else {
+        name
+    }
 
     var ret: Pair<Project, PsiFile>? = null
     ApplicationManager.getApplication().runReadAction {
@@ -161,7 +170,7 @@ private fun locateFile(name: String): Pair<Project, PsiFile>? {
             val files = com.intellij.psi.search.FilenameIndex.getFilesByName(
                     project, File(name).name, GlobalSearchScope.allScope(project))
             val psiFile = files.find {
-                it.virtualFile.canonicalPath == vf1.canonicalPath
+                it.virtualFile.canonicalPath == filePath
             }
             if (psiFile != null) {
                 ret = project to psiFile

@@ -14,8 +14,8 @@ import org.jetbrains.kotlin.psi.KtDeclaration
 
 class PathUtils private constructor() {
     companion object {
+        const val INTELLIJ_PATH_PREFIX = "jar://"
         private const val VIM_PATH_PREFIX = "zipfile:"
-        private const val INTELLIJ_PATH_PREFIX = "jar://"
         private const val INTELLIJ_JAR_SEPARATOR = ".jar!/"
         private const val VIM_JAR_SEPARATOR = ".jar::"
         private const val INTELLIJ_ZIP_SEPARATOR = ".zip!/"
@@ -72,9 +72,9 @@ class PathUtils private constructor() {
             return Pair(virtualFile.path, psiElement.textOffset)
         }
 
-        private fun isIntellijJarFile(filePath: String) = filePath.contains(INTELLIJ_JAR_SEPARATOR) || filePath.contains(INTELLIJ_ZIP_SEPARATOR)
+        fun isIntellijJarFile(filePath: String) = filePath.contains(INTELLIJ_JAR_SEPARATOR) || filePath.contains(INTELLIJ_ZIP_SEPARATOR)
 
-        private fun toVimJarFilePath(filePath: String): String {
+        fun toVimJarFilePath(filePath: String): String {
             val path = if (filePath.contains(INTELLIJ_JAR_SEPARATOR)) {
                 filePath.replaceFirst(INTELLIJ_JAR_SEPARATOR, VIM_JAR_SEPARATOR)
             } else {

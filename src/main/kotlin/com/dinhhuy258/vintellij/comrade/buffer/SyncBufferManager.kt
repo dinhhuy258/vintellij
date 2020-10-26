@@ -1,6 +1,5 @@
 package com.dinhhuy258.vintellij.comrade.buffer
 
-import com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin
 import com.dinhhuy258.vintellij.comrade.ComradeScope
 import com.dinhhuy258.vintellij.comrade.core.ComradeBufEnterParams
 import com.dinhhuy258.vintellij.comrade.core.ComradeBufWriteParams
@@ -32,7 +31,7 @@ import kotlinx.coroutines.launch
 class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     companion object {
         val TOPIC = Topic<SyncBufferManagerListener>(
-                "SyncBuffer related events", SyncBufferManagerListener::class.java)
+            "SyncBuffer related events", SyncBufferManagerListener::class.java)
         private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(TOPIC)
         private val allBuffers = newConcurrentSet<SyncBuffer>()
 
@@ -84,7 +83,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
             allBuffers.add(syncedBuffer)
             val synchronizer = Synchronizer(syncedBuffer)
             synchronizer.exceptionHandler = {
-                t ->
+                    t ->
                 log.warn("Error happened when synchronize buffers.", t)
                 invokeOnMainAndWait { releaseBuffer(syncedBuffer) }
                 ComradeScope.launch {
@@ -94,10 +93,9 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
             }
             syncedBuffer.attachSynchronizer(synchronizer)
         }
-        if (ComradeNeovimPlugin.showEditorInSync) {
-            syncedBuffer.navigate()
-        }
-        if (!syncedBuffer.isReleased) {
+
+        syncedBuffer.navigate()
+        if (!syncedBuffer.isReleased && syncedBuffer.isSynchronizable) {
             publisher.bufferCreated(syncedBuffer)
         }
     }
