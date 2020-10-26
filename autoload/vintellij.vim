@@ -26,7 +26,11 @@ function! s:AddImport(import)
 endfunction
 
 function! s:GoToFile(file, offset)
-  execute 'silent! edit ' . a:file
+  silent! normal! m'
+  if expand("%:p") != a:file
+    execute 'silent! edit ' . a:file
+  endif
+
   execute 'keepjumps goto ' . a:offset
   call s:DetectKotlinFile(a:file)
 endfunction
