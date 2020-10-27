@@ -5,29 +5,36 @@ import com.dinhhuy258.vintellij.lsp.utils.offsetToPosition
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
+import com.intellij.openapi.util.Ref
 import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.DiagnosticSeverity
 import org.eclipse.lsp4j.Range
 
 fun getHighlights(buffer: SyncBuffer): List<HighlightInfo> {
-    val highlights = mutableListOf<HighlightInfo>()
-    DaemonCodeAnalyzerEx.processHighlights(
-        buffer.document,
-        buffer.project,
-        HighlightSeverity.GENERIC_SERVER_ERROR_OR_WARNING,
-        0,
-        buffer.document.getLineEndOffset(buffer.document.lineCount - 1)
-    ) { highlightInfo ->
-        highlights.add(highlightInfo)
-        true
-    }
-    highlights.filter {
-        val document = buffer.document
-        it.startOffset > 0 && it.startOffset <= document.textLength && it.endOffset > 0 && it.endOffset <= document.textLength
+    val highlightsRef = Ref<List<HighlightInfo>>()
+    ApplicationManager.getApplication().runReadAction {
+        val highlights = mutableListOf<HighlightInfo>()
+        DaemonCodeAnalyzerEx.processHighlights(
+                buffer.document,
+                buffer.project,
+                HighlightSeverity.GENERIC_SERVER_ERROR_OR_WARNING,
+                0,
+                buffer.document.getLineEndOffset(buffer.document.lineCount - 1)
+        ) { highlightInfo ->
+            highlights.add(highlightInfo)
+            true
+        }
+        highlights.filter {
+            val document = buffer.document
+            it.startOffset > 0 && it.startOffset <= document.textLength && it.endOffset > 0 && it.endOffset <= document.textLength
+        }
+
+        highlightsRef.set(highlights)
     }
 
-    return highlights
+    return highlightsRef.get()
 }
 
 fun HighlightInfo.toDiagnostic(document: Document): Diagnostic? {
