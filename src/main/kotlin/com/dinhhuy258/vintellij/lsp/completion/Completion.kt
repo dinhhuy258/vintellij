@@ -39,7 +39,7 @@ private fun doAsyncComplete(buffer: SyncBuffer, position: Position, completionLi
 
     val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator() ?: return
     // Wait until completion begins
-    while (indicator.parameters == null && completionList == currentCompletionList) {
+    while (indicator.parameters == null && !indicator.isCanceled && completionList == currentCompletionList) {
         Thread.sleep(50)
     }
 
@@ -67,7 +67,7 @@ private fun getCompletionResult(
     indicator: CompletionProgressIndicator,
     completionList: CompletionList
 ) {
-    if (completionList != currentCompletionList) {
+    if (indicator.isCanceled || completionList != currentCompletionList) {
         return
     }
 
