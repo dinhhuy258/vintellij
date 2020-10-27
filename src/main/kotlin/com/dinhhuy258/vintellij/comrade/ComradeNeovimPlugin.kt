@@ -1,7 +1,6 @@
 package com.dinhhuy258.vintellij.comrade
 
 import com.dinhhuy258.vintellij.comrade.core.NvimInstanceManager
-import com.dinhhuy258.vintellij.comrade.insight.InsightProcessor
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseComponent
@@ -37,8 +36,6 @@ class ComradeNeovimPlugin : BaseComponent, Disposable {
     private val projectManagerListener = object : ProjectManagerListener {
         override fun projectOpened(project: Project) {
             NvimInstanceManager.refresh()
-            // Start the singleton InsightProcessor here to avoid cyclic initialization
-            InsightProcessor.start()
         }
 
         override fun projectClosing(project: Project) {

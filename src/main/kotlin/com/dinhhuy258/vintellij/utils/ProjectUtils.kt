@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Ref
+import com.intellij.psi.PsiFile
 import java.io.File
 import java.net.URLDecoder
 import java.nio.file.Paths
@@ -70,3 +71,5 @@ private fun normalizeUri(uri: String): String {
 
     return decodedUri
 }
+
+fun getURIForFile(file: PsiFile) = normalizeUri(file.virtualFile.url)

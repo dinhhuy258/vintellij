@@ -40,6 +40,11 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         return CompletableFuture.supplyAsync {
             ApplicationManager.getApplication().invokeAndWait {
                 project = getProject(params.rootUri)
+                if (project == null) {
+                    ComradeNeovimService.instance.showBalloon("Failed to load project: ${params.rootUri}", NotificationType.ERROR)
+                    return@invokeAndWait
+                }
+                textDocumentService.onProjectOpen(project!!)
                 val nvimInfo = NvimInfoCollector.getNvimInfo(uriToPath(params.rootUri))
                 if (nvimInfo != null) {
                     nvimInstance = NvimInstanceManager.connect(nvimInfo)
@@ -65,7 +70,8 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     override fun getWorkspaceService(): WorkspaceService = workspaceService
 
-    override fun connect(client: LanguageClient?) {
+    override fun connect(client: LanguageClient) {
+        textDocumentService.connect(client)
         this.client = client
     }
 
@@ -73,7 +79,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         textDocumentSync = Either.forRight(TextDocumentSyncOptions().apply {
             openClose = false
             change = TextDocumentSyncKind.None
-            willSave = false
+            save = null
         })
         hoverProvider = false
         completionProvider = CompletionOptions(false, listOf("."))
@@ -94,10 +100,6 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         documentLinkProvider = null
         executeCommandProvider = ExecuteCommandOptions()
         experimental = null
-    }
-
-    fun getProject(): Project? {
-        return project
     }
 
     fun getNvimInstance(): NvimInstance? {
