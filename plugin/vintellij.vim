@@ -29,17 +29,11 @@ endfunction
 
 call <SID>VintellijComradeEnable()
 
-command! -nargs=0 VintellijQuickFix call vintellij#fixer#FixAtCursor()
-command! -nargs=0 VintellijNextInsight call vintellij#insight#Jump("after")
-command! -nargs=0 VintellijPrevInsight call vintellij#insight#Jump("before")
-
 if get(g:, 'vintellij_use_default_keymap', 1) == 1
   nnoremap <Leader>cgd :VintellijGoToDefinition<CR>
   nnoremap <Leader>cgh :VintellijFindHierarchy<CR>
   nnoremap <Leader>cgu :VintellijFindUsage<CR>
   nnoremap <Leader>co :VintellijOpenFile<CR>
   nnoremap <Leader>ci :VintellijSuggestImports<CR>
-  nnoremap g[ :VintellijPrevInsight<CR>
-  nnoremap g] :VintellijNextInsight<CR>
 endif
 

@@ -8,7 +8,6 @@
 " whenever JetBrains try to register the buffer, the nvim buffer's content
 " will be synced with JetBrains' corresponding file content.
 function! vintellij#buffer#Register(buf, channel, lines) abort
-    call vintellij#key#Register(a:buf)
     call vintellij#bvar#clear(a:buf)
     call vintellij#bvar#set(a:buf, 'channel', a:channel)
     call setbufvar(a:buf, '&buftype', 'acwrite')
@@ -18,9 +17,6 @@ function! vintellij#buffer#Register(buf, channel, lines) abort
         execute('autocmd BufWriteCmd <buffer=' . a:buf .
                     \ '> call s:WriteBuffer(' . a:buf. ')')
     augroup END
-
-    " Without this, vim might put all the old signs at the first line.
-    call vintellij#sign#Clear(a:buf)
 
     if !empty(a:lines)
         call nvim_buf_set_lines(a:buf, 0, -1, v:true, a:lines)
@@ -32,16 +28,12 @@ endfunction
 
 " Unregister the given buffer
 function! vintellij#buffer#Unregister(buf) abort
-    call vintellij#key#Unregister(a:buf)
     let l:has_channel = vintellij#bvar#has(a:buf, 'channel')
     call vintellij#bvar#clear(a:buf)
 
     if l:has_channel
         call setbufvar(a:buf, '&buftype', '')
         execute('autocmd! ComradeBufEvents * <buffer=' . a:buf . '>')
-
-        call vintellij#sign#SetSigns(a:buf)
-        call vintellij#highlight#SetHighlights(a:buf)
     endif
 endfunction
 
