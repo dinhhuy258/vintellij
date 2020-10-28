@@ -16,6 +16,7 @@ import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
+import com.intellij.util.messages.MessageBusConnection
 import java.io.Closeable
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
@@ -57,6 +58,8 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     private var project: Project? = null
 
+    private var messageBusConnection: MessageBusConnection? = null
+
     override fun connect(client: LanguageClient) {
         this.client = client
     }
@@ -65,6 +68,11 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         if ((project != null && syncBuffer.project != project) ||
                 (project == null && bufferToLint != null)) {
             return
+        }
+
+        if (bufferToLint != null) {
+            // Clear diagnostics
+            client.publishDiagnostics(PublishDiagnosticsParams(getURIForFile(bufferToLint!!.psiFile), emptyList()))
         }
 
         bufferToLint = syncBuffer
@@ -149,13 +157,14 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun close() {
         async.shutdown(true)
+        messageBusConnection?.disconnect()
     }
 
     fun onProjectOpen(project: Project) {
         this.project = project
-        val messageBus = project.messageBus.connect()
-        messageBus.subscribe(DaemonCodeAnalyzer.DAEMON_EVENT_TOPIC, this)
-        messageBus.subscribe(SyncBufferManager.TOPIC, this)
+        messageBusConnection = project.messageBus.connect()
+        messageBusConnection!!.subscribe(DaemonCodeAnalyzer.DAEMON_EVENT_TOPIC, this)
+        messageBusConnection!!.subscribe(SyncBufferManager.TOPIC, this)
         if (bufferToLint != null && bufferToLint!!.project != project) {
             bufferToLint = null
         }
