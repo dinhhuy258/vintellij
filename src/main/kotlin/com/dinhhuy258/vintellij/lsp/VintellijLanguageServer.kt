@@ -86,7 +86,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         signatureHelpProvider = null
         definitionProvider = true
         typeDefinitionProvider = Either.forLeft(false)
-        implementationProvider = Either.forLeft(false)
+        implementationProvider = Either.forLeft(true)
         referencesProvider = false
         documentHighlightProvider = false
         documentSymbolProvider = false

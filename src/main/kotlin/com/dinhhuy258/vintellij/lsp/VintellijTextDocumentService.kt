@@ -7,13 +7,14 @@ import com.dinhhuy258.vintellij.lsp.completion.doCompletion
 import com.dinhhuy258.vintellij.lsp.diagnostics.getHighlights
 import com.dinhhuy258.vintellij.lsp.diagnostics.toDiagnostic
 import com.dinhhuy258.vintellij.lsp.hover.getHoverDoc
-import com.dinhhuy258.vintellij.lsp.navigation.goToDefinition
+import com.dinhhuy258.vintellij.lsp.navigation.goToImplementation
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.lsp.utils.Debouncer
 import com.dinhhuy258.vintellij.utils.getURIForFile
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import java.io.Closeable
 import java.time.Duration
@@ -28,6 +29,7 @@ import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
 import org.eclipse.lsp4j.Hover
 import org.eclipse.lsp4j.HoverParams
+import org.eclipse.lsp4j.ImplementationParams
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.PublishDiagnosticsParams
@@ -70,6 +72,9 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun bufferReleased(syncBuffer: SyncBuffer) {
+        // Clear diagnostics
+        reportDiagnostics(syncBuffer, emptyList())
+
         if (bufferToLint == syncBuffer) {
             bufferToLint = null
         }
@@ -78,9 +83,16 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun didOpen(params: DidOpenTextDocumentParams) {
     }
 
-    override fun daemonFinished() {
-        if (bufferToLint != null) {
-            lintLater()
+    override fun daemonFinished(fileEditors: Collection<FileEditor>) {
+        if (bufferToLint == null) {
+            return
+        }
+
+        fileEditors.forEach { fileEditor ->
+            if (fileEditor.file == bufferToLint!!.psiFile.virtualFile) {
+                lintLater()
+                return@forEach
+            }
         }
     }
 
@@ -99,9 +111,19 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
 
             Either.forLeft(tryCatch({
-                goToDefinition(syncBuffer, params.position)
+                goToImplementation(syncBuffer, params.position)
             }, emptyList()))
         }
+
+    override fun implementation(params: ImplementationParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
+            async.compute {
+                val syncBuffer =
+                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+
+                Either.forLeft(tryCatch({
+                    goToImplementation(syncBuffer, params.position)
+                }, emptyList()))
+            }
 
     override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> =
         async.compute {
@@ -130,6 +152,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     fun onProjectOpen(project: Project) {
+        this.project = project
         val messageBus = project.messageBus.connect()
         messageBus.subscribe(DaemonCodeAnalyzer.DAEMON_EVENT_TOPIC, this)
         messageBus.subscribe(SyncBufferManager.TOPIC, this)

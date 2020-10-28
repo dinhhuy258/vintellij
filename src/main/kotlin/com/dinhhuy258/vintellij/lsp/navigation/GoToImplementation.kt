@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
 import org.jetbrains.kotlin.psi.KtDeclaration
 
 @Synchronized
-fun goToDefinition(buffer: SyncBuffer?, position: Position): List<Location> {
+fun goToImplementation(buffer: SyncBuffer?, position: Position): List<Location> {
     val locations = ArrayList<Location>()
 
     if (buffer != null) {
