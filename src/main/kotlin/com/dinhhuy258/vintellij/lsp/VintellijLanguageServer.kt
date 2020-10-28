@@ -81,7 +81,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
             change = TextDocumentSyncKind.None
             save = null
         })
-        hoverProvider = false
+        hoverProvider = true
         completionProvider = CompletionOptions(false, listOf("."))
         signatureHelpProvider = null
         definitionProvider = true

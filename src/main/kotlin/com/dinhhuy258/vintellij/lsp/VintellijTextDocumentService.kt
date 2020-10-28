@@ -6,6 +6,7 @@ import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManagerListener
 import com.dinhhuy258.vintellij.lsp.completion.doCompletion
 import com.dinhhuy258.vintellij.lsp.diagnostics.getHighlights
 import com.dinhhuy258.vintellij.lsp.diagnostics.toDiagnostic
+import com.dinhhuy258.vintellij.lsp.hover.getHoverDoc
 import com.dinhhuy258.vintellij.lsp.navigation.goToDefinition
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.lsp.utils.Debouncer
@@ -25,6 +26,8 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams
 import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
+import org.eclipse.lsp4j.Hover
+import org.eclipse.lsp4j.HoverParams
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.PublishDiagnosticsParams
@@ -113,6 +116,15 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
             )
         }
 
+    override fun hover(params: HoverParams): CompletableFuture<Hover> = async.compute {
+        val syncBuffer =
+                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+
+        Hover(tryCatch({
+            getHoverDoc(syncBuffer, params.position)
+        }, emptyList()))
+    }
+
     override fun close() {
         async.shutdown(true)
     }
@@ -148,7 +160,10 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
             return
         }
 
-        val highlights = getHighlights(buffer)
+        val highlights = tryCatch({
+            getHighlights(buffer)
+        }, emptyList())
+
         if (!cancelCallback.invoke()) {
             reportDiagnostics(buffer, highlights)
         }
