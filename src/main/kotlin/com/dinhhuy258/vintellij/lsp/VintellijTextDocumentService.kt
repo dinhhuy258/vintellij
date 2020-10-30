@@ -7,6 +7,7 @@ import com.dinhhuy258.vintellij.lsp.completion.doCompletion
 import com.dinhhuy258.vintellij.lsp.diagnostics.getHighlights
 import com.dinhhuy258.vintellij.lsp.diagnostics.toDiagnostic
 import com.dinhhuy258.vintellij.lsp.hover.getHoverDoc
+import com.dinhhuy258.vintellij.lsp.navigation.goToDefinition
 import com.dinhhuy258.vintellij.lsp.navigation.goToImplementation
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.lsp.utils.Debouncer
@@ -119,7 +120,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
 
             Either.forLeft(tryCatch({
-                goToImplementation(syncBuffer, params.position)
+                goToDefinition(syncBuffer, params.position)
             }, emptyList()))
         }
 
