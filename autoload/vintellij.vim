@@ -185,35 +185,5 @@ function! vintellij#FindUsage() abort
         \ }, v:false)
 endfunction
 
-"=============================================================================
-" AUTHOR:  beeender <chenmulong at gmail.com>
-" License: GPLv3
-"=============================================================================
-
-function! vintellij#RequestCompletion(buf, param)
-  if vintellij#bvar#has(a:buf, 'channel')
-    try
-      let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_complete', a:param])
-      return result
-    catch /./ " The channel has been probably closed
-      call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
-      call vintellij#bvar#remove(a:buf, 'channel')
-    endtry
-  endif
-
-  return []
-endfunction
-
-function! vintellij#RequestAsyncCompletion(buf, param)
-  if vintellij#bvar#has(a:buf, 'channel')
-    try
-      let result = call('rpcrequest', [vintellij#bvar#get(a:buf, 'channel'), 'comrade_async_complete', a:param])
-    catch /./ " The channel has been probably closed
-      call vintellij#util#TruncatedEcho('Failed to send completion request to JetBrains instance. \n' . v:exception)
-      call vintellij#bvar#remove(a:buf, 'channel')
-    endtry
-  endif
-endfunction
-
 let &cpo = s:cpo_save
 unlet s:cpo_save
