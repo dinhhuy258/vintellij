@@ -10,6 +10,7 @@ import com.dinhhuy258.vintellij.lsp.hover.getHoverDoc
 import com.dinhhuy258.vintellij.lsp.navigation.goToDefinition
 import com.dinhhuy258.vintellij.lsp.navigation.goToImplementation
 import com.dinhhuy258.vintellij.lsp.navigation.goToReferences
+import com.dinhhuy258.vintellij.lsp.navigation.goToTypeDefinition
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.lsp.utils.Debouncer
 import com.dinhhuy258.vintellij.utils.getURIForFile
@@ -37,6 +38,7 @@ import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.ReferenceParams
+import org.eclipse.lsp4j.TypeDefinitionParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageClient
 import org.eclipse.lsp4j.services.LanguageClientAware
@@ -144,6 +146,16 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 tryCatch({
                     goToReferences(syncBuffer, params.position)
                 }, emptyList())
+            }
+
+    override fun typeDefinition(params: TypeDefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
+            async.compute {
+                val syncBuffer =
+                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+
+                Either.forLeft(tryCatch({
+                    goToTypeDefinition(syncBuffer, params.position)
+                }, emptyList()))
             }
 
     override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> =

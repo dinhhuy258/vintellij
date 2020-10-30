@@ -85,7 +85,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         completionProvider = CompletionOptions(false, listOf("."))
         signatureHelpProvider = null
         definitionProvider = true
-        typeDefinitionProvider = Either.forLeft(false)
+        typeDefinitionProvider = Either.forLeft(true)
         implementationProvider = Either.forLeft(true)
         referencesProvider = true
         documentHighlightProvider = false
