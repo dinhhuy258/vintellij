@@ -9,6 +9,7 @@ import com.dinhhuy258.vintellij.lsp.diagnostics.toDiagnostic
 import com.dinhhuy258.vintellij.lsp.hover.getHoverDoc
 import com.dinhhuy258.vintellij.lsp.navigation.goToDefinition
 import com.dinhhuy258.vintellij.lsp.navigation.goToImplementation
+import com.dinhhuy258.vintellij.lsp.navigation.goToReferences
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.lsp.utils.Debouncer
 import com.dinhhuy258.vintellij.utils.getURIForFile
@@ -35,16 +36,17 @@ import org.eclipse.lsp4j.ImplementationParams
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.PublishDiagnosticsParams
+import org.eclipse.lsp4j.ReferenceParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageClient
 import org.eclipse.lsp4j.services.LanguageClientAware
 import org.eclipse.lsp4j.services.TextDocumentService
 
 class VintellijTextDocumentService(private val languageServer: VintellijLanguageServer) : TextDocumentService,
-    LanguageClientAware,
-    SyncBufferManagerListener,
-    DaemonCodeAnalyzer.DaemonListener,
-    Closeable {
+        LanguageClientAware,
+        SyncBufferManagerListener,
+        DaemonCodeAnalyzer.DaemonListener,
+        Closeable {
     companion object {
         private const val DEBOUNCE_TIME = 200L
     }
@@ -115,14 +117,14 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun definition(params: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
-        async.compute {
-            val syncBuffer =
-                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+            async.compute {
+                val syncBuffer =
+                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
 
-            Either.forLeft(tryCatch({
-                goToDefinition(syncBuffer, params.position)
-            }, emptyList()))
-        }
+                Either.forLeft(tryCatch({
+                    goToDefinition(syncBuffer, params.position)
+                }, emptyList()))
+            }
 
     override fun implementation(params: ImplementationParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
             async.compute {
@@ -134,18 +136,28 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 }, emptyList()))
             }
 
-    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> =
-        async.compute {
-            val syncBuffer =
-                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(position.textDocument.uri))
+    override fun references(params: ReferenceParams): CompletableFuture<List<Location>> =
+            async.compute {
+                val syncBuffer =
+                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
 
-            Either.forRight(
                 tryCatch({
-                    doCompletion(syncBuffer, position.position)
-                }, CompletionList(false, emptyList()))
+                    goToReferences(syncBuffer, params.position)
+                }, emptyList())
+            }
 
-            )
-        }
+    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> =
+            async.compute {
+                val syncBuffer =
+                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(position.textDocument.uri))
+
+                Either.forRight(
+                        tryCatch({
+                            doCompletion(syncBuffer, position.position)
+                        }, CompletionList(false, emptyList()))
+
+                )
+            }
 
     override fun hover(params: HoverParams): CompletableFuture<Hover> = async.compute {
         val syncBuffer =
