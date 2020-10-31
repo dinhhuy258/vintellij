@@ -11,6 +11,7 @@ import com.dinhhuy258.vintellij.lsp.navigation.goToDefinition
 import com.dinhhuy258.vintellij.lsp.navigation.goToImplementation
 import com.dinhhuy258.vintellij.lsp.navigation.goToReferences
 import com.dinhhuy258.vintellij.lsp.navigation.goToTypeDefinition
+import com.dinhhuy258.vintellij.lsp.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.lsp.utils.Debouncer
 import com.dinhhuy258.vintellij.utils.getURIForFile
@@ -23,10 +24,14 @@ import com.intellij.util.messages.MessageBusConnection
 import java.io.Closeable
 import java.time.Duration
 import java.util.concurrent.CompletableFuture
+import org.eclipse.lsp4j.CodeAction
+import org.eclipse.lsp4j.CodeActionParams
+import org.eclipse.lsp4j.Command
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionList
 import org.eclipse.lsp4j.CompletionParams
 import org.eclipse.lsp4j.DefinitionParams
+import org.eclipse.lsp4j.DiagnosticSeverity
 import org.eclipse.lsp4j.DidChangeTextDocumentParams
 import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
@@ -36,6 +41,7 @@ import org.eclipse.lsp4j.HoverParams
 import org.eclipse.lsp4j.ImplementationParams
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.LocationLink
+import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.ReferenceParams
 import org.eclipse.lsp4j.TypeDefinitionParams
@@ -180,6 +186,32 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         }, emptyList()))
     }
 
+    override fun codeAction(params: CodeActionParams): CompletableFuture<List<Either<Command, CodeAction>>> =
+            async.compute {
+                val syncBuffer =
+                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+
+                val importDiagnostics = params.context.diagnostics.filter {
+                    it.severity == DiagnosticSeverity.Error && it.code != null
+                }.filterNotNull()
+
+                val commands = ArrayList<Either<Command, CodeAction>>()
+                importDiagnostics.forEach { diagnostic ->
+                    val startPosition = diagnostic.range.start
+                    val endPosition = diagnostic.range.end
+                    val position = Position(startPosition.line, (endPosition.character + startPosition.character) / 2)
+                    val importCandidates = tryCatch({
+                        getImportCandidates(syncBuffer, position)
+                    }, emptyList())
+                    importCandidates.forEach { candidate ->
+                        val commandTitle = "Import " + candidate.removePrefix("import").removeSuffix(";")
+                        commands.add(Either.forLeft(Command(commandTitle, "importFix", listOf(candidate))))
+                    }
+                }
+
+                commands
+            }
+
     override fun close() {
         async.shutdown(true)
         messageBusConnection?.disconnect()
@@ -227,8 +259,18 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     private fun reportDiagnostics(buffer: SyncBuffer, highlightInfos: List<HighlightInfo>) {
+        val errorRows = HashSet<Int>()
         val diagnostics = highlightInfos.map {
             it.toDiagnostic(buffer.document)
+        }.filterNotNull().sortedBy {
+            it.severity
+        }.filter {
+            if (it.severity == DiagnosticSeverity.Error) {
+                errorRows.add(it.range.start.line)
+                true
+            } else {
+                !errorRows.contains(it.range.start.line)
+            }
         }
 
         client.publishDiagnostics(PublishDiagnosticsParams(getURIForFile(buffer.psiFile), diagnostics))

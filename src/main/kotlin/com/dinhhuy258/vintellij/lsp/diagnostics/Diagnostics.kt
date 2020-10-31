@@ -45,8 +45,17 @@ fun HighlightInfo.toDiagnostic(document: Document): Diagnostic? {
     val description = this.description
     val start = offsetToPosition(document, this.getStartOffset())
     val end = offsetToPosition(document, this.getEndOffset())
+    var code: String? = null
+    if (this.quickFixActionMarkers != null) {
+        for (actionPair in this.quickFixActionMarkers) {
+            if (actionPair.first.action.text == "Import") {
+                code = "Import"
+                break
+            }
+        }
+    }
 
-    return Diagnostic(Range(start, end), description, this.diagnosticSeverity(), "vintellij")
+    return Diagnostic(Range(start, end), description, this.diagnosticSeverity(), "vintellij", code)
 }
 
 private fun HighlightInfo.diagnosticSeverity() =

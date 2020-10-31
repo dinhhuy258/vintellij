@@ -32,7 +32,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     private var nvimInstance: NvimInstance? = null
 
-    private val workspaceService = VintellijWorkspaceService()
+    private val workspaceService = VintellijWorkspaceService(this)
 
     private val textDocumentService = VintellijTextDocumentService(this)
 
@@ -82,7 +82,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
             save = null
         })
         hoverProvider = true
-        completionProvider = CompletionOptions(false, listOf("."))
+        completionProvider = CompletionOptions(false, listOf(".", "@"))
         signatureHelpProvider = null
         definitionProvider = true
         typeDefinitionProvider = Either.forLeft(true)
@@ -91,7 +91,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         documentHighlightProvider = false
         documentSymbolProvider = false
         workspaceSymbolProvider = false
-        codeActionProvider = Either.forLeft(false)
+        codeActionProvider = Either.forLeft(true)
         codeLensProvider = null
         documentFormattingProvider = false
         documentRangeFormattingProvider = false
