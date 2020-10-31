@@ -4,9 +4,6 @@ import com.dinhhuy258.vintellij.comrade.ComradeScope
 import com.dinhhuy258.vintellij.comrade.core.FUN_VINTELLIJ_RESPONSE_CALLBACK
 import com.dinhhuy258.vintellij.comrade.core.NvimInstance
 import com.dinhhuy258.vintellij.exceptions.VIException
-import com.dinhhuy258.vintellij.handlers.FindHierarchyHandler
-import com.dinhhuy258.vintellij.handlers.FindUsageHandler
-import com.dinhhuy258.vintellij.handlers.GoToDefinitionHandler
 import com.dinhhuy258.vintellij.handlers.ImportSuggestionsHandler
 import com.dinhhuy258.vintellij.handlers.OpenFileHandler
 import com.dinhhuy258.vintellij.handlers.VIHandler
@@ -21,10 +18,7 @@ class VintellijManager(private val nvimInstance: NvimInstance) {
 
     private val handlers: Map<String, VIHandler> = mapOf(
             "import" to ImportSuggestionsHandler(),
-            "open" to OpenFileHandler(),
-            "goto" to GoToDefinitionHandler(),
-            "find-hierarchy" to FindHierarchyHandler(),
-            "find-usage" to FindUsageHandler()
+            "open" to OpenFileHandler()
     )
 
     @RequestHandler("vintellij_handler")

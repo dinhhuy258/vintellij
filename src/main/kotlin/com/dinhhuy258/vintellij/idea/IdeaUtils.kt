@@ -10,20 +10,12 @@ import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
-import com.intellij.psi.impl.source.PsiJavaFileImpl
 import java.io.File
 import org.jetbrains.kotlin.asJava.getRepresentativeLightMethod
-import org.jetbrains.kotlin.asJava.toLightClassWithBuiltinMapping
-import org.jetbrains.kotlin.backend.common.serialization.findPackage
-import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaClassDescriptor
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtFunction
 
 class IdeaUtils {
@@ -35,10 +27,6 @@ class IdeaUtils {
             }
 
             return projects[0]
-        }
-
-        fun findPackageForPsiClass(psiClass: PsiClass): String? {
-            return psiClass.getJavaClassDescriptor()?.findPackage()?.fqName?.asString()
         }
 
         fun getVirtualFile(fileName: String): VirtualFile {
@@ -75,20 +63,6 @@ class IdeaUtils {
             return psiFileRef.get() ?: throw VIException("Cannot find the PsiFile for $fileName.")
         }
 
-        fun getPsiClass(psiElement: PsiElement): PsiClass? {
-            return when (psiElement) {
-                is PsiClass -> {
-                    psiElement
-                }
-                is KtClassOrObject -> {
-                    psiElement.toLightClassWithBuiltinMapping()
-                }
-                else -> {
-                    null
-                }
-            }
-        }
-
         fun getPsiMethod(psiElement: PsiElement): PsiMethod? {
             return when (psiElement) {
                 is KtFunction -> {
@@ -96,20 +70,6 @@ class IdeaUtils {
                 }
                 is PsiMethod -> {
                     psiElement
-                }
-                else -> {
-                    null
-                }
-            }
-        }
-
-        fun getClassName(psiFile: PsiFile): String? {
-            return when (psiFile) {
-                is KtFile -> {
-                    psiFile.classes[0].getKotlinFqName()?.asString()
-                }
-                is PsiJavaFileImpl -> {
-                    psiFile.classes[0].getKotlinFqName()?.asString()
                 }
                 else -> {
                     null
