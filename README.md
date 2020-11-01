@@ -11,12 +11,9 @@ Make IntelliJ as a server language protocol.
 #### Install
 
 ```
-Plug 'dinhhuy258/vintellij'
+Plug 'dinhhuy258/vintellij', {'branch': 'lsp'}
 ```
 The default mapping is
-- <Leader>cgd to go to the definition from the symbol under cursor
-- <Leader>cgh to find the hierarchies for the symbol under cursor
-- <Leader>cgu to find all of the occurrences of the symbol under cursor
 - <Leader>co to open the current file from vim by intelliJ
 - <Leader>ci to suggest possible imports by the symbol under cursor
 
@@ -24,7 +21,6 @@ if you want to make your own custom keymap, then put the following in your `.vim
 
 ```
 let g:vintellij_use_default_keymap = 0
-nnoremap <Leader>gcd :VintellijGoToDefinition<CR>
 nnoremap <Leader>co :VintellijOpenFile<CR>
 nnoremap <Leader>ci :VintellijSuggestImports<CR>
 ...
@@ -58,17 +54,36 @@ Execute the script to run IntelliJ in headless mode
 ./vintellij.sh ${project-path}
 ```
 
-## Vim functions
+## Vintellij commands
 
-- `vintellij#SuggestImports()`: suggest a list of importable classes for an element at the current cursor
+- `VintellijEnable`: Enable vintellij LSP, the LSP is not enabled by default
 
-- `vintellij#GoToDefinition()`: go to the position where an element at the current cursor is defined
+- `VintellijOpenFile`: open the current file in Intellij
 
-- `vintellij#FindHierarchy()`: go to the subclasses or overriding methods for the class/method at the current cursor (project scope only)
+- `VintellijSuggestImports`: suggest a list of importable classes for an element at the current cursor
 
-- `vintellij#FindUsage()`: list all the occurrences of the symbol at the current cursor (project scope only)
+## Coc setup
 
-- `vintellij#OpenFile()`: open the current file in Intellij
+```
+...
+  "languageserver": {
+    "vintellij":{
+        "enable": false,
+        "host": "127.0.0.1",
+        "port": 6969,
+        "rootPatterns": [
+          ".vim/",
+          ".git/",
+          ".hg/"
+        ],
+        "filetypes": [
+            "java",
+            "kotlin"
+        ],
+        "additionalSchemes": ["jar", "zipfile"]
+    }
+  }
+```
 
 ## Features
 
@@ -95,6 +110,3 @@ Recently I just integrated the Comrade IntelliJ plugin source code into my plugi
   - Get vim transparent and putting IntelliJ behind
   - Open IntelliJ in headless mode
   
-## Roadmap
-
-- Support language server protocol
