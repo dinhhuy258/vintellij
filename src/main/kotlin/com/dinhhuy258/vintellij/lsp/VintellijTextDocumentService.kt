@@ -12,6 +12,7 @@ import com.dinhhuy258.vintellij.lsp.navigation.goToImplementation
 import com.dinhhuy258.vintellij.lsp.navigation.goToReferences
 import com.dinhhuy258.vintellij.lsp.navigation.goToTypeDefinition
 import com.dinhhuy258.vintellij.lsp.quickfix.getImportCandidates
+import com.dinhhuy258.vintellij.lsp.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.lsp.utils.Debouncer
 import com.dinhhuy258.vintellij.utils.getURIForFile
@@ -36,6 +37,8 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams
 import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
+import org.eclipse.lsp4j.DocumentSymbol
+import org.eclipse.lsp4j.DocumentSymbolParams
 import org.eclipse.lsp4j.Hover
 import org.eclipse.lsp4j.HoverParams
 import org.eclipse.lsp4j.ImplementationParams
@@ -44,6 +47,7 @@ import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.ReferenceParams
+import org.eclipse.lsp4j.SymbolInformation
 import org.eclipse.lsp4j.TypeDefinitionParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageClient
@@ -210,6 +214,14 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 }
 
                 commands
+            }
+
+    override fun documentSymbol(params: DocumentSymbolParams): CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> =
+            async.compute {
+                val syncBuffer =
+                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+
+                getDocumentSymbols(syncBuffer, params.textDocument.uri)
             }
 
     override fun close() {

@@ -89,7 +89,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         implementationProvider = Either.forLeft(true)
         referencesProvider = true
         documentHighlightProvider = false
-        documentSymbolProvider = false
+        documentSymbolProvider = true
         workspaceSymbolProvider = false
         codeActionProvider = Either.forLeft(true)
         codeLensProvider = null
