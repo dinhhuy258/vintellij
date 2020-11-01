@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij.lsp.diagnostics
 
 import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.lsp.hover.stripHtml
 import com.dinhhuy258.vintellij.lsp.utils.offsetToPosition
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
@@ -42,7 +43,10 @@ fun HighlightInfo.toDiagnostic(document: Document): Diagnostic? {
         return null
     }
 
-    val description = this.description
+    var description = this.description
+    if (description.isBlank() && this.toolTip != null) {
+        description = stripHtml(this.toolTip!!)
+    }
     val start = offsetToPosition(document, this.getStartOffset())
     val end = offsetToPosition(document, this.getEndOffset())
     var code: String? = null

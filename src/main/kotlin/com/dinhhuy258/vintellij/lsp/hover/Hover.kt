@@ -43,6 +43,7 @@ fun getHoverDoc(buffer: SyncBuffer?, position: Position): List<Either<String, Ma
     }
 }
 
+// TODO: Move this method to utils class
 fun stripHtml(input: String): String {
     return input.replace("(<br[ /]*>|</?PRE>)".toRegex(), "\n")
             .replace("<li>".toRegex(), "\n - ")
