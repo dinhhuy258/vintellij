@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij.comrade.completion
+package com.dinhhuy258.vintellij.lsp.completion
 
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementPresentation

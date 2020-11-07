@@ -7,7 +7,6 @@ import com.intellij.openapi.application.ApplicationManager
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.Position
 
-@Synchronized
 fun goToImplementation(buffer: SyncBuffer?, position: Position): List<Location> {
     val locations = ArrayList<Location>()
 

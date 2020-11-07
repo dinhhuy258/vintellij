@@ -194,6 +194,11 @@ fun PsiElement.symbolKind(): SymbolKind? =
             else -> null
         }
 
+fun PsiElement.containerName(): String? =
+        generateSequence(parent, { it.parent })
+                .firstOrNull { it.symbolKind() != null && it.symbolName() != null }
+                ?.symbolName()
+
 fun PsiElement.symbolName(): String? =
         when (this) {
             is KtElement -> ktSymbolName()
