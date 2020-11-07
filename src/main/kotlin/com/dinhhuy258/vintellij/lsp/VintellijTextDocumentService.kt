@@ -3,6 +3,7 @@ package com.dinhhuy258.vintellij.lsp
 import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
 import com.dinhhuy258.vintellij.lsp.completion.doCompletion
 import com.dinhhuy258.vintellij.lsp.diagnostics.DiagnosticsProcessor
+import com.dinhhuy258.vintellij.lsp.formatting.formatDocument
 import com.dinhhuy258.vintellij.lsp.hover.getHoverDoc
 import com.dinhhuy258.vintellij.lsp.navigation.goToDefinition
 import com.dinhhuy258.vintellij.lsp.navigation.goToImplementation
@@ -29,6 +30,7 @@ import org.eclipse.lsp4j.DidChangeTextDocumentParams
 import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
+import org.eclipse.lsp4j.DocumentFormattingParams
 import org.eclipse.lsp4j.DocumentSymbol
 import org.eclipse.lsp4j.DocumentSymbolParams
 import org.eclipse.lsp4j.Hover
@@ -39,6 +41,7 @@ import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.ReferenceParams
 import org.eclipse.lsp4j.SymbolInformation
+import org.eclipse.lsp4j.TextEdit
 import org.eclipse.lsp4j.TypeDefinitionParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageClient
@@ -132,6 +135,18 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         Hover(tryCatch({
             getHoverDoc(syncBuffer, params.position)
         }, emptyList()))
+    }
+
+    override fun formatting(params: DocumentFormattingParams): CompletableFuture<List<TextEdit>> = async.compute {
+        val syncBuffer =
+                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+
+        try {
+            formatDocument(syncBuffer)
+        } catch (e: Throwable) {
+        }
+
+        emptyList()
     }
 
     override fun codeAction(params: CodeActionParams): CompletableFuture<List<Either<Command, CodeAction>>> =
