@@ -4,6 +4,7 @@ import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
 import com.dinhhuy258.vintellij.lsp.utils.containerName
 import com.dinhhuy258.vintellij.lsp.utils.symbolKind
 import com.dinhhuy258.vintellij.lsp.utils.toRange
+import com.intellij.ide.structureView.impl.common.PsiTreeElementBase
 import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.java.JavaStructureViewBuilderFactory
@@ -23,7 +24,6 @@ import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.SymbolInformation
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.structureView.KotlinStructureViewElement
 import org.jetbrains.kotlin.idea.structureView.KotlinStructureViewFactory
 
 private class VintellijFileEditor(private val editor: Editor) : TextEditor {
@@ -118,21 +118,21 @@ fun getDocumentSymbols(buffer: SyncBuffer?, documentUri: String): List<Either<Sy
 
         while (!treeElements.isEmpty()) {
             val treeElement = treeElements.pop()
-            if (treeElement is KotlinStructureViewElement) {
-                val kotlinTreeElement = treeElement as KotlinStructureViewElement
-                val element = kotlinTreeElement.element
+            if (treeElement is PsiTreeElementBase<*>) {
+                val psiTreeElement = treeElement as PsiTreeElementBase<*>
+                val element = psiTreeElement.element
                 if (element != null) {
                     symbols.add(Either.forLeft(
                             SymbolInformation(
-                                    kotlinTreeElement.presentation.presentableText,
+                                    psiTreeElement.presentation.presentableText,
                                     element.symbolKind(),
                                     Location(documentUri, element.toRange(document)),
                                     element.containerName()
                             )
-                    )
-                    )
+                    ))
                 }
             }
+
             treeElements.addAll(treeElement.children)
         }
     }
