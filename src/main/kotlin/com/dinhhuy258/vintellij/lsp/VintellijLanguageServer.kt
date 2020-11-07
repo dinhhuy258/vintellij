@@ -94,7 +94,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         codeActionProvider = Either.forLeft(true)
         codeLensProvider = null
         documentFormattingProvider = true
-        documentRangeFormattingProvider = false
+        documentRangeFormattingProvider = true
         documentOnTypeFormattingProvider = null
         renameProvider = Either.forLeft(false)
         documentLinkProvider = null

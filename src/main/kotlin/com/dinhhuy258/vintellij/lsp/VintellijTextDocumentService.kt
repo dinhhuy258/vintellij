@@ -31,6 +31,7 @@ import org.eclipse.lsp4j.DidCloseTextDocumentParams
 import org.eclipse.lsp4j.DidOpenTextDocumentParams
 import org.eclipse.lsp4j.DidSaveTextDocumentParams
 import org.eclipse.lsp4j.DocumentFormattingParams
+import org.eclipse.lsp4j.DocumentRangeFormattingParams
 import org.eclipse.lsp4j.DocumentSymbol
 import org.eclipse.lsp4j.DocumentSymbolParams
 import org.eclipse.lsp4j.Hover
@@ -142,7 +143,19 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
 
         try {
-            formatDocument(syncBuffer)
+            formatDocument(syncBuffer, null)
+        } catch (e: Throwable) {
+        }
+
+        emptyList()
+    }
+
+    override fun rangeFormatting(params: DocumentRangeFormattingParams): CompletableFuture<List<TextEdit>> = async.compute {
+        val syncBuffer =
+                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+
+        try {
+            formatDocument(syncBuffer, params.range)
         } catch (e: Throwable) {
         }
 
