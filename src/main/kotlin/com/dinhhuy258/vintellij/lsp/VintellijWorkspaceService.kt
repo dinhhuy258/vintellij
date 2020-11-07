@@ -1,10 +1,7 @@
 package com.dinhhuy258.vintellij.lsp
 
-import com.dinhhuy258.vintellij.comrade.ComradeScope
-import com.dinhhuy258.vintellij.comrade.core.FUN_ADD_IMPORT
 import com.google.gson.JsonPrimitive
 import java.util.concurrent.CompletableFuture
-import kotlinx.coroutines.launch
 import org.eclipse.lsp4j.DidChangeConfigurationParams
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams
 import org.eclipse.lsp4j.ExecuteCommandParams
@@ -20,14 +17,16 @@ class VintellijWorkspaceService(private val languageServer: VintellijLanguageSer
 
     override fun executeCommand(params: ExecuteCommandParams): CompletableFuture<Any> {
         val nvimInstance = languageServer.getNvimInstance()
-
-        if (params.command == "importFix" && nvimInstance != null && params.arguments.isNotEmpty()) {
+        if (params.command == "importFix" && nvimInstance != null && params.arguments.size == 2) {
             val firstArgument = params.arguments[0]
-            if (firstArgument is JsonPrimitive && firstArgument.isString) {
+            val secondArgument = params.arguments[1]
+            if (firstArgument is JsonPrimitive && firstArgument.isString &&
+                    secondArgument is JsonPrimitive && secondArgument.isString) {
                 val classToImport = firstArgument.asString
-                ComradeScope.launch {
-                    nvimInstance.client.api.callFunction(FUN_ADD_IMPORT, listOf(classToImport))
-                }
+                val documentPath = secondArgument.asString
+
+                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(documentPath)?.insertText(
+                        "\n$classToImport", 1)
             }
         }
 

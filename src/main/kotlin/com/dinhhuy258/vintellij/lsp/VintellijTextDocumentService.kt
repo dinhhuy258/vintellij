@@ -136,8 +136,9 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun codeAction(params: CodeActionParams): CompletableFuture<List<Either<Command, CodeAction>>> =
             async.compute {
+                val documentPath = uriToPath(params.textDocument.uri)
                 val syncBuffer =
-                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(documentPath)
 
                 val importDiagnostics = params.context.diagnostics.filter {
                     it.severity == DiagnosticSeverity.Error && it.code != null
@@ -153,7 +154,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                     }, emptyList())
                     importCandidates.forEach { candidate ->
                         val commandTitle = "Import " + candidate.removePrefix("import").removeSuffix(";")
-                        commands.add(Either.forLeft(Command(commandTitle, "importFix", listOf(candidate))))
+                        commands.add(Either.forLeft(Command(commandTitle, "importFix", listOf(candidate, documentPath))))
                     }
                 }
 

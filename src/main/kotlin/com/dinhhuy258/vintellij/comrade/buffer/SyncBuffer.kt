@@ -93,6 +93,14 @@ class SyncBuffer(
         caret.moveToLogicalPosition(LogicalPosition(row, col))
     }
 
+    fun insertText(text: CharSequence, line: Int) {
+        checkReleased()
+        val offset = document.getLineStartOffset(line)
+        ApplicationManager.getApplication().invokeAndWait {
+            insertText(offset, text)
+        }
+    }
+
     internal fun setText(text: CharSequence) {
         checkReleased()
         ApplicationManager.getApplication().runWriteAction {

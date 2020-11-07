@@ -84,21 +84,5 @@ function! vintellij#SuggestImports() abort
         \ }, v:false)
 endfunction
 
-function! vintellij#AddImport(import)
-  let l:lineNumber = 1
-  let l:maxLine = line('$')
-  while l:lineNumber <= l:maxLine
-    let l:line = getline(l:lineNumber)
-    if l:line =~# '^import '
-      call append(l:lineNumber - 1,  a:import)
-      return
-    endif
-    let l:lineNumber += 1
-  endwhile
-
-  call append(1, @a)
-  call append(2, a:import)
-endfunction
-
 let &cpo = s:cpo_save
 unlet s:cpo_save
