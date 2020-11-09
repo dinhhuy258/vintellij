@@ -7,6 +7,7 @@ import com.dinhhuy258.vintellij.exceptions.VIException
 import com.dinhhuy258.vintellij.handlers.ImportSuggestionsHandler
 import com.dinhhuy258.vintellij.handlers.OpenFileHandler
 import com.dinhhuy258.vintellij.handlers.VIHandler
+import com.dinhhuy258.vintellij.handlers.SyncBufferToggleHandler
 import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
 import com.dinhhuy258.vintellij.neovim.rpc.Request
 import com.google.gson.Gson
@@ -18,7 +19,8 @@ class VintellijManager(private val nvimInstance: NvimInstance) {
 
     private val handlers: Map<String, VIHandler> = mapOf(
             "import" to ImportSuggestionsHandler(),
-            "open" to OpenFileHandler()
+            "open" to OpenFileHandler(),
+            "syncBufferToggle" to SyncBufferToggleHandler(nvimInstance)
     )
 
     @RequestHandler("vintellij_handler")

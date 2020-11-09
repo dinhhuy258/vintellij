@@ -34,6 +34,8 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
     @Volatile var connected = false
         private set
 
+    var isSyncBuffer = true
+
     suspend fun connect() {
         apiInfo = client.api.getApiInfo()
 
@@ -53,6 +55,11 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
 
     override fun toString(): String {
         return address
+    }
+
+    fun updateSyncBuffer(isEnable: Boolean) {
+        isSyncBuffer = isEnable
+        bufManager.synchronizer.isEnableSync = isSyncBuffer
     }
 }
 
@@ -76,3 +83,4 @@ private fun isWindows(): Boolean {
     val osStr = System.getProperty("os.name").toLowerCase()
     return osStr.contains("win")
 }
+
