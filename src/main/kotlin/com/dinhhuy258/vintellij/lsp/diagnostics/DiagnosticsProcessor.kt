@@ -5,17 +5,15 @@ import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
 import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManagerListener
 import com.dinhhuy258.vintellij.utils.getURIForFile
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
-import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 import java.util.IdentityHashMap
-import kotlin.collections.HashSet
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import org.eclipse.lsp4j.DiagnosticSeverity
+import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.services.LanguageClient
 
@@ -81,30 +79,16 @@ class DiagnosticsProcessor() : SyncBufferManagerListener, DaemonCodeAnalyzer.Dae
             return
         }
 
-        val highlights = try {
-            getHighlights(buffer)
+        val diagnostics = try {
+            getDiagnostics(buffer)
         } catch (e: Throwable) {
             emptyList()
         }
 
-        reportDiagnostics(buffer, highlights)
+        reportDiagnostics(buffer, diagnostics)
     }
 
-    private fun reportDiagnostics(buffer: SyncBuffer, highlightInfos: List<HighlightInfo>) {
-        val errorRows = HashSet<Int>()
-        val diagnostics = highlightInfos.mapNotNull {
-            it.toDiagnostic(buffer.document)
-        }.sortedBy {
-            it.severity
-        }.filter {
-            if (it.severity == DiagnosticSeverity.Error) {
-                errorRows.add(it.range.start.line)
-                true
-            } else {
-                !errorRows.contains(it.range.start.line)
-            }
-        }
-
+    private fun reportDiagnostics(buffer: SyncBuffer, diagnostics: List<Diagnostic>) {
         client.publishDiagnostics(PublishDiagnosticsParams(getURIForFile(buffer.psiFile), diagnostics))
     }
 }

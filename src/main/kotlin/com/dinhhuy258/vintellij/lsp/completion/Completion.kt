@@ -62,6 +62,7 @@ private fun getCompletionResult(
     completionList: CompletionList
 ) {
     if (indicator.isCanceled) {
+        onIndicatorCompletionFinish(indicator, completionList)
         return
     }
 

@@ -13,8 +13,8 @@ import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.DiagnosticSeverity
 import org.eclipse.lsp4j.Range
 
-fun getHighlights(buffer: SyncBuffer): List<HighlightInfo> {
-    val highlightsRef = Ref<List<HighlightInfo>>()
+fun getDiagnostics(buffer: SyncBuffer): List<Diagnostic> {
+    val diagnosticsRef = Ref<List<Diagnostic>>()
     ApplicationManager.getApplication().runReadAction {
         val highlights = mutableListOf<HighlightInfo>()
         DaemonCodeAnalyzerEx.processHighlights(
@@ -27,15 +27,28 @@ fun getHighlights(buffer: SyncBuffer): List<HighlightInfo> {
             highlights.add(highlightInfo)
             true
         }
-        highlights.filter {
+
+        val errorRows = HashSet<Int>()
+        val diagnostics = highlights.filter {
             val document = buffer.document
             it.startOffset > 0 && it.startOffset <= document.textLength && it.endOffset > 0 && it.endOffset <= document.textLength
+        }.mapNotNull {
+            it.toDiagnostic(buffer.document)
+        }.sortedBy {
+            it.severity
+        }.filter {
+            if (it.severity == DiagnosticSeverity.Error) {
+                errorRows.add(it.range.start.line)
+                true
+            } else {
+                !errorRows.contains(it.range.start.line)
+            }
         }
 
-        highlightsRef.set(highlights)
+        diagnosticsRef.set(diagnostics)
     }
 
-    return highlightsRef.get()
+    return diagnosticsRef.get()
 }
 
 fun HighlightInfo.toDiagnostic(document: Document): Diagnostic? {
@@ -63,9 +76,9 @@ fun HighlightInfo.toDiagnostic(document: Document): Diagnostic? {
 }
 
 private fun HighlightInfo.diagnosticSeverity() =
-    when (this.severity) {
-        HighlightSeverity.INFORMATION -> DiagnosticSeverity.Information
-        HighlightSeverity.WARNING -> DiagnosticSeverity.Warning
-        HighlightSeverity.ERROR -> DiagnosticSeverity.Error
-        else -> DiagnosticSeverity.Hint
-    }
+        when (this.severity) {
+            HighlightSeverity.INFORMATION -> DiagnosticSeverity.Information
+            HighlightSeverity.WARNING -> DiagnosticSeverity.Warning
+            HighlightSeverity.ERROR -> DiagnosticSeverity.Error
+            else -> DiagnosticSeverity.Hint
+        }
