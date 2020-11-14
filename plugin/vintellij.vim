@@ -5,24 +5,25 @@ command! -bang VintellijSyncBufferToggle call vintellij#SyncBufferToggle(<bang>0
 let s:path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 let s:init_path = s:path . '/vintellij_init.py'
 
-function! s:VintellijEnable() abort
-  if exists('s:vintellij_enabled')
-    echomsg "Vintellij was already enabled"
-    return
+function! s:VintellijToggle(bang) abort
+  if a:bang
+    let l:vintellij_enabled = v:false
+    call vintellij#buffer#UnregisterCurrent()
+  else
+    let l:vintellij_enabled = v:true
   endif
 
-  let s:vintellij_enabled = v:true
   exe 'py3file' s:init_path
 
   call vintellij#events#Init()
 
-  call coc#config('languageserver.vintellij.enable', v:true)
+  call coc#config('languageserver.vintellij.enable', l:vintellij_enabled)
   execute 'silent! edit'
 
-  echomsg "Vintellij is enabled"
+  echom "Vintellij enable is " . l:vintellij_enabled
 endfunction
 
-command! VintellijEnable call <SID>VintellijEnable()
+command! -bang VintellijToggle call <SID>VintellijToggle(<bang>0)
 
 if get(g:, 'vintellij_use_default_keymap', 1) == 1
   nnoremap <Leader>co :VintellijOpenFile<CR>

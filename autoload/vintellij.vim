@@ -62,6 +62,13 @@ function! vintellij#VintellijResponseCallback(data) abort
       call s:HandleImportEvent(l:json_data.data)
     elseif l:handler ==# 'open'
       call s:HandleOpenEvent(l:json_data.data)
+    elseif l:handler ==# 'syncBufferToggle'
+      if l:json_data.data.enable
+        call vintellij#buffer#enableSyncBufWriteCmd(bufnr('%'))
+      else
+        call vintellij#buffer#disableSyncBufWriteCmd(bufnr('%'))
+      endif
+      echo '[vintellij] Toggle sync buffer: ' . l:json_data.data.enable
     else
       throw '[vintellij] Invalid handler: ' . l:handler
     endif
@@ -114,3 +121,4 @@ endfunction
 
 let &cpo = s:cpo_save
 unlet s:cpo_save
+

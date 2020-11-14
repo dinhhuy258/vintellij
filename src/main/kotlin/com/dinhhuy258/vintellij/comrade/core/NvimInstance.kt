@@ -34,7 +34,7 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
     @Volatile var connected = false
         private set
 
-    var isSyncBuffer = true
+    var isSyncBuffer = false
 
     suspend fun connect() {
         apiInfo = client.api.getApiInfo()

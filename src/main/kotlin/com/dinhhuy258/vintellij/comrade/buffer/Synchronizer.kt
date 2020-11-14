@@ -62,9 +62,13 @@ class Synchronizer(private val syncBuffer: SyncBuffer, var isEnableSync: Boolean
         ComradeScope.launch {
             try {
                 val result = client.api.callAtomic(listOf(
-                        FUN_NVIM_CALL_FUNCTION to
-                                listOf(FUN_BUFFER_REGISTER, listOf(bufId, nvimInstance.apiInfo.channelId, lines)),
-                        FUN_NVIM_BUF_ATTACH to listOf(bufId, false, emptyMap<Any, Any>())
+                    FUN_NVIM_CALL_FUNCTION to listOf(FUN_BUFFER_REGISTER, listOf(
+                        bufId,
+                        nvimInstance.apiInfo.channelId,
+                        lines,
+                        if (isEnableSync) "true" else "false"
+                    )),
+                    FUN_NVIM_BUF_ATTACH to listOf(bufId, false, emptyMap<Any, Any>())
                 ))
                 if (result[1] != null) {
                     val e = java.lang.IllegalArgumentException("Register buffer failed. $result")
@@ -224,5 +228,3 @@ class Synchronizer(private val syncBuffer: SyncBuffer, var isEnableSync: Boolean
         changeBuilder = null
     }
 }
-
-
