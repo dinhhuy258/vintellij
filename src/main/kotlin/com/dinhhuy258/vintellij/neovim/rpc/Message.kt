@@ -68,3 +68,4 @@ class Notification(val name: String, val args: List<Any?>) : Message(MessageType
         return "Notification '$name', $args"
     }
 }
+

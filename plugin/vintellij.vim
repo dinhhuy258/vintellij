@@ -30,3 +30,6 @@ if get(g:, 'vintellij_use_default_keymap', 1) == 1
   nnoremap <Leader>ci :VintellijSuggestImports<CR>
 endif
 
+if get(g:, 'enable_buffer_sync_by_default', 1) == 1
+  let g:enable_buffer_sync_by_default = 1
+endif

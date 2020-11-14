@@ -38,6 +38,14 @@ class Api internal constructor(private val client: Client) {
         }
     }
 
+    suspend fun getVar(name: String): Any? {
+        val rsp = client.request("nvim_get_var", listOf(name))
+        if (rsp.error != null) {
+            throw Exception(rsp.error.toString())
+        }
+        return rsp.result
+    }
+
     suspend fun command(cmdLine: String) {
         val rsp = client.request("nvim_command", listOf(cmdLine))
         if (rsp.error != null) {
@@ -62,3 +70,4 @@ class Api internal constructor(private val client: Client) {
         return MessagePack.newDefaultUnpacker((rsp.result as MessagePackExtensionType).data).unpackInt()
     }
 }
+

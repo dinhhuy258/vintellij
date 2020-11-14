@@ -89,7 +89,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
             bufferMap[bufId] = syncedBuffer
             bufferPathMap[syncedBuffer.path] = syncedBuffer
             allBuffers.add(syncedBuffer)
-            synchronizer = Synchronizer(syncedBuffer, nvimInstance.isSyncBuffer)
+            synchronizer = Synchronizer(syncedBuffer, nvimInstance.isSyncBuffer!!)
             synchronizer.exceptionHandler = {
                 t ->
                 log.warn("Error happened when synchronize buffers.", t)
