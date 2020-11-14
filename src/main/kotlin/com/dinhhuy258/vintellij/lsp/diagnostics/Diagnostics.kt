@@ -5,6 +5,7 @@ import com.dinhhuy258.vintellij.lsp.hover.stripHtml
 import com.dinhhuy258.vintellij.lsp.utils.offsetToPosition
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
+import com.intellij.codeInsight.daemon.impl.quickfix.ImportClassFix
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
@@ -65,9 +66,13 @@ fun HighlightInfo.toDiagnostic(document: Document): Diagnostic? {
     var code: String? = null
     if (this.quickFixActionMarkers != null) {
         for (actionPair in this.quickFixActionMarkers) {
-            if (actionPair.first.action.text == "Import") {
-                code = "Import"
-                break
+            try {
+                val action = actionPair.first.action
+                if (action is ImportClassFix || action.text == "Import") {
+                    code = "Import"
+                    break
+                }
+            } catch (e: Throwable) {
             }
         }
     }
