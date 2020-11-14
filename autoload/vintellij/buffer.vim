@@ -42,9 +42,11 @@ fu! vintellij#buffer#enableSyncBufWriteCmd(buf)
     augroup END
 endfu
 
-fu! vintellij#buffer#disableSyncBufWriteCmd(buf)
+fu! vintellij#buffer#disableSyncBufWriteCmd(buf) abort
   call setbufvar(a:buf, '&buftype', '')
-  execute('autocmd! ComradeBufEvents * <buffer=' . a:buf . '>')
+  if exists('#ComradeBufEvents')
+    execute('autocmd! ComradeBufEvents * <buffer=' . a:buf . '>')
+  endif
 endfu
 
 " Unregister the current buffer

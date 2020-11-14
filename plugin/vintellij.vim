@@ -6,21 +6,21 @@ let s:path = fnamemodify(resolve(expand('<sfile>:p')), ':h')
 let s:init_path = s:path . '/vintellij_init.py'
 
 function! s:VintellijToggle(bang) abort
-  if a:bang
-    let l:vintellij_enabled = v:false
-    call vintellij#buffer#UnregisterCurrent()
-  else
-    let l:vintellij_enabled = v:true
-  endif
-
   exe 'py3file' s:init_path
 
   call vintellij#events#Init()
 
-  call coc#config('languageserver.vintellij.enable', l:vintellij_enabled)
-  execute 'silent! edit'
+  if a:bang
+    call chanclose(vintellij#bvar#get(bufnr('%'), 'channel'))
+    call vintellij#buffer#UnregisterCurrent()
+    call coc#config('languageserver.vintellij.enable', v:false)
+    call coc#rpc#notify('toggleService', ['languageserver.vintellij'])
+  else
+    call coc#config('languageserver.vintellij.enable', v:true)
+    call coc#rpc#notify('toggleService', ['languageserver.vintellij'])
+  endif
 
-  echom "Vintellij enable is " . l:vintellij_enabled
+  execute 'silent! edit'
 endfunction
 
 command! -bang VintellijToggle call <SID>VintellijToggle(<bang>0)
