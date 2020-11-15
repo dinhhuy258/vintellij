@@ -38,7 +38,7 @@ fu! vintellij#buffer#enableSyncBufWriteCmd(buf)
       execute('autocmd! BufWriteCmd <buffer=' . a:buf . '>')
 
       execute('autocmd BufWriteCmd <buffer=' . a:buf .
-            \ '> call s:WriteBuffer(' . a:buf. ')')
+            \ '> call vintellij#buffer#WriteBuffer(' . a:buf. ')')
     augroup END
 endfu
 
@@ -70,13 +70,14 @@ function! vintellij#buffer#Notify() abort
     endfor
 endfunction
 
-function! s:WriteBuffer(buffer)
+function! vintellij#buffer#WriteBuffer(buffer)
     if !vintellij#bvar#has(a:buffer, 'channel')
         call vintellij#buffer#Unregister(a:buffer)
         return
     endif
 
     let l:channel = vintellij#bvar#get(a:buffer, 'channel')
+
     try
         call call('rpcrequest', [l:channel, 'comrade_buf_write', {'id' : a:buffer}])
         call setbufvar(a:buffer, '&modified', 0)

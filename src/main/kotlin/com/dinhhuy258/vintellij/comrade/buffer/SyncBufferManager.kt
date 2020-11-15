@@ -188,6 +188,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
         invokeOnMainAndWait {
             val syncedBuffer = findBufferById(event.id)
                 ?: throw IllegalStateException("Buffer ${event.id} has been detached from JetBrain.")
+            syncedBuffer.psiFile.virtualFile.refresh(true, true)
             FileDocumentManager.getInstance().saveDocument(syncedBuffer.document)
         }
         return true

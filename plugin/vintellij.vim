@@ -18,6 +18,11 @@ function! s:VintellijToggle(bang) abort
   else
     call coc#config('languageserver.vintellij.enable', v:true)
     call coc#rpc#notify('toggleService', ['languageserver.vintellij'])
+
+    augroup BUF_WRITE
+      autocmd!
+      au BufWritePost *.{java,kt,kts} call vintellij#buffer#WriteBuffer(bufnr('%'))
+    augroup END
   endif
 
   execute 'silent! edit'
