@@ -25,7 +25,7 @@ private val log = Logger.getInstance(Synchronizer::class.java)
 /**
  * Handle both side (JetBrain & Neovim) changes and try to make both side buffers synchronized.
  */
-internal class Synchronizer(private val syncBuffer: SyncBuffer) : DocumentListener {
+class Synchronizer(private val syncBuffer: SyncBuffer, var isEnableSync: Boolean) : DocumentListener {
     var changedtick = -1
         private set
     private val pendingChanges = mutableMapOf<Int, BufferChange>()
@@ -37,6 +37,7 @@ internal class Synchronizer(private val syncBuffer: SyncBuffer) : DocumentListen
     var exceptionHandler: ((Throwable) -> Unit)? = null
 
     fun onChange(change: BufferChange) {
+        if (!isEnableSync) return
         ApplicationManager.getApplication().assertIsDispatchThread()
         try {
             when (change.source) {
@@ -61,9 +62,13 @@ internal class Synchronizer(private val syncBuffer: SyncBuffer) : DocumentListen
         ComradeScope.launch {
             try {
                 val result = client.api.callAtomic(listOf(
-                        FUN_NVIM_CALL_FUNCTION to
-                                listOf(FUN_BUFFER_REGISTER, listOf(bufId, nvimInstance.apiInfo.channelId, lines)),
-                        FUN_NVIM_BUF_ATTACH to listOf(bufId, false, emptyMap<Any, Any>())
+                    FUN_NVIM_CALL_FUNCTION to listOf(FUN_BUFFER_REGISTER, listOf(
+                        bufId,
+                        nvimInstance.apiInfo.channelId,
+                        lines,
+                        if (isEnableSync) "true" else "false"
+                    )),
+                    FUN_NVIM_BUF_ATTACH to listOf(bufId, false, emptyMap<Any, Any>())
                 ))
                 if (result[1] != null) {
                     val e = java.lang.IllegalArgumentException("Register buffer failed. $result")

@@ -34,8 +34,14 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
     @Volatile var connected = false
         private set
 
+    var isSyncBuffer: Boolean? = null
+
     suspend fun connect() {
         apiInfo = client.api.getApiInfo()
+
+        if (isSyncBuffer == null) {
+            isSyncBuffer = client.api.getVar("enable_buffer_sync_by_default") as Int == 1
+        }
 
         client.api.setClientInfo("Vintellij", VERSION)
         client.api.command("echom \"Vintellij LSP connected.\"")
@@ -53,6 +59,11 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
 
     override fun toString(): String {
         return address
+    }
+
+    fun updateSyncBuffer(isEnable: Boolean) {
+        isSyncBuffer = isEnable
+        bufManager.synchronizer.isEnableSync = isSyncBuffer!!
     }
 }
 

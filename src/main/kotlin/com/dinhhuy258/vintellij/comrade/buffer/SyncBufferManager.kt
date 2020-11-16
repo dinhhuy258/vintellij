@@ -1,5 +1,6 @@
 package com.dinhhuy258.vintellij.comrade.buffer
 
+import com.dinhhuy258.vintellij.comrade.buffer.Synchronizer
 import com.dinhhuy258.vintellij.comrade.ComradeScope
 import com.dinhhuy258.vintellij.comrade.core.ComradeBufEnterParams
 import com.dinhhuy258.vintellij.comrade.core.ComradeBufWriteParams
@@ -49,6 +50,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     private val bufferMap = ConcurrentHashMap<Int, SyncBuffer>()
     private val bufferPathMap = ConcurrentHashMap<String, SyncBuffer>()
     private val client = nvimInstance.client
+    lateinit var synchronizer: Synchronizer
 
     init {
         Disposer.register(nvimInstance, this)
@@ -87,7 +89,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
             bufferMap[bufId] = syncedBuffer
             bufferPathMap[syncedBuffer.path] = syncedBuffer
             allBuffers.add(syncedBuffer)
-            val synchronizer = Synchronizer(syncedBuffer)
+            synchronizer = Synchronizer(syncedBuffer, nvimInstance.isSyncBuffer!!)
             synchronizer.exceptionHandler = {
                 t ->
                 log.warn("Error happened when synchronize buffers.", t)
@@ -186,8 +188,10 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
         invokeOnMainAndWait {
             val syncedBuffer = findBufferById(event.id)
                 ?: throw IllegalStateException("Buffer ${event.id} has been detached from JetBrain.")
+            syncedBuffer.psiFile.virtualFile.refresh(true, true)
             FileDocumentManager.getInstance().saveDocument(syncedBuffer.document)
         }
         return true
     }
 }
+
