@@ -56,7 +56,7 @@ Execute the script to run IntelliJ in headless mode
 
 ## Vintellij commands
 
-- `VintellijEnable`: Enable vintellij LSP, the LSP is not enabled by default
+- `VintellijToggle`: Enable vintellij LSP, the LSP is not enabled by default
 
 - `VintellijOpenFile`: open the current file in Intellij
 
