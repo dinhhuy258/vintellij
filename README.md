@@ -1,6 +1,12 @@
 # Vintellij
 Make IntelliJ as a server language protocol.
 
+## Vintellij versions
+
+- `master`: This is an original version of vintellij
+- `comrade`: Same as `master` branch that including comrade plugin
+- `lsp`: This is currently the main branch of vintellij which supports Language Server Protocol
+
 ## Installation
 
 ### Vim
