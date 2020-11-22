@@ -2,8 +2,8 @@ package com.dinhhuy258.vintellij.handlers
 
 import com.dinhhuy258.vintellij.comrade.core.NvimInstance
 
-class SyncBufferToggleHandler(private val nvimInstance: NvimInstance)
-    : BaseHandler<SyncBufferToggleHandler.Request, SyncBufferToggleHandler.Response>() {
+class SyncBufferToggleHandler(private val nvimInstance: NvimInstance) :
+    BaseHandler<SyncBufferToggleHandler.Request, SyncBufferToggleHandler.Response>() {
 
     data class Request(val enable: Boolean)
 
@@ -18,5 +18,3 @@ class SyncBufferToggleHandler(private val nvimInstance: NvimInstance)
         return Response(request.enable)
     }
 }
-
-

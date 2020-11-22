@@ -1,6 +1,5 @@
 package com.dinhhuy258.vintellij.comrade.buffer
 
-import com.dinhhuy258.vintellij.comrade.buffer.Synchronizer
 import com.dinhhuy258.vintellij.comrade.ComradeScope
 import com.dinhhuy258.vintellij.comrade.core.ComradeBufEnterParams
 import com.dinhhuy258.vintellij.comrade.core.ComradeBufWriteParams
@@ -194,4 +193,3 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
         return true
     }
 }
-

@@ -6,8 +6,8 @@ import com.dinhhuy258.vintellij.comrade.core.NvimInstance
 import com.dinhhuy258.vintellij.exceptions.VIException
 import com.dinhhuy258.vintellij.handlers.ImportSuggestionsHandler
 import com.dinhhuy258.vintellij.handlers.OpenFileHandler
-import com.dinhhuy258.vintellij.handlers.VIHandler
 import com.dinhhuy258.vintellij.handlers.SyncBufferToggleHandler
+import com.dinhhuy258.vintellij.handlers.VIHandler
 import com.dinhhuy258.vintellij.neovim.annotation.RequestHandler
 import com.dinhhuy258.vintellij.neovim.rpc.Request
 import com.google.gson.Gson

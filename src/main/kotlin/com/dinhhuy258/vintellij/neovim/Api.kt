@@ -70,4 +70,3 @@ class Api internal constructor(private val client: Client) {
         return MessagePack.newDefaultUnpacker((rsp.result as MessagePackExtensionType).data).unpackInt()
     }
 }
-
