@@ -2,6 +2,7 @@ package com.dinhhuy258.vintellij.lsp
 
 import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
 import com.dinhhuy258.vintellij.lsp.completion.doCompletion
+import com.dinhhuy258.vintellij.lsp.completion.shouldStopCompletion
 import com.dinhhuy258.vintellij.lsp.diagnostics.DiagnosticsProcessor
 import com.dinhhuy258.vintellij.lsp.formatting.formatDocument
 import com.dinhhuy258.vintellij.lsp.hover.getHoverDoc
@@ -116,8 +117,10 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 }, emptyList()))
             }
 
-    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> =
-            async.compute {
+    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> {
+        // Stop in-progress suggestion
+        shouldStopCompletion.set(true)
+        return async.compute {
                 val syncBuffer =
                         languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(position.textDocument.uri))
 
@@ -128,6 +131,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
                 )
             }
+    }
 
     override fun hover(params: HoverParams): CompletableFuture<Hover> = async.compute {
         val syncBuffer =
