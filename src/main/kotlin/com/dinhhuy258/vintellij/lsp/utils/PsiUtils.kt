@@ -119,7 +119,7 @@ fun getLocation(psiElement: PsiElement): Location? {
         return Location(PathUtils.toVimJarFilePath(virtualFile.path), getRange(psiFile.text, psiElement.textOffset))
     }
 
-    return Location(virtualFile.path, getRange(psiFile.text, psiElement.textOffset))
+    return Location(PathUtils.toVimFilePath(virtualFile.path), getRange(psiFile.text, psiElement.textOffset))
 }
 
 fun getRange(content: String, offset: Int): Range {
