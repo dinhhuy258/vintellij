@@ -10,12 +10,16 @@ import com.intellij.openapi.diagnostic.Logger
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionList
 import org.eclipse.lsp4j.Position
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 10
 
 private val logger = Logger.getInstance("COMPLETION")
 
+public val shouldStopCompletion = AtomicBoolean(false)
+
 fun doCompletion(buffer: SyncBuffer?, position: Position): CompletionList {
+    shouldStopCompletion.set(false)
     if (buffer == null) {
         return CompletionList(false, emptyList())
     }
@@ -33,7 +37,7 @@ private fun doAsyncComplete(buffer: SyncBuffer, position: Position, completionLi
 
     val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator() ?: return
     // Wait until completion begins
-    while (indicator.parameters == null && !indicator.isCanceled) {
+    while (indicator.parameters == null && !indicator.isCanceled && !shouldStopCompletion.get()) {
         Thread.sleep(50)
     }
 
@@ -70,7 +74,8 @@ private fun getCompletionResult(
         try {
             while (indicator.isRunning &&
                     !indicator.isCanceled &&
-                    indicator.lookup.arranger.matchingItems.size < ACCEPTABLE_NUM_OF_COMPLETION_ITEMS) {
+                    indicator.lookup.arranger.matchingItems.size < ACCEPTABLE_NUM_OF_COMPLETION_ITEMS &&
+                    !shouldStopCompletion.get()) {
                 Thread.sleep(50)
             }
 
