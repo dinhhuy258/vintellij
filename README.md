@@ -12,6 +12,7 @@ Make IntelliJ as a server language protocol.
 ### Vim
 
 #### Dependencies
+
 - [fzf](https://github.com/junegunn/fzf.vim)
 
 #### Install
@@ -19,6 +20,7 @@ Make IntelliJ as a server language protocol.
 ```
 Plug 'dinhhuy258/vintellij', {'branch': 'lsp'}
 ```
+
 The default mapping is
 - <Leader>co to open the current file from vim by intelliJ
 - <Leader>ci to suggest possible imports by the symbol under cursor
@@ -89,6 +91,40 @@ Execute the script to run IntelliJ in headless mode
         "additionalSchemes": ["jar", "zipfile"]
     }
   }
+```
+
+Set value `g:vintellij_nvim_lsp` to `0` (default `1`)
+
+## Neovim LSP setup
+
+```lua
+{
+  provider = "kotlin_language_server",
+  setup = {
+    cmd = { "nc", "localhost", "6969" },
+    root_dir = function(fname)
+      local util = require "lspconfig/util"
+
+      local root_files = {
+        "settings.gradle", -- Gradle (multi-project)
+        "settings.gradle.kts", -- Gradle (multi-project)
+        "build.xml", -- Ant
+        "pom.xml", -- Maven
+      }
+
+      local fallback_root_files = {
+        "build.gradle", -- Gradle
+        "build.gradle.kts", -- Gradle
+      }
+      return util.root_pattern(unpack(root_files))(fname) or util.root_pattern(unpack(fallback_root_files))(fname)
+    end,
+    filetypes = { "kotlin" },
+    autostart = false, -- We need to disable auto start
+    on_attach = common_on_attach,
+    on_init = common_on_init,
+    capabilities = common_capabilities,
+  },
+}
 ```
 
 ## Features
