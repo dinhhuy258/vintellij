@@ -13,11 +13,19 @@ function! s:VintellijToggle(bang) abort
   if a:bang
     call chanclose(vintellij#bvar#get(bufnr('%'), 'channel'))
     call vintellij#buffer#UnregisterCurrent()
-    " call coc#config('languageserver.vintellij.enable', v:false)
-    " call coc#rpc#notify('toggleService', ['languageserver.vintellij'])
+    if get(g:, 'vintellij_nvim_lsp', 1) == 1
+      execute "LspStop kotlin_language_server"
+    else
+      call coc#config('languageserver.vintellij.enable', v:false)
+      call coc#rpc#notify('toggleService', ['languageserver.vintellij'])
+    endif
   else
-    " call coc#config('languageserver.vintellij.enable', v:true)
-    " call coc#rpc#notify('toggleService', ['languageserver.vintellij'])
+    if get(g:, 'vintellij_nvim_lsp', 1) == 1
+      execute "LspStart kotlin_language_server"
+    else
+      call coc#config('languageserver.vintellij.enable', v:true)
+      call coc#rpc#notify('toggleService', ['languageserver.vintellij'])
+    endif
 
     augroup BUF_WRITE
       autocmd!
