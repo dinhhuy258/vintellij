@@ -71,6 +71,11 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun didOpen(params: DidOpenTextDocumentParams) {
+        documentAsync.compute {
+            invokeOnMainAndWait {
+                languageServer.getNvimInstance()?.bufManager?.loadBuffer(uriToPath(params.textDocument.uri))
+            }
+        }
     }
 
     override fun didChange(params: DidChangeTextDocumentParams) {
@@ -100,6 +105,11 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun didClose(params: DidCloseTextDocumentParams) {
+        documentAsync.compute {
+            invokeOnMainAndWait {
+                languageServer.getNvimInstance()?.bufManager?.releaseBuffer(uriToPath(params.textDocument.uri))
+            }
+        }
     }
 
     override fun didSave(params: DidSaveTextDocumentParams) {
