@@ -17,6 +17,7 @@ import com.intellij.openapi.vfs.ex.temp.TempFileSystem
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
+import org.eclipse.lsp4j.Position
 import java.io.File
 
 class BufferNotInProjectException(bufId: Int, path: String, msg: String) :
@@ -117,6 +118,34 @@ class SyncBuffer(
                     }
         }
     }
+
+    internal fun replaceText(startPosition: Position, endPosition: Position, text: CharSequence) {
+        checkReleased()
+        ApplicationManager.getApplication().runWriteAction {
+            WriteCommandAction.writeCommandAction(project)
+                .run<Throwable> {
+                    val editor = this.editor.editor
+                    val startOffset = editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
+                    val endOffset = editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
+
+                    document.replaceString(startOffset, endOffset, text)
+                }
+        }
+    }
+
+    internal fun insertText(position: Position, text: CharSequence) {
+        checkReleased()
+        ApplicationManager.getApplication().runWriteAction {
+            WriteCommandAction.writeCommandAction(project)
+                .run<Throwable> {
+                    val editor = this.editor.editor
+                    val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))
+
+                    document.insertString(offset, text)
+                }
+        }
+    }
+
 
     internal fun insertText(offset: Int, text: CharSequence) {
         checkReleased()
