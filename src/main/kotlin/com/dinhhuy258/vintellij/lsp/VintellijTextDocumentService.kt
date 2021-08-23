@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij.lsp
 
 import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
+import com.dinhhuy258.vintellij.comrade.invokeOnMainAndWait
 import com.dinhhuy258.vintellij.lsp.completion.doCompletion
 import com.dinhhuy258.vintellij.lsp.completion.shouldStopCompletion
 import com.dinhhuy258.vintellij.lsp.diagnostics.DiagnosticsProcessor
@@ -15,6 +16,7 @@ import com.dinhhuy258.vintellij.lsp.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
 import java.io.Closeable
@@ -43,6 +45,7 @@ import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.ReferenceParams
 import org.eclipse.lsp4j.SymbolInformation
+import org.eclipse.lsp4j.TextDocumentContentChangeEvent
 import org.eclipse.lsp4j.TextEdit
 import org.eclipse.lsp4j.TypeDefinitionParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
@@ -57,6 +60,8 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     private val async = AsyncExecutor()
 
+    private val documentAsync = AsyncExecutor()
+
     private var project: Project? = null
 
     private var messageBusConnection: MessageBusConnection? = null
@@ -69,6 +74,29 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun didChange(params: DidChangeTextDocumentParams) {
+        val buffer =
+            languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri)) ?: return
+
+        val contentChanges = params.contentChanges
+        if (contentChanges.isEmpty()) {
+            return
+        }
+
+        documentAsync.compute {
+            invokeOnMainAndWait {
+                contentChanges.forEach { contentChange ->
+                    val startPosition = contentChange.range.start
+                    val endPosition = contentChange.range.end
+
+                    if (startPosition.equals(endPosition)) {
+                        buffer.insertText(startPosition, contentChange.text)
+                    }
+                    else {
+                        buffer.replaceText(startPosition, endPosition, contentChange.text)
+                    }
+                }
+            }
+        }
     }
 
     override fun didClose(params: DidCloseTextDocumentParams) {

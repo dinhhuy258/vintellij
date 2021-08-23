@@ -152,30 +152,30 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     @NotificationHandler(MSG_NVIM_BUF_LINES_EVENT)
     fun nvimBufLinesEvent(event: BufLinesEvent) {
         invokeOnMainLater {
-            val buf = findBufferById(event.id) ?: return@invokeOnMainLater
-            val change = BufferChange.NeovimChangeBuilder(buf, event).build()
-            buf.synchronizer.onChange(change)
-            // Always navigate to the editing file otherwise the code insight doesn't work.
-            buf.navigate()
-            publisher.bufferSynced(buf)
+//            val buf = findBufferById(event.id) ?: return@invokeOnMainLater
+//            val change = BufferChange.NeovimChangeBuilder(buf, event).build()
+//            buf.synchronizer.onChange(change)
+//            // Always navigate to the editing file otherwise the code insight doesn't work.
+//            buf.navigate()
+//            publisher.bufferSynced(buf)
         }
     }
 
     @NotificationHandler(MSG_NVIM_BUF_CHANGEDTICK_EVENT)
     fun nvimBufChangedtickEvent(event: BufChangedtickEvent) {
-        invokeOnMainLater {
-            val buf = findBufferById(event.id) ?: return@invokeOnMainLater
-            val change = BufferChange.NeovimChangeBuilder(buf, event).build()
-            buf.synchronizer.onChange(change)
-        }
+//        invokeOnMainLater {
+//            val buf = findBufferById(event.id) ?: return@invokeOnMainLater
+//            val change = BufferChange.NeovimChangeBuilder(buf, event).build()
+//            buf.synchronizer.onChange(change)
+//        }
     }
 
     @NotificationHandler(MSG_NVIM_BUF_DETACH_EVENT)
     fun nvimBufDetachEvent(event: BufDetachEvent) {
-        invokeOnMainLater {
-            val buf = findBufferById(event.id) ?: return@invokeOnMainLater
-            releaseBuffer(buf)
-        }
+//        invokeOnMainLater {
+//            val buf = findBufferById(event.id) ?: return@invokeOnMainLater
+//            releaseBuffer(buf)
+//        }
     }
 
     /**
@@ -184,12 +184,12 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
      */
     @RequestHandler(MSG_COMRADE_BUF_WRITE)
     fun comradeBufWrite(event: ComradeBufWriteParams): Boolean {
-        invokeOnMainAndWait {
-            val syncedBuffer = findBufferById(event.id)
-                ?: throw IllegalStateException("Buffer ${event.id} has been detached from JetBrain.")
-            syncedBuffer.psiFile.virtualFile.refresh(true, true)
-            FileDocumentManager.getInstance().saveDocument(syncedBuffer.document)
-        }
+//        invokeOnMainAndWait {
+//            val syncedBuffer = findBufferById(event.id)
+//                ?: throw IllegalStateException("Buffer ${event.id} has been detached from JetBrain.")
+//            syncedBuffer.psiFile.virtualFile.refresh(true, true)
+//            FileDocumentManager.getInstance().saveDocument(syncedBuffer.document)
+//        }
         return true
     }
 }

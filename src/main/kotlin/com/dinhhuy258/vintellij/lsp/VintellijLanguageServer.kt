@@ -78,7 +78,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     private fun getServerCapabilities() = ServerCapabilities().apply {
         textDocumentSync = Either.forRight(TextDocumentSyncOptions().apply {
             openClose = false
-            change = TextDocumentSyncKind.None
+            change = TextDocumentSyncKind.Incremental
             save = null
         })
         hoverProvider = true

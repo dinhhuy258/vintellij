@@ -37,23 +37,23 @@ class Synchronizer(private val syncBuffer: SyncBuffer, var isEnableSync: Boolean
     var exceptionHandler: ((Throwable) -> Unit)? = null
 
     fun onChange(change: BufferChange) {
-        if (!isEnableSync) return
-        ApplicationManager.getApplication().assertIsDispatchThread()
-        try {
-            when (change.source) {
-                BufferChange.Source.NEOVIM -> {
-                    changedByNvim = true
-                    try {
-                        onNeovimChange(change)
-                    } finally {
-                        changedByNvim = false
-                    }
-                }
-                BufferChange.Source.JetBrain -> onJetBrainChange(change)
-            }
-        } catch (t: Throwable) {
-            handleException(t)
-        }
+//        if (!isEnableSync) return
+//        ApplicationManager.getApplication().assertIsDispatchThread()
+//        try {
+//            when (change.source) {
+//                BufferChange.Source.NEOVIM -> {
+//                    changedByNvim = true
+//                    try {
+//                        onNeovimChange(change)
+//                    } finally {
+//                        changedByNvim = false
+//                    }
+//                }
+//                BufferChange.Source.JetBrain -> onJetBrainChange(change)
+//            }
+//        } catch (t: Throwable) {
+//            handleException(t)
+//        }
     }
 
     fun initFromJetBrain() {
