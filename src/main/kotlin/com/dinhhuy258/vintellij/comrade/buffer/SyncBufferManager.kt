@@ -64,41 +64,40 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     }
 
     suspend fun loadCurrentBuffer() {
-        val bufId = client.api.getCurrentBuf()
-        val path = client.bufferApi.getName(bufId)
-
-        loadBuffer(bufId, path)
+//        val bufId = client.api.getCurrentBuf()
+//        val path = client.bufferApi.getName(bufId)
+//
+//        loadBuffer(bufId, path)
     }
 
-    fun loadBuffer(bufId: Int, path: String) {
-        invokeOnMainLater {
-            doLoadBuffer(bufId, path)
-        }
-    }
+//    fun loadBuffer(bufId: Int, path: String) {
+//        invokeOnMainLater {
+//            doLoadBuffer(bufId, path)
+//        }
+//    }
 
-    private fun doLoadBuffer(bufId: Int, path: String) {
-        var syncedBuffer = findBufferById(bufId)
+    fun loadBuffer(path: String) {
+        var syncedBuffer = findBufferByPath(path)
         if (syncedBuffer == null) {
             try {
-                syncedBuffer = SyncBuffer(bufId, path, nvimInstance)
+                syncedBuffer = SyncBuffer(0, path, nvimInstance)
             } catch (e: BufferNotInProjectException) {
                 log.debug("'$path' is not a part of any opened projects.", e)
                 return
             }
-            bufferMap[bufId] = syncedBuffer
             bufferPathMap[syncedBuffer.path] = syncedBuffer
             allBuffers.add(syncedBuffer)
-            synchronizer = Synchronizer(syncedBuffer, nvimInstance.isSyncBuffer!!)
-            synchronizer.exceptionHandler = {
-                t ->
-                log.warn("Error happened when synchronize buffers.", t)
-                invokeOnMainAndWait { releaseBuffer(syncedBuffer) }
-                ComradeScope.launch {
-                    client.bufferApi.detach(syncedBuffer.id)
-                    loadBuffer(syncedBuffer.id, syncedBuffer.path)
-                }
-            }
-            syncedBuffer.attachSynchronizer(synchronizer)
+//            synchronizer = Synchronizer(syncedBuffer, nvimInstance.isSyncBuffer!!)
+//            synchronizer.exceptionHandler = {
+//                    t ->
+//                log.warn("Error happened when synchronize buffers.", t)
+//                invokeOnMainAndWait { releaseBuffer(syncedBuffer) }
+//                ComradeScope.launch {
+//                    client.bufferApi.detach(syncedBuffer.id)
+//                    loadBuffer(syncedBuffer.id, syncedBuffer.path)
+//                }
+//            }
+//            syncedBuffer.attachSynchronizer(synchronizer)
         }
 
         syncedBuffer.navigate()
@@ -106,6 +105,37 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
             publisher.bufferCreated(syncedBuffer)
         }
     }
+
+//    private fun doLoadBuffer(bufId: Int, path: String) {
+//        var syncedBuffer = findBufferById(bufId)
+//        if (syncedBuffer == null) {
+//            try {
+//                syncedBuffer = SyncBuffer(bufId, path, nvimInstance)
+//            } catch (e: BufferNotInProjectException) {
+//                log.debug("'$path' is not a part of any opened projects.", e)
+//                return
+//            }
+//            bufferMap[bufId] = syncedBuffer
+//            bufferPathMap[syncedBuffer.path] = syncedBuffer
+//            allBuffers.add(syncedBuffer)
+//            synchronizer = Synchronizer(syncedBuffer, nvimInstance.isSyncBuffer!!)
+//            synchronizer.exceptionHandler = {
+//                t ->
+//                log.warn("Error happened when synchronize buffers.", t)
+//                invokeOnMainAndWait { releaseBuffer(syncedBuffer) }
+//                ComradeScope.launch {
+//                    client.bufferApi.detach(syncedBuffer.id)
+//                    loadBuffer(syncedBuffer.id, syncedBuffer.path)
+//                }
+//            }
+//            syncedBuffer.attachSynchronizer(synchronizer)
+//        }
+//
+//        syncedBuffer.navigate()
+//        if (!syncedBuffer.isReleased && syncedBuffer.isSynchronizable) {
+//            publisher.bufferCreated(syncedBuffer)
+//        }
+//    }
 
     fun releaseBuffer(syncBuffer: SyncBuffer) {
         log.debug("releaseBuffer $syncBuffer")
@@ -118,6 +148,19 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
             publisher.bufferReleased(syncBuffer)
         }
     }
+
+    fun releaseBuffer(path: String) {
+        ApplicationManager.getApplication().assertIsDispatchThread()
+        val syncBuffer = findBufferByPath(path) ?: return
+
+        val bufferInMap = bufferPathMap.remove(path) != null
+        allBuffers.remove(syncBuffer)
+        syncBuffer.release()
+        if (bufferInMap) {
+            publisher.bufferReleased(syncBuffer)
+        }
+    }
+
 
     override fun dispose() {
         val list = bufferMap.map { it.value }
@@ -146,7 +189,7 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
 
     @NotificationHandler(MSG_COMRADE_BUF_ENTER)
     fun comradeBufEnter(event: ComradeBufEnterParams) {
-        loadBuffer(event.id, event.path)
+//        loadBuffer(event.id, event.path)
     }
 
     @NotificationHandler(MSG_NVIM_BUF_LINES_EVENT)

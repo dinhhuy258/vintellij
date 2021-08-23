@@ -179,7 +179,8 @@ class SyncBuffer(
     internal fun release() {
         if (isReleased) return
         isReleased = true
-        document.removeDocumentListener(synchronizer)
+        // FIXME: Do we need it to sync between Intellij and Vim?
+//        document.removeDocumentListener(synchronizer)
         fileEditorManager.closeFile(psiFile.virtualFile)
     }
 
