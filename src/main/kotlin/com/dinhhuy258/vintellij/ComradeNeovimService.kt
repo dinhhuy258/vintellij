@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij.comrade
+package com.dinhhuy258.vintellij
 
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
@@ -8,7 +8,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 
 object ComradeNeovimService {
-    private val balloonGroup = NotificationGroup("ComradeNeovim", NotificationDisplayType.BALLOON, true)
+    private val balloonGroup = NotificationGroup("vintellij", NotificationDisplayType.BALLOON, true)
 
     val instance: ComradeNeovimService
         get() = ServiceManager.getService(ComradeNeovimService::class.java)

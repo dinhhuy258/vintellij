@@ -1,8 +1,8 @@
 package com.dinhhuy258.vintellij.lsp.diagnostics
 
-import com.dinhhuy258.vintellij.comrade.ComradeScope
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManagerListener
+import com.dinhhuy258.vintellij.ComradeScope
+import com.dinhhuy258.vintellij.lsp.Buffer
+import com.dinhhuy258.vintellij.lsp.SyncBufferManagerListener
 import com.dinhhuy258.vintellij.utils.getURIForFile
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -24,7 +24,7 @@ class DiagnosticsProcessor() : SyncBufferManagerListener, DaemonCodeAnalyzer.Dae
 
     private var isStarted: Boolean = false
 
-    private val jobsMap = IdentityHashMap<SyncBuffer, Deferred<Unit>>()
+    private val jobsMap = IdentityHashMap<Buffer, Deferred<Unit>>()
 
     private lateinit var project: Project
 
@@ -48,34 +48,34 @@ class DiagnosticsProcessor() : SyncBufferManagerListener, DaemonCodeAnalyzer.Dae
         }
     }
 
-    override fun bufferCreated(syncBuffer: SyncBuffer) {
+    override fun bufferCreated(Buffer: Buffer) {
         ApplicationManager.getApplication().assertIsDispatchThread()
-        if (syncBuffer.project != project) {
+        if (Buffer.project != project) {
             return
         }
 
-        jobsMap[syncBuffer]?.cancel()
-        jobsMap[syncBuffer] = createJobAsync(syncBuffer)
+        jobsMap[Buffer]?.cancel()
+        jobsMap[Buffer] = createJobAsync(Buffer)
     }
 
-    override fun bufferReleased(syncBuffer: SyncBuffer) {
+    override fun bufferReleased(Buffer: Buffer) {
         ApplicationManager.getApplication().assertIsDispatchThread()
-        if (syncBuffer.project != project) {
+        if (Buffer.project != project) {
             return
         }
 
-        jobsMap.remove(syncBuffer)?.cancel()
+        jobsMap.remove(Buffer)?.cancel()
     }
 
-    private fun createJobAsync(syncBuffer: SyncBuffer): Deferred<Unit> {
+    private fun createJobAsync(Buffer: Buffer): Deferred<Unit> {
         return ComradeScope.async {
             delay(DEBOUNCE_TIME)
-            doLint(syncBuffer)
+            doLint(Buffer)
         }
     }
 
-    private fun doLint(buffer: SyncBuffer) {
-        if (!isStarted || buffer.isReleased) {
+    private fun doLint(buffer: Buffer) {
+        if (!isStarted) {
             return
         }
 
@@ -88,7 +88,7 @@ class DiagnosticsProcessor() : SyncBufferManagerListener, DaemonCodeAnalyzer.Dae
         reportDiagnostics(buffer, diagnostics)
     }
 
-    private fun reportDiagnostics(buffer: SyncBuffer, diagnostics: List<Diagnostic>) {
+    private fun reportDiagnostics(buffer: Buffer, diagnostics: List<Diagnostic>) {
         client.publishDiagnostics(PublishDiagnosticsParams(getURIForFile(buffer.psiFile), diagnostics))
     }
 }

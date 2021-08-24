@@ -1,7 +1,6 @@
 package com.dinhhuy258.vintellij.lsp
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
-import com.dinhhuy258.vintellij.comrade.invokeOnMainAndWait
+import com.dinhhuy258.vintellij.idea.IdeaUtils.Companion.invokeOnMainAndWait
 import com.dinhhuy258.vintellij.lsp.completion.doCompletion
 import com.dinhhuy258.vintellij.lsp.completion.shouldStopCompletion
 import com.dinhhuy258.vintellij.lsp.diagnostics.DiagnosticsProcessor
@@ -265,7 +264,6 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         this.project = project
         messageBusConnection = project.messageBus.connect()
         messageBusConnection!!.subscribe(DaemonCodeAnalyzer.DAEMON_EVENT_TOPIC, diagnosticsProcessor)
-        messageBusConnection!!.subscribe(SyncBufferManager.TOPIC, diagnosticsProcessor)
     }
 
     private inline fun <T> tryCatch(block: () -> T, fallback: T): T {

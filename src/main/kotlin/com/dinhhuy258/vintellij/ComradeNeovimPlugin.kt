@@ -1,6 +1,5 @@
-package com.dinhhuy258.vintellij.comrade
+package com.dinhhuy258.vintellij
 
-import com.dinhhuy258.vintellij.comrade.core.NvimInstanceManager
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.BaseComponent
@@ -18,7 +17,8 @@ import kotlinx.coroutines.Job
 val ComradeScope = ComradeNeovimPlugin.instance.coroutineScope
 
 @State(name = "ComradeNeovim",
-        storages = [Storage(file = "\$APP_CONFIG\$/comrade_neovim_settings.xml")])
+    storages = [Storage(file = "\$APP_CONFIG\$/comrade_neovim_settings.xml")])
+//TODO: REname
 class ComradeNeovimPlugin : BaseComponent, Disposable {
     companion object {
         val instance: ComradeNeovimPlugin by lazy {
@@ -35,17 +35,17 @@ class ComradeNeovimPlugin : BaseComponent, Disposable {
 
     private val projectManagerListener = object : ProjectManagerListener {
         override fun projectOpened(project: Project) {
-            NvimInstanceManager.refresh()
+//            NvimInstanceManager.refresh()
         }
 
         override fun projectClosing(project: Project) {
-            NvimInstanceManager.cleanUp(project)
+//            NvimInstanceManager.cleanUp(project)
         }
     }
 
     override fun initComponent() {
         job = Job()
-        Disposer.register(this, NvimInstanceManager)
+//        Disposer.register(this, NvimInstanceManager)
         msgBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
         msgBusConnection.subscribe(ProjectManager.TOPIC, projectManagerListener)
     }
