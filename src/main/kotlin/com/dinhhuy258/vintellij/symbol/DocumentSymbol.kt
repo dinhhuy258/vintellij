@@ -1,9 +1,9 @@
 package com.dinhhuy258.vintellij.symbol
 
 import com.dinhhuy258.vintellij.buffer.Buffer
-import com.dinhhuy258.vintellij.utils1.containerName
-import com.dinhhuy258.vintellij.utils1.symbolKind
-import com.dinhhuy258.vintellij.utils1.toRange
+import com.dinhhuy258.vintellij.utils.containerName
+import com.dinhhuy258.vintellij.utils.symbolKind
+import com.dinhhuy258.vintellij.utils.toRange
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase
 import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.lang.java.JavaLanguage

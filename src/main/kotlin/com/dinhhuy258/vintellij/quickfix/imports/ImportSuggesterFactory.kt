@@ -1,9 +1,10 @@
 package com.dinhhuy258.vintellij.quickfix.imports
 
-import com.dinhhuy258.vintellij.exceptions.VIException
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import org.jetbrains.kotlin.idea.KotlinLanguage
+
+class LanguageNotSupported(message: String) : Exception(message)
 
 class ImportSuggesterFactory {
     companion object {
@@ -12,7 +13,7 @@ class ImportSuggesterFactory {
         ) = when (language) {
             KotlinLanguage.INSTANCE -> KtImportSuggester()
             JavaLanguage.INSTANCE -> JavaImportSuggester()
-            else -> throw VIException("Language not support: " + language.displayName)
+            else -> throw LanguageNotSupported("Language not support: " + language.displayName)
         }
     }
 }

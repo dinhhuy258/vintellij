@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.formatting
 
 import com.dinhhuy258.vintellij.buffer.Buffer
-import com.dinhhuy258.vintellij.utils1.toTextRange
+import com.dinhhuy258.vintellij.utils.toTextRange
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.codeStyle.CodeStyleManager
