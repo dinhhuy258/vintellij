@@ -1,6 +1,5 @@
 package com.dinhhuy258.vintellij.lsp
 
-import com.dinhhuy258.vintellij.comrade.buffer.BufferNotInProjectException
 import com.dinhhuy258.vintellij.utils.PathUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
@@ -102,7 +101,7 @@ class Buffer(val path: String) {
         }
     }
 
-    internal fun insertText(offset: Int, text: CharSequence) {
+    private fun insertText(offset: Int, text: CharSequence) {
         ApplicationManager.getApplication().runWriteAction {
             WriteCommandAction.writeCommandAction(project)
                 .run<Throwable> {

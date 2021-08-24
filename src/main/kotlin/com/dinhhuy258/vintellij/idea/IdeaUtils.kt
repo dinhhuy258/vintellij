@@ -76,5 +76,22 @@ class IdeaUtils {
                 }
             }
         }
+
+        fun invokeOnMainAndWait(exceptionHandler: ((Throwable) -> Unit)? = null, runnable: () -> Unit) {
+            var throwable: Throwable? = null
+            ApplicationManager.getApplication().invokeAndWait {
+                try {
+                    runnable.invoke()
+                } catch (t: Throwable) {
+                    throwable = t
+                }
+            }
+            val toThrow = throwable ?: return
+            if (exceptionHandler == null) {
+                throw toThrow
+            } else {
+                exceptionHandler.invoke(toThrow)
+            }
+        }
     }
 }

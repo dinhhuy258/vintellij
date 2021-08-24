@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.diagnostics
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.dinhhuy258.vintellij.lsp.hover.stripHtml
 import com.dinhhuy258.vintellij.lsp.utils.offsetToPosition
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
@@ -14,7 +14,7 @@ import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.DiagnosticSeverity
 import org.eclipse.lsp4j.Range
 
-fun getDiagnostics(buffer: SyncBuffer): List<Diagnostic> {
+fun getDiagnostics(buffer: Buffer): List<Diagnostic> {
     val diagnosticsRef = Ref<List<Diagnostic>>()
     ApplicationManager.getApplication().runReadAction {
         val highlights = mutableListOf<HighlightInfo>()

@@ -19,23 +19,23 @@
 
     <application-components>
         <component>
-            <implementation-class>com.dinhhuy258.vintellij.comrade.ComradeNeovimPlugin</implementation-class>
+            <implementation-class>com.dinhhuy258.vintellij.ComradeNeovimPlugin</implementation-class>
         </component>
     </application-components>
 
     <extensions defaultExtensionNs="com.intellij">
         <appStarter implementation="com.dinhhuy258.vintellij.applications.VIApplicationStarter"/>
-        <applicationService serviceImplementation="com.dinhhuy258.vintellij.comrade.ComradeNeovimService"/>
+        <applicationService serviceImplementation="com.dinhhuy258.vintellij.ComradeNeovimService"/>
         <preloadingActivity implementation="com.dinhhuy258.vintellij.lsp.VintellijLanguageServerPreloadingActivity"/>
     </extensions>
 
-    <actions>
-        <group id="Vintellij.Menu" text="Vintellij" description="Vintellij menu">
-            <add-to-group group-id="MainMenu" anchor="last"/>
-            <group id="Vintellij.Clients" class="com.dinhhuy258.vintellij.comrade.MainAction"
-                   text="LSP Clients"
-                   popup="true"
-                   description="List of LSP clients that connected to server"/>
-        </group>
-    </actions>
+<!--    <actions>-->
+<!--        <group id="Vintellij.Menu" text="Vintellij" description="Vintellij menu">-->
+<!--            <add-to-group group-id="MainMenu" anchor="last"/>-->
+<!--            <group id="Vintellij.Clients" class="com.dinhhuy258.vintellij.comrade.MainAction"-->
+<!--                   text="LSP Clients"-->
+<!--                   popup="true"-->
+<!--                   description="List of LSP clients that connected to server"/>-->
+<!--        </group>-->
+<!--    </actions>-->
 </idea-plugin>

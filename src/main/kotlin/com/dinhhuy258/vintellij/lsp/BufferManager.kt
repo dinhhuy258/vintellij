@@ -1,9 +1,16 @@
 package com.dinhhuy258.vintellij.lsp
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.util.messages.Topic
 import java.util.concurrent.ConcurrentHashMap
 
 class BufferManager {
+    companion object {
+        val TOPIC = Topic(
+            "SyncBuffer related events", SyncBufferManagerListener::class.java)
+        private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(TOPIC)
+    }
+
     private val bufferMap = ConcurrentHashMap<String, Buffer>()
 
     fun findBufferByPath(path: String): Buffer? {
@@ -22,6 +29,8 @@ class BufferManager {
         }
 
         buffer.navigate()
+
+        publisher.bufferCreated(buffer)
     }
 
 
@@ -31,5 +40,6 @@ class BufferManager {
 
         bufferMap.remove(path) != null
         buffer.release()
+        publisher.bufferReleased(buffer)
     }
 }
