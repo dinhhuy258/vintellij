@@ -2,7 +2,7 @@ package com.dinhhuy258.vintellij.diagnostics
 
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.hover.stripHtml
-import com.dinhhuy258.vintellij.utils1.offsetToPosition
+import com.dinhhuy258.vintellij.utils.offsetToPosition
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.quickfix.ImportClassFix

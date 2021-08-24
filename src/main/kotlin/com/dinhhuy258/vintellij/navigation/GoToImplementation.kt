@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.navigation
 
 import com.dinhhuy258.vintellij.buffer.Buffer
-import com.dinhhuy258.vintellij.utils1.getLocation
+import com.dinhhuy258.vintellij.utils.getLocation
 import com.intellij.codeInsight.navigation.GotoImplementationHandler
 import com.intellij.openapi.application.ApplicationManager
 import org.eclipse.lsp4j.Location

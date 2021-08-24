@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij.utils1
+package com.dinhhuy258.vintellij.utils
 
 import com.dinhhuy258.vintellij.utils.IdeaUtils
 import com.dinhhuy258.vintellij.utils.PathUtils
