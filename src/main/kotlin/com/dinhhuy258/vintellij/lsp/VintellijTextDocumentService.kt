@@ -17,6 +17,7 @@ import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.editor.LogicalPosition
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
 import java.io.Closeable
@@ -48,6 +49,7 @@ import org.eclipse.lsp4j.SymbolInformation
 import org.eclipse.lsp4j.TextDocumentContentChangeEvent
 import org.eclipse.lsp4j.TextEdit
 import org.eclipse.lsp4j.TypeDefinitionParams
+import org.eclipse.lsp4j.WillSaveTextDocumentParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageClient
 import org.eclipse.lsp4j.services.LanguageClientAware
@@ -108,6 +110,19 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         documentAsync.compute {
             invokeOnMainAndWait {
                 languageServer.getNvimInstance()?.bufManager?.releaseBuffer(uriToPath(params.textDocument.uri))
+            }
+        }
+    }
+
+    override fun willSave(params: WillSaveTextDocumentParams) {
+        documentAsync.compute {
+            invokeOnMainAndWait {
+                val syncedBuffer =
+                    languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                        ?: return@invokeOnMainAndWait
+
+                syncedBuffer.psiFile.virtualFile.refresh(true, true)
+                FileDocumentManager.getInstance().saveDocument(syncedBuffer.document)
             }
         }
     }
