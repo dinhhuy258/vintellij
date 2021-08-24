@@ -24,7 +24,7 @@
     </application-components>
 
     <extensions defaultExtensionNs="com.intellij">
-        <appStarter implementation="com.dinhhuy258.vintellij.applications.VIApplicationStarter"/>
+        <appStarter implementation="com.dinhhuy258.vintellij.VIApplicationStarter"/>
         <applicationService serviceImplementation="com.dinhhuy258.vintellij.ComradeNeovimService"/>
         <preloadingActivity implementation="com.dinhhuy258.vintellij.lsp.VintellijLanguageServerPreloadingActivity"/>
     </extensions>

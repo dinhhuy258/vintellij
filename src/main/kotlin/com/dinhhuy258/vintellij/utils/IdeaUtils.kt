@@ -1,7 +1,6 @@
-package com.dinhhuy258.vintellij.idea
+package com.dinhhuy258.vintellij.utils
 
 import com.dinhhuy258.vintellij.exceptions.VIException
-import com.dinhhuy258.vintellij.utils.PathUtils
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager

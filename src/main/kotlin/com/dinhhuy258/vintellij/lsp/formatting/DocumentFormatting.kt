@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.formatting
 
-import com.dinhhuy258.vintellij.lsp.Buffer
+import com.dinhhuy258.vintellij.lsp.buffer.Buffer
 import com.dinhhuy258.vintellij.lsp.utils.toTextRange
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction

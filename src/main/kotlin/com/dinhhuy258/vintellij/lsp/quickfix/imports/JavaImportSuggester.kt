@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij.idea.imports
+package com.dinhhuy258.vintellij.lsp.quickfix.imports
 
 import com.intellij.codeInsight.daemon.impl.quickfix.ImportClassFix
 import com.intellij.psi.PsiElement

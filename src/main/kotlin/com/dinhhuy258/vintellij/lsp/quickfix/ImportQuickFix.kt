@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.lsp.quickfix
 
-import com.dinhhuy258.vintellij.idea.imports.ImportSuggesterFactory
-import com.dinhhuy258.vintellij.lsp.Buffer
+import com.dinhhuy258.vintellij.lsp.quickfix.imports.ImportSuggesterFactory
+import com.dinhhuy258.vintellij.lsp.buffer.Buffer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.util.Ref

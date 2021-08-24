@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.completion
 
-import com.dinhhuy258.vintellij.lsp.Buffer
+import com.dinhhuy258.vintellij.lsp.buffer.Buffer
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase
 import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionType

@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.hover
 
-import com.dinhhuy258.vintellij.lsp.Buffer
+import com.dinhhuy258.vintellij.lsp.buffer.Buffer
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition

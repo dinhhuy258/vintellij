@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij.applications
+package com.dinhhuy258.vintellij
 
 import com.intellij.ide.impl.ProjectUtil
 import com.intellij.openapi.application.ApplicationStarter

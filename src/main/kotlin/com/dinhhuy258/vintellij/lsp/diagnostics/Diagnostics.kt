@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.diagnostics
 
-import com.dinhhuy258.vintellij.lsp.Buffer
+import com.dinhhuy258.vintellij.lsp.buffer.Buffer
 import com.dinhhuy258.vintellij.lsp.hover.stripHtml
 import com.dinhhuy258.vintellij.lsp.utils.offsetToPosition
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx

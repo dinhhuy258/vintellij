@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.utils
 
-import com.dinhhuy258.vintellij.idea.IdeaUtils
+import com.dinhhuy258.vintellij.utils.IdeaUtils
 import com.dinhhuy258.vintellij.utils.PathUtils
 import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.codeInsight.javadoc.JavaDocInfoGenerator.generateType

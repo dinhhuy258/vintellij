@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij.lsp
+package com.dinhhuy258.vintellij.lsp.buffer
 
 import com.intellij.openapi.editor.CaretModel
 import com.intellij.openapi.editor.Editor
