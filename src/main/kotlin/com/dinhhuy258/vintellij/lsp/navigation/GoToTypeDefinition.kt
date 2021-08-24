@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.navigation
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.dinhhuy258.vintellij.lsp.utils.getLocation
 import com.intellij.codeInsight.navigation.actions.GotoTypeDeclarationAction
 import com.intellij.openapi.application.ApplicationManager
@@ -9,7 +9,7 @@ import com.intellij.openapi.util.Ref
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.Position
 
-fun goToTypeDefinition(buffer: SyncBuffer?, position: Position): List<Location> {
+fun goToTypeDefinition(buffer: Buffer?, position: Position): List<Location> {
     if (buffer == null) {
         return emptyList()
     }

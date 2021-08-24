@@ -1,13 +1,13 @@
 package com.dinhhuy258.vintellij.lsp.navigation
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.dinhhuy258.vintellij.lsp.utils.getLocation
 import com.intellij.codeInsight.navigation.GotoImplementationHandler
 import com.intellij.openapi.application.ApplicationManager
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.Position
 
-fun goToImplementation(buffer: SyncBuffer?, position: Position): List<Location> {
+fun goToImplementation(buffer: Buffer?, position: Position): List<Location> {
     val locations = ArrayList<Location>()
 
     if (buffer != null) {

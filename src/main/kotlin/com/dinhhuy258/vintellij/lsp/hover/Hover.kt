@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.hover
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
@@ -10,7 +10,7 @@ import org.eclipse.lsp4j.MarkedString
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 
-fun getHoverDoc(buffer: SyncBuffer?, position: Position): List<Either<String, MarkedString>> {
+fun getHoverDoc(buffer: Buffer?, position: Position): List<Either<String, MarkedString>> {
     if (buffer == null) {
         return emptyList()
     }

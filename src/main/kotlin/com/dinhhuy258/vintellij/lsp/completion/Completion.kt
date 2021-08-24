@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.completion
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase
 import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionType
@@ -16,9 +16,9 @@ private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 10
 
 private val logger = Logger.getInstance("COMPLETION")
 
-public val shouldStopCompletion = AtomicBoolean(false)
+val shouldStopCompletion = AtomicBoolean(false)
 
-fun doCompletion(buffer: SyncBuffer?, position: Position): CompletionList {
+fun doCompletion(buffer: Buffer?, position: Position): CompletionList {
     shouldStopCompletion.set(false)
     if (buffer == null) {
         return CompletionList(false, emptyList())
@@ -32,7 +32,7 @@ fun doCompletion(buffer: SyncBuffer?, position: Position): CompletionList {
     return completionList
 }
 
-private fun doAsyncComplete(buffer: SyncBuffer, position: Position, completionList: CompletionList) {
+private fun doAsyncComplete(buffer: Buffer, position: Position, completionList: CompletionList) {
     scheduleAsyncCompletion(buffer, position)
 
     val indicator = CompletionServiceImpl.getCurrentCompletionProgressIndicator() ?: return
@@ -44,7 +44,7 @@ private fun doAsyncComplete(buffer: SyncBuffer, position: Position, completionLi
     getCompletionResult(indicator, completionList)
 }
 
-private fun scheduleAsyncCompletion(buffer: SyncBuffer, position: Position) {
+private fun scheduleAsyncCompletion(buffer: Buffer, position: Position) {
     ApplicationManager.getApplication().invokeAndWait {
         try {
             buffer.moveCaretToPosition(position.line, position.character)

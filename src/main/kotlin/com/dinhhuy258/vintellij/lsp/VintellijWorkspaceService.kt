@@ -16,8 +16,7 @@ class VintellijWorkspaceService(private val languageServer: VintellijLanguageSer
     }
 
     override fun executeCommand(params: ExecuteCommandParams): CompletableFuture<Any> {
-        val nvimInstance = languageServer.getNvimInstance()
-        if (params.command == "importFix" && nvimInstance != null && params.arguments.size == 2) {
+        if (params.command == "importFix" && params.arguments.size == 2) {
             val firstArgument = params.arguments[0]
             val secondArgument = params.arguments[1]
             if (firstArgument is JsonPrimitive && firstArgument.isString &&
@@ -25,7 +24,7 @@ class VintellijWorkspaceService(private val languageServer: VintellijLanguageSer
                 val classToImport = firstArgument.asString
                 val documentPath = secondArgument.asString
 
-                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(documentPath)?.insertText(
+                languageServer.getBufferManager().findBufferByPath(documentPath)?.insertText(
                         "\n$classToImport", 1)
             }
         }

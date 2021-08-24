@@ -75,14 +75,14 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun didOpen(params: DidOpenTextDocumentParams) {
         documentAsync.compute {
             invokeOnMainAndWait {
-                languageServer.getNvimInstance()?.bufManager?.loadBuffer(uriToPath(params.textDocument.uri))
+                languageServer.getBufferManager().loadBuffer(uriToPath(params.textDocument.uri))
             }
         }
     }
 
     override fun didChange(params: DidChangeTextDocumentParams) {
         val buffer =
-            languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri)) ?: return
+            languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri)) ?: return
 
         val contentChanges = params.contentChanges
         if (contentChanges.isEmpty()) {
@@ -109,7 +109,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun didClose(params: DidCloseTextDocumentParams) {
         documentAsync.compute {
             invokeOnMainAndWait {
-                languageServer.getNvimInstance()?.bufManager?.releaseBuffer(uriToPath(params.textDocument.uri))
+                languageServer.getBufferManager().releaseBuffer(uriToPath(params.textDocument.uri))
             }
         }
     }
@@ -118,7 +118,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         documentAsync.compute {
             invokeOnMainAndWait {
                 val syncedBuffer =
-                    languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                    languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
                         ?: return@invokeOnMainAndWait
 
                 syncedBuffer.psiFile.virtualFile.refresh(true, true)
@@ -133,7 +133,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun definition(params: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
             async.compute {
                 val syncBuffer =
-                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
                 Either.forLeft(tryCatch({
                     goToDefinition(syncBuffer, params.position)
@@ -143,7 +143,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun implementation(params: ImplementationParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
             async.compute {
                 val syncBuffer =
-                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
                 Either.forLeft(tryCatch({
                     goToImplementation(syncBuffer, params.position)
@@ -153,7 +153,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun references(params: ReferenceParams): CompletableFuture<List<Location>> =
             async.compute {
                 val syncBuffer =
-                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
                 tryCatch({
                     goToReferences(syncBuffer, params.position)
@@ -163,7 +163,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun typeDefinition(params: TypeDefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
             async.compute {
                 val syncBuffer =
-                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
                 Either.forLeft(tryCatch({
                     goToTypeDefinition(syncBuffer, params.position)
@@ -175,7 +175,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         shouldStopCompletion.set(true)
         return async.compute {
                 val syncBuffer =
-                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(position.textDocument.uri))
+                        languageServer.getBufferManager().findBufferByPath(uriToPath(position.textDocument.uri))
 
                 Either.forRight(
                         tryCatch({
@@ -188,7 +188,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun hover(params: HoverParams): CompletableFuture<Hover> = async.compute {
         val syncBuffer =
-                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
         Hover(tryCatch({
             getHoverDoc(syncBuffer, params.position)
@@ -197,7 +197,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun formatting(params: DocumentFormattingParams): CompletableFuture<List<TextEdit>> = async.compute {
         val syncBuffer =
-                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
         try {
             formatDocument(syncBuffer, null)
@@ -209,7 +209,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun rangeFormatting(params: DocumentRangeFormattingParams): CompletableFuture<List<TextEdit>> = async.compute {
         val syncBuffer =
-                languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
         try {
             formatDocument(syncBuffer, params.range)
@@ -223,7 +223,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
             async.compute {
                 val documentPath = uriToPath(params.textDocument.uri)
                 val syncBuffer =
-                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(documentPath)
+                        languageServer.getBufferManager().findBufferByPath(documentPath)
 
                 val importDiagnostics = params.context.diagnostics.filter {
                     it.severity == DiagnosticSeverity.Error && it.code != null
@@ -249,7 +249,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun documentSymbol(params: DocumentSymbolParams): CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> =
             async.compute {
                 val syncBuffer =
-                        languageServer.getNvimInstance()?.bufManager?.findBufferByPath(uriToPath(params.textDocument.uri))
+                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
                 getDocumentSymbols(syncBuffer, params.textDocument.uri)
             }
