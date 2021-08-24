@@ -194,14 +194,14 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
 
     @NotificationHandler(MSG_NVIM_BUF_LINES_EVENT)
     fun nvimBufLinesEvent(event: BufLinesEvent) {
-        invokeOnMainLater {
+//        invokeOnMainLater {
 //            val buf = findBufferById(event.id) ?: return@invokeOnMainLater
 //            val change = BufferChange.NeovimChangeBuilder(buf, event).build()
 //            buf.synchronizer.onChange(change)
 //            // Always navigate to the editing file otherwise the code insight doesn't work.
 //            buf.navigate()
 //            publisher.bufferSynced(buf)
-        }
+//        }
     }
 
     @NotificationHandler(MSG_NVIM_BUF_CHANGEDTICK_EVENT)
