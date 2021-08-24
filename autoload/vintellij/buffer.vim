@@ -71,26 +71,26 @@ function! vintellij#buffer#Notify() abort
 endfunction
 
 function! vintellij#buffer#WriteBuffer(buffer)
-    if !vintellij#bvar#has(a:buffer, 'channel')
-        call vintellij#buffer#Unregister(a:buffer)
-        return
-    endif
+    " if !vintellij#bvar#has(a:buffer, 'channel')
+    "     call vintellij#buffer#Unregister(a:buffer)
+    "     return
+    " endif
 
-    let l:channel = vintellij#bvar#get(a:buffer, 'channel')
+    " let l:channel = vintellij#bvar#get(a:buffer, 'channel')
 
-    try
-        call call('rpcrequest', [l:channel, 'comrade_buf_write', {'id' : a:buffer}])
-        call setbufvar(a:buffer, '&modified', 0)
-    catch /./
-        if !vintellij#jetbrain#IsChannelExisting(l:channel)
-            call vintellij#buffer#Unregister(a:buffer)
-            echoe 'The JetBrain has been disconnected thus please write the buffer again if you want to save it.'
-        else
-            " The disconnecting takes a few seconds, user may have to write
-            " again to trigger the unregister.
-            echoe 'JetBrain failed to save file.' . v:exception
-        endif
-    endtry
+    " try
+    "     call call('rpcrequest', [l:channel, 'comrade_buf_write', {'id' : a:buffer}])
+        " call setbufvar(a:buffer, '&modified', 0)
+    " catch /./
+    "     if !vintellij#jetbrain#IsChannelExisting(l:channel)
+    "         call vintellij#buffer#Unregister(a:buffer)
+    "         echoe 'The JetBrain has been disconnected thus please write the buffer again if you want to save it.'
+    "     else
+    "         " The disconnecting takes a few seconds, user may have to write
+    "         " again to trigger the unregister.
+    "         echoe 'JetBrain failed to save file.' . v:exception
+    "     endif
+    " endtry
 
 endfunction
 
