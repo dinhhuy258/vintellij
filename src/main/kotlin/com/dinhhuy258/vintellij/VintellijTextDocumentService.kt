@@ -1,5 +1,6 @@
 package com.dinhhuy258.vintellij
 
+import com.dinhhuy258.vintellij.buffer.BufferEventListener
 import com.dinhhuy258.vintellij.utils.IdeaUtils.Companion.invokeOnMainAndWait
 import com.dinhhuy258.vintellij.completion.doCompletion
 import com.dinhhuy258.vintellij.completion.shouldStopCompletion
@@ -15,9 +16,11 @@ import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
+import com.intellij.util.messages.Topic
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 import org.eclipse.lsp4j.CodeAction
@@ -55,6 +58,10 @@ import org.eclipse.lsp4j.services.TextDocumentService
 class VintellijTextDocumentService(private val languageServer: VintellijLanguageServer) : TextDocumentService,
         LanguageClientAware,
         Closeable {
+    companion object {
+        private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(Topic("Buffer listener", BufferEventListener::class.java))
+    }
+
     private lateinit var client: LanguageClient
 
     private val async = AsyncExecutor()
@@ -72,7 +79,10 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun didOpen(params: DidOpenTextDocumentParams) {
         documentAsync.compute {
             invokeOnMainAndWait {
-                languageServer.getBufferManager().loadBuffer(uriToPath(params.textDocument.uri))
+                val buffer = languageServer.getBufferManager().loadBuffer(uriToPath(params.textDocument.uri))
+                if (buffer != null) {
+                    publisher.bufferCreated(buffer)
+                }
             }
         }
     }
@@ -99,6 +109,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                         buffer.replaceText(startPosition, endPosition, contentChange.text)
                     }
                 }
+                publisher.bufferSynced(buffer)
             }
         }
     }
@@ -106,7 +117,10 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     override fun didClose(params: DidCloseTextDocumentParams) {
         documentAsync.compute {
             invokeOnMainAndWait {
-                languageServer.getBufferManager().releaseBuffer(uriToPath(params.textDocument.uri))
+                val buffer = languageServer.getBufferManager().releaseBuffer(uriToPath(params.textDocument.uri))
+                if (buffer != null) {
+                    publisher.bufferReleased(buffer)
+                }
             }
         }
     }

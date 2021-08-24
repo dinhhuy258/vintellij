@@ -2,7 +2,7 @@ package com.dinhhuy258.vintellij.diagnostics
 
 import com.dinhhuy258.vintellij.VintellijScope
 import com.dinhhuy258.vintellij.buffer.Buffer
-import com.dinhhuy258.vintellij.buffer.SyncBufferManagerListener
+import com.dinhhuy258.vintellij.buffer.BufferEventListener
 import com.dinhhuy258.vintellij.utils.getURIForFile
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -17,7 +17,7 @@ import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.services.LanguageClient
 
-class DiagnosticsProcessor() : SyncBufferManagerListener, DaemonCodeAnalyzer.DaemonListener, ProjectManagerListener {
+class DiagnosticsProcessor : BufferEventListener, DaemonCodeAnalyzer.DaemonListener, ProjectManagerListener {
     companion object {
         private const val DEBOUNCE_TIME = 200L
     }
@@ -48,29 +48,29 @@ class DiagnosticsProcessor() : SyncBufferManagerListener, DaemonCodeAnalyzer.Dae
         }
     }
 
-    override fun bufferCreated(Buffer: Buffer) {
+    override fun bufferCreated(buffer: Buffer) {
         ApplicationManager.getApplication().assertIsDispatchThread()
-        if (Buffer.project != project) {
+        if (buffer.project != project) {
             return
         }
 
-        jobsMap[Buffer]?.cancel()
-        jobsMap[Buffer] = createJobAsync(Buffer)
+        jobsMap[buffer]?.cancel()
+        jobsMap[buffer] = createJobAsync(buffer)
     }
 
-    override fun bufferReleased(Buffer: Buffer) {
+    override fun bufferReleased(buffer: Buffer) {
         ApplicationManager.getApplication().assertIsDispatchThread()
-        if (Buffer.project != project) {
+        if (buffer.project != project) {
             return
         }
 
-        jobsMap.remove(Buffer)?.cancel()
+        jobsMap.remove(buffer)?.cancel()
     }
 
-    private fun createJobAsync(Buffer: Buffer): Deferred<Unit> {
+    private fun createJobAsync(buffer: Buffer): Deferred<Unit> {
         return VintellijScope.async {
             delay(DEBOUNCE_TIME)
-            doLint(Buffer)
+            doLint(buffer)
         }
     }
 
