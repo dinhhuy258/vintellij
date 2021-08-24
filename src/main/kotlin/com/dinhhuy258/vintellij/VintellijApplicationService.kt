@@ -7,11 +7,11 @@ import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 
-object ComradeNeovimService {
+object VintellijApplicationService {
     private val balloonGroup = NotificationGroup("vintellij", NotificationDisplayType.BALLOON, true)
 
-    val instance: ComradeNeovimService
-        get() = ServiceManager.getService(ComradeNeovimService::class.java)
+    val instance: VintellijApplicationService
+        get() = ServiceManager.getService(VintellijApplicationService::class.java)
 
     fun showBalloon(msg: String, type: NotificationType) {
         ApplicationManager.getApplication().invokeLater {
