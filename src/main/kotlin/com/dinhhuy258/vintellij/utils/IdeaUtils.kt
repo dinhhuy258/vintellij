@@ -9,11 +9,9 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiMethod
 import java.io.File
 import org.jetbrains.kotlin.asJava.getRepresentativeLightMethod
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtFunction
 
 class ResourceNotFoundException(message: String) : Exception(message)

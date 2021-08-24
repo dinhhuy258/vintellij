@@ -1,7 +1,5 @@
 package com.dinhhuy258.vintellij.utils
 
-import com.dinhhuy258.vintellij.utils.IdeaUtils
-import com.dinhhuy258.vintellij.utils.PathUtils
 import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.codeInsight.javadoc.JavaDocInfoGenerator.generateType
 import com.intellij.ide.highlighter.JavaClassFileType

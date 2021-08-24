@@ -1,7 +1,6 @@
 package com.dinhhuy258.vintellij.buffer
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.util.messages.Topic
 import java.util.concurrent.ConcurrentHashMap
 
 class BufferManager {
@@ -26,7 +25,6 @@ class BufferManager {
 
         return buffer
     }
-
 
     fun releaseBuffer(path: String): Buffer? {
         ApplicationManager.getApplication().assertIsDispatchThread()
