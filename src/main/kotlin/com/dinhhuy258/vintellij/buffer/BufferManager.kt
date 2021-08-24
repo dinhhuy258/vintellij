@@ -5,41 +5,36 @@ import com.intellij.util.messages.Topic
 import java.util.concurrent.ConcurrentHashMap
 
 class BufferManager {
-    companion object {
-        val TOPIC = Topic(
-            "SyncBuffer related events", SyncBufferManagerListener::class.java)
-        private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(TOPIC)
-    }
-
     private val bufferMap = ConcurrentHashMap<String, Buffer>()
 
     fun findBufferByPath(path: String): Buffer? {
         return bufferMap[path]
     }
 
-    fun loadBuffer(path: String) {
+    fun loadBuffer(path: String): Buffer? {
         var buffer = findBufferByPath(path)
         if (buffer == null) {
             try {
                 buffer = Buffer(path)
             } catch (e: BufferNotInProjectException) {
-                return
+                return null
             }
             bufferMap[buffer.path] = buffer
         }
 
         buffer.navigate()
 
-        publisher.bufferCreated(buffer)
+        return buffer
     }
 
 
-    fun releaseBuffer(path: String) {
+    fun releaseBuffer(path: String): Buffer? {
         ApplicationManager.getApplication().assertIsDispatchThread()
-        val buffer = findBufferByPath(path) ?: return
+        val buffer = findBufferByPath(path) ?: return null
 
         bufferMap.remove(path) != null
         buffer.release()
-        publisher.bufferReleased(buffer)
+
+        return buffer
     }
 }
