@@ -8,7 +8,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import kotlin.system.exitProcess
 
-class VIApplicationStarter : ApplicationStarter {
+class VintellijApplicationStarter : ApplicationStarter {
     private lateinit var projectPath: String
 
     override fun getCommandName(): String = "vintellij-inspect" /* This is a trick to force intellij run this application in headless mode (add inspect suffix to the command name) */

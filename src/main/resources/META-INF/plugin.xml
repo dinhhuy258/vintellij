@@ -19,13 +19,13 @@
 
     <application-components>
         <component>
-            <implementation-class>com.dinhhuy258.vintellij.ComradeNeovimPlugin</implementation-class>
+            <implementation-class>com.dinhhuy258.vintellij.VintellijComponent</implementation-class>
         </component>
     </application-components>
 
     <extensions defaultExtensionNs="com.intellij">
-        <appStarter implementation="com.dinhhuy258.vintellij.VIApplicationStarter"/>
-        <applicationService serviceImplementation="com.dinhhuy258.vintellij.ComradeNeovimService"/>
+        <appStarter implementation="com.dinhhuy258.vintellij.VintellijApplicationStarter"/>
+        <applicationService serviceImplementation="com.dinhhuy258.vintellij.VintellijApplicationService"/>
         <preloadingActivity implementation="com.dinhhuy258.vintellij.VintellijLanguageServerPreloadingActivity"/>
     </extensions>
 

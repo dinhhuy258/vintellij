@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.diagnostics
 
-import com.dinhhuy258.vintellij.ComradeScope
+import com.dinhhuy258.vintellij.VintellijScope
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.buffer.SyncBufferManagerListener
 import com.dinhhuy258.vintellij.utils.getURIForFile
@@ -68,7 +68,7 @@ class DiagnosticsProcessor() : SyncBufferManagerListener, DaemonCodeAnalyzer.Dae
     }
 
     private fun createJobAsync(Buffer: Buffer): Deferred<Unit> {
-        return ComradeScope.async {
+        return VintellijScope.async {
             delay(DEBOUNCE_TIME)
             doLint(Buffer)
         }

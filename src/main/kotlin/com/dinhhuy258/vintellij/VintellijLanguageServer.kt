@@ -37,7 +37,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
             ApplicationManager.getApplication().invokeAndWait {
                 project = getProject(params.rootUri)
                 if (project == null) {
-                    ComradeNeovimService.instance.showBalloon("Failed to load project: ${params.rootUri}", NotificationType.ERROR)
+                    VintellijApplicationService.instance.showBalloon("Failed to load project: ${params.rootUri}", NotificationType.ERROR)
                     // TODO: Let LSP client know the connection is failed
                     return@invokeAndWait
                 }

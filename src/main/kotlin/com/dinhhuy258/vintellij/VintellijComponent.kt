@@ -14,15 +14,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 
-val ComradeScope = ComradeNeovimPlugin.instance.coroutineScope
+val VintellijScope = VintellijComponent.instance.coroutineScope
 
-@State(name = "ComradeNeovim",
-    storages = [Storage(file = "\$APP_CONFIG\$/comrade_neovim_settings.xml")])
-//TODO: REname
-class ComradeNeovimPlugin : BaseComponent, Disposable {
+@State(name = "vintellij",
+    storages = [Storage(file = "\$APP_CONFIG\$/vintellij_settings.xml")])
+class VintellijComponent : BaseComponent, Disposable {
     companion object {
-        val instance: ComradeNeovimPlugin by lazy {
-            ApplicationManager.getApplication().getComponent(ComradeNeovimPlugin::class.java)
+        val instance: VintellijComponent by lazy {
+            ApplicationManager.getApplication().getComponent(VintellijComponent::class.java)
         }
     }
 
@@ -35,17 +34,14 @@ class ComradeNeovimPlugin : BaseComponent, Disposable {
 
     private val projectManagerListener = object : ProjectManagerListener {
         override fun projectOpened(project: Project) {
-//            NvimInstanceManager.refresh()
         }
 
         override fun projectClosing(project: Project) {
-//            NvimInstanceManager.cleanUp(project)
         }
     }
 
     override fun initComponent() {
         job = Job()
-//        Disposer.register(this, NvimInstanceManager)
         msgBusConnection = ApplicationManager.getApplication().messageBus.connect(this)
         msgBusConnection.subscribe(ProjectManager.TOPIC, projectManagerListener)
     }
