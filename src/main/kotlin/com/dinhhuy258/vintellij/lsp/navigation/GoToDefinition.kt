@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.navigation
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.dinhhuy258.vintellij.lsp.utils.getLocation
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.application.ApplicationManager
@@ -29,7 +29,7 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
-fun goToDefinition(buffer: SyncBuffer?, position: Position): List<Location> {
+fun goToDefinition(buffer: Buffer?, position: Position): List<Location> {
     val locations = ArrayList<Location>()
     if (buffer == null) {
         return locations

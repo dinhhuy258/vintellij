@@ -20,8 +20,8 @@ import com.intellij.psi.search.GlobalSearchScope
 import org.eclipse.lsp4j.Position
 import java.io.File
 
-class BufferNotInProjectException(bufId: Int, path: String, msg: String) :
-        Exception("Buffer '$bufId' to '$path' cannot be found in any opened projects.\n$msg")
+class BufferNotInProjectException(path: String, msg: String) :
+        Exception("'$path' cannot be found in any opened projects.\n$msg")
 
 class SyncBuffer(
     val id: Int,
@@ -54,7 +54,7 @@ class SyncBuffer(
 
     init {
         val pair = locateFile(path)
-                ?: throw BufferNotInProjectException(id, path, "'locateFile' cannot locate the corresponding document.")
+                ?: throw BufferNotInProjectException(path, "'locateFile' cannot locate the corresponding document.")
         project = pair.first
         psiFile = pair.second
 
@@ -64,7 +64,7 @@ class SyncBuffer(
         }) != null && psiFile.isWritable
 
         document = PsiDocumentManager.getInstance(project).getDocument(psiFile)
-                ?: throw BufferNotInProjectException(id, path, "'PsiDocumentManager' cannot locate the corresponding document.")
+                ?: throw BufferNotInProjectException(path, "'PsiDocumentManager' cannot locate the corresponding document.")
 
         fileEditorManager = FileEditorManager.getInstance(project)
     }
@@ -72,7 +72,7 @@ class SyncBuffer(
     private fun createEditorDelegate(): EditorDelegate {
         val fileEditors = fileEditorManager.openFile(psiFile.virtualFile, false, true)
         val fileEditor = fileEditors.firstOrNull { it is TextEditor && it.editor is EditorEx }
-                ?: throw BufferNotInProjectException(id, path, "FileEditorManger cannot open a TextEditor.")
+                ?: throw BufferNotInProjectException(path, "FileEditorManger cannot open a TextEditor.")
         return EditorDelegate((fileEditor as TextEditor).editor as EditorEx)
     }
 

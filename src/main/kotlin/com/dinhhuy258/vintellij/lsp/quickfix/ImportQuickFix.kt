@@ -1,13 +1,13 @@
 package com.dinhhuy258.vintellij.lsp.quickfix
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
 import com.dinhhuy258.vintellij.idea.imports.ImportSuggesterFactory
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.util.Ref
 import org.eclipse.lsp4j.Position
 
-fun getImportCandidates(buffer: SyncBuffer?, position: Position): List<String> {
+fun getImportCandidates(buffer: Buffer?, position: Position): List<String> {
     if (buffer == null) {
         return emptyList()
     }

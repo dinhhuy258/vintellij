@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.symbol
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.dinhhuy258.vintellij.lsp.utils.containerName
 import com.dinhhuy258.vintellij.lsp.utils.symbolKind
 import com.dinhhuy258.vintellij.lsp.utils.toRange
@@ -15,16 +15,16 @@ import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.util.Key
 import com.intellij.pom.Navigatable
-import java.beans.PropertyChangeListener
-import java.util.LinkedList
-import javax.swing.JComponent
-import kotlin.collections.HashMap
 import org.eclipse.lsp4j.DocumentSymbol
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.SymbolInformation
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.structureView.KotlinStructureViewFactory
+import java.beans.PropertyChangeListener
+import java.util.*
+import javax.swing.JComponent
+import kotlin.collections.HashMap
 
 private class VintellijFileEditor(private val editor: Editor) : TextEditor {
     private val userDataMap = HashMap<Any, Any?>()
@@ -90,7 +90,7 @@ private class VintellijFileEditor(private val editor: Editor) : TextEditor {
     }
 }
 
-fun getDocumentSymbols(buffer: SyncBuffer?, documentUri: String): List<Either<SymbolInformation, DocumentSymbol>> {
+fun getDocumentSymbols(buffer: Buffer?, documentUri: String): List<Either<SymbolInformation, DocumentSymbol>> {
     if (buffer == null) {
         return emptyList()
     }

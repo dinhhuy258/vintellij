@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.lsp.navigation
 
-import com.dinhhuy258.vintellij.comrade.buffer.SyncBuffer
 import com.dinhhuy258.vintellij.idea.IdeaUtils
+import com.dinhhuy258.vintellij.lsp.Buffer
 import com.dinhhuy258.vintellij.lsp.utils.offsetToPosition
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
@@ -18,7 +18,7 @@ import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
 import org.jetbrains.kotlin.psi.KtFunction
 
-fun goToReferences(buffer: SyncBuffer?, position: Position): List<Location> {
+fun goToReferences(buffer: Buffer?, position: Position): List<Location> {
     if (buffer == null) {
         return emptyList()
     }
