@@ -1,10 +1,8 @@
 package com.dinhhuy258.vintellij.comrade.core
 
-import com.dinhhuy258.vintellij.VintellijManager
 import com.dinhhuy258.vintellij.comrade.buffer.SyncBufferManager
 import com.dinhhuy258.vintellij.comrade.parseIPV4String
 import com.dinhhuy258.vintellij.neovim.ApiInfo
-import com.dinhhuy258.vintellij.neovim.Client
 import com.dinhhuy258.vintellij.neovim.NeovimConnection
 import com.dinhhuy258.vintellij.neovim.SocketConnection
 import com.intellij.openapi.Disposable
@@ -27,8 +25,6 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
     }
 
     private val log = Logger.getInstance(NvimInstance::class.java)
-    private val connection = createRPCConnection(address)
-    val client = Client(connection, onClose)
     lateinit var apiInfo: ApiInfo
     val bufManager = SyncBufferManager(this)
     @Volatile var connected = false
@@ -36,29 +32,12 @@ class NvimInstance(private val address: String, onClose: (Throwable?) -> Unit) :
 
     var isSyncBuffer: Boolean? = null
 
-    suspend fun connect() {
-        apiInfo = client.api.getApiInfo()
-
-        if (isSyncBuffer == null) {
-            isSyncBuffer = client.api.getVar("enable_buffer_sync_by_default") as Int == 1
-        }
-
-        client.api.setClientInfo("Vintellij", VERSION)
-        client.api.command("echom \"Vintellij LSP connected.\"")
-
-        client.registerHandler(bufManager)
-        client.registerHandler(VintellijManager(this))
-        log.info("Vintelilj LSP has been created for connection '$connection'")
-        connected = true
+    override fun toString(): String {
+        return address
     }
 
     override fun dispose() {
-        connected = false
-        connection.close()
-    }
-
-    override fun toString(): String {
-        return address
+        TODO("Not yet implemented")
     }
 
     fun updateSyncBuffer(isEnable: Boolean) {

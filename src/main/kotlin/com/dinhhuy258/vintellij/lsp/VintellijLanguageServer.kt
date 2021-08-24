@@ -46,12 +46,10 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                     return@invokeAndWait
                 }
                 textDocumentService.onProjectOpen(project!!)
-                val nvimInfo = NvimInfoCollector.getNvimInfo(uriToPath(params.rootUri))
-                if (nvimInfo != null) {
-                    nvimInstance = NvimInstanceManager.connect(nvimInfo)
-                }
 
-                if (nvimInfo == null || nvimInstance == null) {
+                nvimInstance = NvimInstanceManager.connect()
+
+                if (nvimInstance == null) {
                     ComradeNeovimService.instance.showBalloon("Failed to connect to ${params.rootUri}", NotificationType.ERROR)
                 }
             }

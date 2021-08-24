@@ -55,34 +55,18 @@ object NvimInstanceManager : Disposable {
     /**
      * Connect to the given nvim.
      */
-    fun connect(nvimInfo: NvimInfo): NvimInstance? {
-        if (instanceMap.containsKey(nvimInfo)) return null
-        val address = nvimInfo.address
+    fun connect(): NvimInstance? {
         try {
-            val instance = NvimInstance(address) {
-                onStop(nvimInfo)
+            val instance = NvimInstance("address") {
+                onStop()
             }
             Disposer.register(this, instance)
-            instanceMap[nvimInfo] = instance
-            val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-                ComradeNeovimService.showBalloon("Failed to connect to LSP client ${nvimInfo.projectName}: $exception",
-                        NotificationType.ERROR)
-                val toDispose = instanceMap.remove(nvimInfo) ?: return@CoroutineExceptionHandler
-                Disposer.dispose(toDispose)
-            }
-            ComradeScope.launch(exceptionHandler) {
-                instance.connect()
-                instance.bufManager.loadCurrentBuffer()
-                ComradeNeovimService.instance.showBalloon("Connected to LSP client ${nvimInfo.projectName}",
-                        NotificationType.INFORMATION)
-            }
-            log.info("Try to connect to Neovim instance '$nvimInfo'.")
+
+            ComradeNeovimService.instance.showBalloon("Connected to LSP client",
+                NotificationType.INFORMATION)
 
             return instance
         } catch (t: Throwable) {
-            log.warn("Failed to create Neovim instance for $nvimInfo", t)
-            val toDispose = instanceMap.remove(nvimInfo) ?: return null
-            Disposer.dispose(toDispose)
         }
         return null
     }
@@ -96,10 +80,7 @@ object NvimInstanceManager : Disposable {
         Disposer.dispose(toDispose)
     }
 
-    private fun onStop(nvimInfo: NvimInfo) {
-        log.info("onStop: Nvim '${nvimInfo.address}' has been disconnected.")
-        val toDispose = instanceMap.remove(nvimInfo) ?: return
-        Disposer.dispose(toDispose)
+    private fun onStop() {
     }
 
     override fun dispose() {

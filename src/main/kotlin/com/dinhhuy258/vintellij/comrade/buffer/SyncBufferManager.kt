@@ -48,7 +48,6 @@ class SyncBufferManager(private val nvimInstance: NvimInstance) : Disposable {
     // UI thread.
     private val bufferMap = ConcurrentHashMap<Int, SyncBuffer>()
     private val bufferPathMap = ConcurrentHashMap<String, SyncBuffer>()
-    private val client = nvimInstance.client
     lateinit var synchronizer: Synchronizer
 
     init {
