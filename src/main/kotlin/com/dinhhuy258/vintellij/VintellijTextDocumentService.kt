@@ -59,7 +59,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         LanguageClientAware,
         Closeable {
     companion object {
-        private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(Topic("Buffer listener", BufferEventListener::class.java))
+        private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(BufferEventListener.TOPIC)
     }
 
     private lateinit var client: LanguageClient
@@ -109,7 +109,6 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                         buffer.replaceText(startPosition, endPosition, contentChange.text)
                     }
                 }
-                publisher.bufferSynced(buffer)
             }
         }
     }
@@ -276,6 +275,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         this.project = project
         messageBusConnection = project.messageBus.connect()
         messageBusConnection!!.subscribe(DaemonCodeAnalyzer.DAEMON_EVENT_TOPIC, diagnosticsProcessor)
+        messageBusConnection!!.subscribe(BufferEventListener.TOPIC, diagnosticsProcessor)
     }
 
     private inline fun <T> tryCatch(block: () -> T, fallback: T): T {
