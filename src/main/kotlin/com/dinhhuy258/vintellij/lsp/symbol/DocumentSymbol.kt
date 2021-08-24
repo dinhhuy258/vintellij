@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.symbol
 
-import com.dinhhuy258.vintellij.lsp.Buffer
+import com.dinhhuy258.vintellij.lsp.buffer.Buffer
 import com.dinhhuy258.vintellij.lsp.utils.containerName
 import com.dinhhuy258.vintellij.lsp.utils.symbolKind
 import com.dinhhuy258.vintellij.lsp.utils.toRange

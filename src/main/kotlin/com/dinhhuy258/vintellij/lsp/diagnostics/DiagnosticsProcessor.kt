@@ -1,8 +1,8 @@
 package com.dinhhuy258.vintellij.lsp.diagnostics
 
 import com.dinhhuy258.vintellij.ComradeScope
-import com.dinhhuy258.vintellij.lsp.Buffer
-import com.dinhhuy258.vintellij.lsp.SyncBufferManagerListener
+import com.dinhhuy258.vintellij.lsp.buffer.Buffer
+import com.dinhhuy258.vintellij.lsp.buffer.SyncBufferManagerListener
 import com.dinhhuy258.vintellij.utils.getURIForFile
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager

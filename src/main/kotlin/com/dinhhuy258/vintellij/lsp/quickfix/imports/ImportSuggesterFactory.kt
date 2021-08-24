@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij.idea.imports
+package com.dinhhuy258.vintellij.lsp.quickfix.imports
 
 import com.dinhhuy258.vintellij.exceptions.VIException
 import com.intellij.lang.Language

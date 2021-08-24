@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp.navigation
 
-import com.dinhhuy258.vintellij.lsp.Buffer
+import com.dinhhuy258.vintellij.lsp.buffer.Buffer
 import com.dinhhuy258.vintellij.lsp.utils.getLocation
 import com.intellij.codeInsight.navigation.actions.GotoTypeDeclarationAction
 import com.intellij.openapi.application.ApplicationManager

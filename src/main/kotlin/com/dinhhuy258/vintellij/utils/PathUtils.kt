@@ -1,6 +1,5 @@
 package com.dinhhuy258.vintellij.utils
 
-import com.dinhhuy258.vintellij.idea.IdeaUtils
 import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.openapi.util.Comparing

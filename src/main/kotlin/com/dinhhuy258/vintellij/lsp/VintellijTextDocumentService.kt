@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.lsp
 
-import com.dinhhuy258.vintellij.idea.IdeaUtils.Companion.invokeOnMainAndWait
+import com.dinhhuy258.vintellij.utils.IdeaUtils.Companion.invokeOnMainAndWait
 import com.dinhhuy258.vintellij.lsp.completion.doCompletion
 import com.dinhhuy258.vintellij.lsp.completion.shouldStopCompletion
 import com.dinhhuy258.vintellij.lsp.diagnostics.DiagnosticsProcessor
@@ -15,7 +15,6 @@ import com.dinhhuy258.vintellij.lsp.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.lsp.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
-import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
@@ -45,7 +44,6 @@ import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.ReferenceParams
 import org.eclipse.lsp4j.SymbolInformation
-import org.eclipse.lsp4j.TextDocumentContentChangeEvent
 import org.eclipse.lsp4j.TextEdit
 import org.eclipse.lsp4j.TypeDefinitionParams
 import org.eclipse.lsp4j.WillSaveTextDocumentParams

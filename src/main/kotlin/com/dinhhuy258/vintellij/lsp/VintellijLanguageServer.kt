@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij.lsp
 
 import com.dinhhuy258.vintellij.ComradeNeovimService
+import com.dinhhuy258.vintellij.lsp.buffer.BufferManager
 import com.dinhhuy258.vintellij.utils.getProject
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
