@@ -14,13 +14,13 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.GlobalSearchScope
-import org.eclipse.lsp4j.Position
 import java.io.File
+import org.eclipse.lsp4j.Position
 
 class BufferNotInProjectException(path: String, msg: String) :
     Exception("'$path' cannot be found in any opened projects.\n$msg")
 
-//TODO: Refactor setText, replaceText methods
+// TODO: Refactor setText, replaceText methods
 class Buffer(val path: String) {
     internal val psiFile: PsiFile
     internal val document: Document

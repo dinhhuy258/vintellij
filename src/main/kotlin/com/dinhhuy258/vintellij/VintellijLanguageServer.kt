@@ -5,6 +5,8 @@ import com.dinhhuy258.vintellij.utils.getProject
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletableFuture.completedFuture
 import org.eclipse.lsp4j.CompletionOptions
 import org.eclipse.lsp4j.ExecuteCommandOptions
 import org.eclipse.lsp4j.InitializeParams
@@ -18,8 +20,6 @@ import org.eclipse.lsp4j.services.LanguageClientAware
 import org.eclipse.lsp4j.services.LanguageServer
 import org.eclipse.lsp4j.services.TextDocumentService
 import org.eclipse.lsp4j.services.WorkspaceService
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.CompletableFuture.completedFuture
 
 class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     private var client: LanguageClient? = null

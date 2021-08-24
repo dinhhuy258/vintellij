@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.navigation
 
-import com.dinhhuy258.vintellij.utils.IdeaUtils
 import com.dinhhuy258.vintellij.buffer.Buffer
+import com.dinhhuy258.vintellij.utils.IdeaUtils
 import com.dinhhuy258.vintellij.utils.offsetToPosition
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition

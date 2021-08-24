@@ -1,7 +1,6 @@
 package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferEventListener
-import com.dinhhuy258.vintellij.utils.IdeaUtils.Companion.invokeOnMainAndWait
 import com.dinhhuy258.vintellij.completion.doCompletion
 import com.dinhhuy258.vintellij.completion.shouldStopCompletion
 import com.dinhhuy258.vintellij.diagnostics.DiagnosticsProcessor
@@ -14,13 +13,13 @@ import com.dinhhuy258.vintellij.navigation.goToTypeDefinition
 import com.dinhhuy258.vintellij.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
+import com.dinhhuy258.vintellij.utils.IdeaUtils.Companion.invokeOnMainAndWait
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
-import com.intellij.util.messages.Topic
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 import org.eclipse.lsp4j.CodeAction
@@ -104,8 +103,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
                     if (startPosition.equals(endPosition)) {
                         buffer.insertText(startPosition, contentChange.text)
-                    }
-                    else {
+                    } else {
                         buffer.replaceText(startPosition, endPosition, contentChange.text)
                     }
                 }

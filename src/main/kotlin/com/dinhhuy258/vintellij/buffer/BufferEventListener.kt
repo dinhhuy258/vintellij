@@ -8,7 +8,6 @@ interface BufferEventListener : EventListener {
         val TOPIC = Topic("Buffer listener", BufferEventListener::class.java)
     }
 
-
     fun bufferCreated(buffer: Buffer) {
     }
 
