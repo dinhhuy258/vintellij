@@ -14,8 +14,8 @@ local function resolve_bufnr(bufnr)
 end
 
 local function on_attach(bufnr)
-	-- TODO: Currently, nvim lsp does not support `will save` that why we need to add the autocmd here
-	-- We will remove these line of code when nvim support `will save`
+	-- Currently, nvim lsp does not support `will save` that why we need to add the autocmd here
+	-- TODO: Remove this command when nvim support `will save`
 	vim.api.nvim_command(
 		string.format(
 			"autocmd BufWriteCmd <buffer=%d> lua require('vintellij').text_document_will_save_handler(0)",
@@ -29,12 +29,13 @@ function M.on_buf_enter()
 	local uri = vim.uri_from_bufnr(bufnr)
 
 	vim.lsp.for_each_buffer_client(bufnr, function(client, _)
-		-- TODO: Check if client is vintellij client
-		client.notify("textDocument/didOpen", {
-			textDocument = {
-				uri = uri,
-			},
-		})
+		if client.name == "vintellij" then
+			client.notify("textDocument/didOpen", {
+				textDocument = {
+					uri = uri,
+				},
+			})
+		end
 	end)
 end
 
@@ -43,13 +44,14 @@ function M.text_document_will_save_handler(bufnr)
 	local uri = vim.uri_from_bufnr(bufnr)
 
 	vim.lsp.for_each_buffer_client(bufnr, function(client, _)
-		-- TODO: Check capabilities
-		client.notify("textDocument/willSave", {
-			textDocument = {
-				uri = uri,
-			},
-			reason = 1,
-		})
+		if client.name == "vintellij" then
+			client.notify("textDocument/willSave", {
+				textDocument = {
+					uri = uri,
+				},
+				reason = 1,
+			})
+		end
 	end)
 end
 
