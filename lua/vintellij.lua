@@ -9,7 +9,9 @@ local function resolve_bufnr(bufnr)
 	return bufnr
 end
 
-function M.on_attach(_, bufnr)
+local function on_attach(bufnr)
+	-- TODO: Currently, nvim lsp does not support `will save` that why we need to add the autocmd here
+	-- We will remove these line of code when nvim support `will save`
 	vim.api.nvim_command(
 		string.format(
 			"autocmd BufWriteCmd <buffer=%d> lua require('vintellij').text_document_will_save_handler(0)",
@@ -23,7 +25,7 @@ function M.text_document_will_save_handler(bufnr)
 	local uri = vim.uri_from_bufnr(bufnr)
 
 	vim.lsp.for_each_buffer_client(bufnr, function(client, _)
-    -- TODO: Check capabilities
+		-- TODO: Check capabilities
 		client.notify("textDocument/willSave", {
 			textDocument = {
 				uri = uri,
@@ -31,6 +33,53 @@ function M.text_document_will_save_handler(bufnr)
 			reason = 1,
 		})
 	end)
+end
+
+function M.setup(common_on_attach, common_capabilities, common_on_init)
+	local lspconfig_ok, lspconfig = pcall(require, "lspconfig")
+	local configs_ok, configs = pcall(require, "lspconfig/configs")
+
+	if not lspconfig_ok or not configs_ok then
+		-- TODO: Add error message here
+		return
+	end
+
+	common_capabilities.textDocument.synchronization.willSave = true
+
+	if not lspconfig.vintellij then
+		configs.vintellij = {
+			default_config = {
+				cmd = { "nc", "localhost", "6969" },
+				root_dir = function(fname)
+					local util = require("lspconfig/util")
+
+					local root_files = {
+						"settings.gradle", -- Gradle (multi-project)
+						"settings.gradle.kts", -- Gradle (multi-project)
+						"build.xml", -- Ant
+						"pom.xml", -- Maven
+					}
+
+					local fallback_root_files = {
+						"build.gradle", -- Gradle
+						"build.gradle.kts", -- Gradle
+					}
+					return util.root_pattern(unpack(root_files))(fname)
+						or util.root_pattern(unpack(fallback_root_files))(fname)
+				end,
+				filetypes = { "kotlin" },
+				autostart = false,
+				on_attach = function(client_id, bufnr)
+					common_on_attach(client_id, bufnr)
+					on_attach(bufnr)
+				end,
+				on_init = common_on_init,
+				capabilities = common_capabilities,
+			},
+		}
+	end
+
+	lspconfig.vintellij.setup({})
 end
 
 return M
