@@ -1,5 +1,9 @@
 local M = {}
 
+local function setup_events()
+	vim.api.nvim_command("autocmd BufEnter * lua require('vintellij').on_buf_enter()")
+end
+
 local function resolve_bufnr(bufnr)
 	vim.validate({ bufnr = { bufnr, "n", true } })
 	if bufnr == nil or bufnr == 0 then
@@ -18,6 +22,20 @@ local function on_attach(bufnr)
 			bufnr
 		)
 	)
+end
+
+function M.on_buf_enter()
+	local bufnr = resolve_bufnr(0)
+	local uri = vim.uri_from_bufnr(bufnr)
+
+	vim.lsp.for_each_buffer_client(bufnr, function(client, _)
+		-- TODO: Check if client is vintellij client
+		client.notify("textDocument/didOpen", {
+			textDocument = {
+				uri = uri,
+			},
+		})
+	end)
 end
 
 function M.text_document_will_save_handler(bufnr)
@@ -80,6 +98,7 @@ function M.setup(common_on_attach, common_capabilities, common_on_init)
 	end
 
 	lspconfig.vintellij.setup({})
+	setup_events()
 end
 
 return M
