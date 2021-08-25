@@ -51,6 +51,8 @@ function M.text_document_will_save_handler(bufnr)
 				},
 				reason = 1,
 			})
+
+      vim.api.nvim_buf_set_option(bufnr, "modified", false)
 		end
 	end)
 end
