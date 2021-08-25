@@ -2,6 +2,8 @@ package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferManager
 import com.dinhhuy258.vintellij.utils.getProject
+import com.intellij.notification.NotificationDisplayType
+import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
@@ -22,6 +24,9 @@ import org.eclipse.lsp4j.services.TextDocumentService
 import org.eclipse.lsp4j.services.WorkspaceService
 
 class VintellijLanguageServer : LanguageServer, LanguageClientAware {
+    private val VINTELLIJ_NOTIFICATION_GROUP =
+        NotificationGroup("Vintellij", NotificationDisplayType.BALLOON, true)
+
     private var client: LanguageClient? = null
 
     private var project: Project? = null
@@ -37,11 +42,16 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
             ApplicationManager.getApplication().invokeAndWait {
                 project = getProject(params.rootUri)
                 if (project == null) {
-                    VintellijApplicationService.instance.showBalloon("Failed to load project: ${params.rootUri}", NotificationType.ERROR)
+                    VINTELLIJ_NOTIFICATION_GROUP
+                        .createNotification("Failed to open project: ${params.rootUri}", NotificationType.ERROR)
+                        .notify(project)
                     // TODO: Let LSP client know the connection is failed
                     return@invokeAndWait
                 }
                 textDocumentService.onProjectOpen(project!!)
+                VINTELLIJ_NOTIFICATION_GROUP
+                    .createNotification("Connected to LSP client: ${project!!.name}", NotificationType.INFORMATION)
+                    .notify(project)
             }
 
             InitializeResult(getServerCapabilities())
@@ -62,6 +72,10 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     override fun connect(client: LanguageClient) {
         textDocumentService.connect(client)
         this.client = client
+    }
+
+    fun getBufferManager(): BufferManager {
+        return bufferManager
     }
 
     private fun getServerCapabilities() = ServerCapabilities().apply {
@@ -90,9 +104,5 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         documentLinkProvider = null
         executeCommandProvider = ExecuteCommandOptions()
         experimental = null
-    }
-
-    fun getBufferManager(): BufferManager {
-        return bufferManager
     }
 }
