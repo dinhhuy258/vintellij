@@ -29,7 +29,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     private val VINTELLIJ_NOTIFICATION_GROUP =
         NotificationGroup("Vintellij", NotificationDisplayType.BALLOON, true)
 
-    private var client: LanguageClient? = null
+    private var client: VintellijLanguageClient? = null
 
     private var project: Project? = null
 
@@ -54,6 +54,8 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                             "Failed to open project: ${params.rootUri}"
                         )
                     )
+
+                    client!!.sendEventNotification(VintellijEventNotification(VintellijEventType.CLOSE_CONNECTION))
                     return@invokeAndWait
                 }
                 bufferManager = BufferManager(project!!)
@@ -87,7 +89,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     override fun connect(client: LanguageClient) {
         textDocumentService.connect(client)
-        this.client = client
+        this.client = client as VintellijLanguageClient
     }
 
     fun getBufferManager(): BufferManager {

@@ -29,7 +29,7 @@ class VintellijLanguageServerRunner {
 
     private fun createConnection(connection: Socket) {
         val languageServer = VintellijLanguageServer()
-        val launcher = Launcher.createLauncher(languageServer, LanguageClient::class.java, connection.getInputStream(), connection.getOutputStream())
+        val launcher = Launcher.createLauncher(languageServer, VintellijLanguageClient::class.java, connection.getInputStream(), connection.getOutputStream())
         languageServer.connect(launcher.remoteProxy)
         launcher.startListening()
     }
