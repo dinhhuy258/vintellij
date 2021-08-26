@@ -13,6 +13,8 @@ import org.eclipse.lsp4j.CompletionOptions
 import org.eclipse.lsp4j.ExecuteCommandOptions
 import org.eclipse.lsp4j.InitializeParams
 import org.eclipse.lsp4j.InitializeResult
+import org.eclipse.lsp4j.MessageParams
+import org.eclipse.lsp4j.MessageType
 import org.eclipse.lsp4j.ServerCapabilities
 import org.eclipse.lsp4j.TextDocumentSyncKind
 import org.eclipse.lsp4j.TextDocumentSyncOptions
@@ -45,14 +47,27 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                     VINTELLIJ_NOTIFICATION_GROUP
                         .createNotification("Failed to open project: ${params.rootUri}", NotificationType.ERROR)
                         .notify(null)
-                    // TODO: Let LSP client know the connection is failed
+
+                    client!!.showMessage(
+                        MessageParams(
+                            MessageType.Error,
+                            "Failed to open project: ${params.rootUri}"
+                        )
+                    )
                     return@invokeAndWait
                 }
                 bufferManager = BufferManager(project!!)
                 textDocumentService.onProjectOpen(project!!)
+
                 VINTELLIJ_NOTIFICATION_GROUP
                     .createNotification("Connected to LSP client: ${project!!.name}", NotificationType.INFORMATION)
                     .notify(project)
+                client!!.showMessage(
+                    MessageParams(
+                        MessageType.Info,
+                        "LSP connected: ${project!!.name}"
+                    )
+                )
             }
 
             InitializeResult(getServerCapabilities())
