@@ -31,7 +31,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     private var project: Project? = null
 
-    private val bufferManager = BufferManager()
+    private lateinit var bufferManager: BufferManager
 
     private val workspaceService = VintellijWorkspaceService(this)
 
@@ -44,10 +44,11 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                 if (project == null) {
                     VINTELLIJ_NOTIFICATION_GROUP
                         .createNotification("Failed to open project: ${params.rootUri}", NotificationType.ERROR)
-                        .notify(project)
+                        .notify(null)
                     // TODO: Let LSP client know the connection is failed
                     return@invokeAndWait
                 }
+                bufferManager = BufferManager(project!!)
                 textDocumentService.onProjectOpen(project!!)
                 VINTELLIJ_NOTIFICATION_GROUP
                     .createNotification("Connected to LSP client: ${project!!.name}", NotificationType.INFORMATION)
