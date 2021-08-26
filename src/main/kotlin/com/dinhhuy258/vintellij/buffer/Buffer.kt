@@ -1,6 +1,6 @@
 package com.dinhhuy258.vintellij.buffer
 
-import com.dinhhuy258.vintellij.utils.PathUtils
+import com.dinhhuy258.vintellij.utils.PathUtils.Companion.getFilePath
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
@@ -14,8 +14,8 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
-import java.io.File
 import org.eclipse.lsp4j.Position
+import java.io.File
 
 class BufferNotInProjectException(path: String, msg: String) :
     Exception("'$path' cannot be found in any opened projects.\n$msg")
@@ -109,17 +109,13 @@ class Buffer(val project: Project, val path: String) {
         }
     }
 
-    private fun locateFile(name: String): PsiFile? {
-        val filePath = if (PathUtils.isVimJarFilePath(name)) {
-            PathUtils.toIntellijJarFilePath(name).removePrefix(PathUtils.INTELLIJ_PATH_PREFIX)
-        } else {
-            name
-        }
+    private fun locateFile(path: String): PsiFile? {
+        val filePath = getFilePath(path)
 
         var psiFile: PsiFile? = null
         ApplicationManager.getApplication().runReadAction {
             val files = FilenameIndex.getFilesByName(
-                project, File(name).name, GlobalSearchScope.allScope(project)
+                project, File(path).name, GlobalSearchScope.allScope(project)
             )
             psiFile = files.find {
                 it.virtualFile.canonicalPath == filePath
