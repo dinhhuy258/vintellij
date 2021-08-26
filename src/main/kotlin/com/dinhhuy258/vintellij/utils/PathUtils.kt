@@ -33,6 +33,14 @@ class PathUtils private constructor() {
             }
         }
 
+        fun getFilePath(name: String): String {
+            return if (isVimJarFilePath(name)) {
+                toIntellijJarFilePath(name).removePrefix(INTELLIJ_PATH_PREFIX)
+            } else {
+                name
+            }
+        }
+
         fun getPathWithOffsetFromVirtualFileAndPsiElement(virtualFile: VirtualFile, psiElement: PsiElement): Pair<String, Int>? {
             if (virtualFile.fileType is JavaClassFileType && psiElement !is KtDeclaration) {
                 val project = IdeaUtils.getProject()

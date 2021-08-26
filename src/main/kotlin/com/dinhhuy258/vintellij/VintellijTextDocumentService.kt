@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferEventListener
+import com.dinhhuy258.vintellij.buffer.BufferSynchronization
 import com.dinhhuy258.vintellij.completion.doCompletion
 import com.dinhhuy258.vintellij.completion.shouldStopCompletion
 import com.dinhhuy258.vintellij.diagnostics.DiagnosticsProcessor
@@ -20,8 +21,6 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
-import java.io.Closeable
-import java.util.concurrent.CompletableFuture
 import org.eclipse.lsp4j.CodeAction
 import org.eclipse.lsp4j.CodeActionParams
 import org.eclipse.lsp4j.Command
@@ -53,10 +52,12 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageClient
 import org.eclipse.lsp4j.services.LanguageClientAware
 import org.eclipse.lsp4j.services.TextDocumentService
+import java.io.Closeable
+import java.util.concurrent.CompletableFuture
 
 class VintellijTextDocumentService(private val languageServer: VintellijLanguageServer) : TextDocumentService,
-        LanguageClientAware,
-        Closeable {
+    LanguageClientAware,
+    Closeable {
     companion object {
         private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(BufferEventListener.TOPIC)
     }
@@ -67,6 +68,8 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     private val documentAsync = AsyncExecutor()
 
+    private val bufferSynchronization = BufferSynchronization()
+
     private var project: Project? = null
 
     private var messageBusConnection: MessageBusConnection? = null
@@ -76,11 +79,20 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun didOpen(params: DidOpenTextDocumentParams) {
+        val path = uriToPath(params.textDocument.uri)
+
         documentAsync.compute {
             invokeOnMainAndWait {
-                val buffer = languageServer.getBufferManager().loadBuffer(uriToPath(params.textDocument.uri))
+                val buffer = languageServer.getBufferManager().loadBuffer(path)
                 if (buffer != null) {
                     publisher.bufferCreated(buffer)
+                } else {
+                    bufferSynchronization.performSync(project!!) {
+                        val loadedBuffer = languageServer.getBufferManager().loadBuffer(path)
+                        if (loadedBuffer != null) {
+                            publisher.bufferCreated(loadedBuffer)
+                        }
+                    }
                 }
             }
         }
@@ -139,64 +151,64 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun definition(params: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
-            async.compute {
-                val syncBuffer =
-                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
+        async.compute {
+            val syncBuffer =
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-                Either.forLeft(tryCatch({
-                    goToDefinition(syncBuffer, params.position)
-                }, emptyList()))
-            }
+            Either.forLeft(tryCatch({
+                goToDefinition(syncBuffer, params.position)
+            }, emptyList()))
+        }
 
     override fun implementation(params: ImplementationParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
-            async.compute {
-                val syncBuffer =
-                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
+        async.compute {
+            val syncBuffer =
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-                Either.forLeft(tryCatch({
-                    goToImplementation(syncBuffer, params.position)
-                }, emptyList()))
-            }
+            Either.forLeft(tryCatch({
+                goToImplementation(syncBuffer, params.position)
+            }, emptyList()))
+        }
 
     override fun references(params: ReferenceParams): CompletableFuture<List<Location>> =
-            async.compute {
-                val syncBuffer =
-                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
+        async.compute {
+            val syncBuffer =
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-                tryCatch({
-                    goToReferences(syncBuffer, params.position)
-                }, emptyList())
-            }
+            tryCatch({
+                goToReferences(syncBuffer, params.position)
+            }, emptyList())
+        }
 
     override fun typeDefinition(params: TypeDefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> =
-            async.compute {
-                val syncBuffer =
-                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
+        async.compute {
+            val syncBuffer =
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-                Either.forLeft(tryCatch({
-                    goToTypeDefinition(syncBuffer, params.position)
-                }, emptyList()))
-            }
+            Either.forLeft(tryCatch({
+                goToTypeDefinition(syncBuffer, params.position)
+            }, emptyList()))
+        }
 
     override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> {
         // Stop in-progress suggestion
         shouldStopCompletion.set(true)
         return async.compute {
-                val syncBuffer =
-                        languageServer.getBufferManager().findBufferByPath(uriToPath(position.textDocument.uri))
+            val syncBuffer =
+                languageServer.getBufferManager().findBufferByPath(uriToPath(position.textDocument.uri))
 
-                Either.forRight(
-                        tryCatch({
-                            doCompletion(syncBuffer, position.position)
-                        }, CompletionList(false, emptyList()))
+            Either.forRight(
+                tryCatch({
+                    doCompletion(syncBuffer, position.position)
+                }, CompletionList(false, emptyList()))
 
-                )
-            }
+            )
+        }
     }
 
     override fun hover(params: HoverParams): CompletableFuture<Hover> = async.compute {
         val syncBuffer =
-                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
+            languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
         Hover(tryCatch({
             getHoverDoc(syncBuffer, params.position)
@@ -205,7 +217,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun formatting(params: DocumentFormattingParams): CompletableFuture<List<TextEdit>> = async.compute {
         val syncBuffer =
-                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
+            languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
         try {
             formatDocument(syncBuffer, null)
@@ -215,52 +227,53 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         emptyList()
     }
 
-    override fun rangeFormatting(params: DocumentRangeFormattingParams): CompletableFuture<List<TextEdit>> = async.compute {
-        val syncBuffer =
+    override fun rangeFormatting(params: DocumentRangeFormattingParams): CompletableFuture<List<TextEdit>> =
+        async.compute {
+            val syncBuffer =
                 languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-        try {
-            formatDocument(syncBuffer, params.range)
-        } catch (e: Throwable) {
+            try {
+                formatDocument(syncBuffer, params.range)
+            } catch (e: Throwable) {
+            }
+
+            emptyList()
         }
 
-        emptyList()
-    }
-
     override fun codeAction(params: CodeActionParams): CompletableFuture<List<Either<Command, CodeAction>>> =
-            async.compute {
-                val documentPath = uriToPath(params.textDocument.uri)
-                val syncBuffer =
-                        languageServer.getBufferManager().findBufferByPath(documentPath)
+        async.compute {
+            val documentPath = uriToPath(params.textDocument.uri)
+            val syncBuffer =
+                languageServer.getBufferManager().findBufferByPath(documentPath)
 
-                val importDiagnostics = params.context.diagnostics.filter {
-                    it.severity == DiagnosticSeverity.Error && it.code != null
-                }.filterNotNull()
+            val importDiagnostics = params.context.diagnostics.filter {
+                it.severity == DiagnosticSeverity.Error && it.code != null
+            }.filterNotNull()
 
-                val commands = ArrayList<Either<Command, CodeAction>>()
-                importDiagnostics.forEach { diagnostic ->
-                    val startPosition = diagnostic.range.start
-                    val endPosition = diagnostic.range.end
-                    val position = Position(startPosition.line, (endPosition.character + startPosition.character) / 2)
-                    val importCandidates = tryCatch({
-                        getImportCandidates(syncBuffer, position)
-                    }, emptyList())
-                    importCandidates.forEach { candidate ->
-                        val commandTitle = "Import " + candidate.removePrefix("import").removeSuffix(";")
-                        commands.add(Either.forLeft(Command(commandTitle, "importFix", listOf(candidate, documentPath))))
-                    }
+            val commands = ArrayList<Either<Command, CodeAction>>()
+            importDiagnostics.forEach { diagnostic ->
+                val startPosition = diagnostic.range.start
+                val endPosition = diagnostic.range.end
+                val position = Position(startPosition.line, (endPosition.character + startPosition.character) / 2)
+                val importCandidates = tryCatch({
+                    getImportCandidates(syncBuffer, position)
+                }, emptyList())
+                importCandidates.forEach { candidate ->
+                    val commandTitle = "Import " + candidate.removePrefix("import").removeSuffix(";")
+                    commands.add(Either.forLeft(Command(commandTitle, "importFix", listOf(candidate, documentPath))))
                 }
-
-                commands
             }
+
+            commands
+        }
 
     override fun documentSymbol(params: DocumentSymbolParams): CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> =
-            async.compute {
-                val syncBuffer =
-                        languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
+        async.compute {
+            val syncBuffer =
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-                getDocumentSymbols(syncBuffer, params.textDocument.uri)
-            }
+            getDocumentSymbols(syncBuffer, params.textDocument.uri)
+        }
 
     override fun close() {
         async.shutdown(true)
