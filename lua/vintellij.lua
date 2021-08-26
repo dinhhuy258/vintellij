@@ -4,6 +4,15 @@ local function setup_events()
 	vim.api.nvim_command("autocmd BufEnter * lua require('vintellij').on_buf_enter()")
 end
 
+local function setup_handlers()
+	vim.lsp.handlers["vintellij/eventNotification"] = function(_, _, params, client_id, _)
+		if params["eventType"] == 1 then
+			-- Close connection
+			vim.lsp.stop_client(client_id)
+		end
+	end
+end
+
 local function resolve_bufnr(bufnr)
 	vim.validate({ bufnr = { bufnr, "n", true } })
 	if bufnr == nil or bufnr == 0 then
@@ -52,7 +61,7 @@ function M.text_document_will_save_handler(bufnr)
 				reason = 1,
 			})
 
-      vim.api.nvim_buf_set_option(bufnr, "modified", false)
+			vim.api.nvim_buf_set_option(bufnr, "modified", false)
 		end
 	end)
 end
@@ -103,6 +112,7 @@ function M.setup(common_on_attach, common_capabilities, common_on_init)
 
 	lspconfig.vintellij.setup({})
 	setup_events()
+	setup_handlers()
 end
 
 return M
