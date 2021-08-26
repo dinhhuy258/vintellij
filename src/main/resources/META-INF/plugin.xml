@@ -27,4 +27,8 @@
         <appStarter implementation="com.dinhhuy258.vintellij.VintellijApplicationStarter"/>
         <preloadingActivity implementation="com.dinhhuy258.vintellij.VintellijLanguageServerPreloadingActivity"/>
     </extensions>
+
+    <applicationListeners>
+        <listener class="com.dinhhuy258.vintellij.VintellijProjectManagerListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    </applicationListeners>
 </idea-plugin>
