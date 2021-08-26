@@ -60,6 +60,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                 }
                 bufferManager = BufferManager(project!!)
                 textDocumentService.onProjectOpen(project!!)
+                project!!.putUserData(VINTELLIJ_CLIENT, client)
 
                 VINTELLIJ_NOTIFICATION_GROUP
                     .createNotification("Connected to LSP client: ${project!!.name}", NotificationType.INFORMATION)
