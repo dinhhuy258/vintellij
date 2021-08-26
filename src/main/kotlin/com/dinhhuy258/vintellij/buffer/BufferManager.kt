@@ -1,9 +1,10 @@
 package com.dinhhuy258.vintellij.buffer
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentHashMap
 
-class BufferManager {
+class BufferManager(private val project: Project) {
     private val bufferMap = ConcurrentHashMap<String, Buffer>()
 
     fun findBufferByPath(path: String): Buffer? {
@@ -14,7 +15,7 @@ class BufferManager {
         var buffer = findBufferByPath(path)
         if (buffer == null) {
             try {
-                buffer = Buffer(path)
+                buffer = Buffer(project, path)
             } catch (e: BufferNotInProjectException) {
                 return null
             }
