@@ -5,6 +5,7 @@ import com.dinhhuy258.vintellij.utils.IdeaUtils
 import com.dinhhuy258.vintellij.utils.offsetToPosition
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
@@ -16,6 +17,7 @@ import com.intellij.refactoring.suggested.startOffset
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.Position
 import org.eclipse.lsp4j.Range
+import org.jetbrains.kotlin.asJava.getRepresentativeLightMethod
 import org.jetbrains.kotlin.psi.KtFunction
 
 fun goToReferences(buffer: Buffer?, position: Position): List<Location> {
@@ -37,7 +39,7 @@ fun goToReferences(buffer: Buffer?, position: Position): List<Location> {
             val scope = ProjectScopeBuilder.getInstance(project).buildProjectScope()
 
             if (psiElement is KtFunction || psiElement is PsiMethod) {
-                val psiMethod = IdeaUtils.getPsiMethod(psiElement) ?: return@runReadAction
+                val psiMethod = getPsiMethod(psiElement) ?: return@runReadAction
 
                 val locations = MethodReferencesSearch.search(psiMethod, scope, true).mapNotNull {
                     val referenceMethod = it.element.parent
@@ -58,8 +60,8 @@ fun goToReferences(buffer: Buffer?, position: Position): List<Location> {
 
 private fun getReference(psiElement: PsiElement): Location? {
     val referenceFile = psiElement.containingFile ?: return null
-    val referenceDocument = PsiDocumentManager.getInstance(IdeaUtils.getProject()).getDocument(referenceFile)
-            ?: return null
+    val referenceDocument = PsiDocumentManager.getInstance(psiElement.project).getDocument(referenceFile)
+        ?: return null
 
     val filePath = referenceFile.virtualFile.path
     val offset = psiElement.startOffset
@@ -67,3 +69,18 @@ private fun getReference(psiElement: PsiElement): Location? {
     val position = offsetToPosition(referenceDocument, offset)
     return Location(filePath, Range(position, position))
 }
+
+private fun getPsiMethod(psiElement: PsiElement): PsiMethod? {
+    return when (psiElement) {
+        is KtFunction -> {
+            psiElement.getRepresentativeLightMethod()
+        }
+        is PsiMethod -> {
+            psiElement
+        }
+        else -> {
+            null
+        }
+    }
+}
+
