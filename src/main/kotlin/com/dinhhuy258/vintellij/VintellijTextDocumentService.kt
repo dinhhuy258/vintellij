@@ -14,6 +14,7 @@ import com.dinhhuy258.vintellij.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.utils.invokeOnMainAndWait
+import com.dinhhuy258.vintellij.utils.invokeWriteOnMainAndWait
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -216,10 +217,9 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         val syncBuffer =
             languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-        try {
+        invokeWriteOnMainAndWait {
             formatDocument(syncBuffer, null)
             client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
-        } catch (e: Throwable) {
         }
 
         emptyList()
@@ -230,10 +230,9 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
             val syncBuffer =
                 languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-            try {
+            invokeWriteOnMainAndWait {
                 formatDocument(syncBuffer, params.range)
                 client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
-            } catch (e: Throwable) {
             }
 
             emptyList()
