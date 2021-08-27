@@ -1,6 +1,5 @@
 package com.dinhhuy258.vintellij.buffer
 
-import com.dinhhuy258.vintellij.utils.getFilePath
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
@@ -128,15 +127,13 @@ class Buffer(val project: Project, val path: String) {
     }
 
     private fun locateFile(path: String): PsiFile? {
-        val filePath = getFilePath(path)
-
         var psiFile: PsiFile? = null
         ApplicationManager.getApplication().runReadAction {
             val files = FilenameIndex.getFilesByName(
                 project, File(path).name, GlobalSearchScope.allScope(project)
             )
             psiFile = files.find {
-                it.virtualFile.canonicalPath == filePath
+                it.virtualFile.canonicalPath == path
             }
         }
 
