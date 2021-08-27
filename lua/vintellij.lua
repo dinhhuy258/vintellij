@@ -12,9 +12,19 @@ local function setup_handlers()
 		end
 	end
 
-  vim.lsp.handlers["vintellij/syncBuffer"] = function(_, _, params, _, _)
-    -- TODO: Do something with `path`
-    vim.api.nvim_buf_set_lines(0, params["startLine"], params["endLine"], true, params["lines"])
+	vim.lsp.handlers["vintellij/syncBuffer"] = function(_, _, params, _, _)
+		local buffers = vim.api.nvim_list_bufs()
+
+		for _, buffer in ipairs(buffers) do
+			local fullname = vim.api.nvim_buf_get_name(buffer)
+			if fullname == params["path"] then
+				local ft = vim.api.nvim_buf_get_option(buffer, "filetype")
+				if ft == "kotlin" or ft == "java" then
+					vim.api.nvim_buf_set_lines(buffer, params["startLine"], params["endLine"], true, params["lines"])
+				end
+				break
+			end
+		end
 	end
 end
 
