@@ -61,7 +61,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(BufferEventListener.TOPIC)
     }
 
-    private lateinit var client: LanguageClient
+    private lateinit var client: VintellijLanguageClient
 
     private val async = AsyncExecutor()
 
@@ -72,7 +72,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     private var messageBusConnection: MessageBusConnection? = null
 
     override fun connect(client: LanguageClient) {
-        this.client = client
+        this.client = client as VintellijLanguageClient
     }
 
     override fun didOpen(params: DidOpenTextDocumentParams) {
@@ -218,6 +218,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
         try {
             formatDocument(syncBuffer, null)
+            client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
         } catch (e: Throwable) {
         }
 
@@ -231,6 +232,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
             try {
                 formatDocument(syncBuffer, params.range)
+                client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
             } catch (e: Throwable) {
             }
 

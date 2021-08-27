@@ -73,9 +73,7 @@ class Buffer(val project: Project, val path: String) {
     }
 
     internal fun replaceText(startPosition: Position, endPosition: Position, text: CharSequence) {
-        documentChangedListener.isChangedByVim = true
-
-        try {
+        onVimDocumentChange {
             ApplicationManager.getApplication().runWriteAction {
                 WriteCommandAction.writeCommandAction(project)
                     .run<Throwable> {
@@ -88,14 +86,11 @@ class Buffer(val project: Project, val path: String) {
                         document.replaceString(startOffset, endOffset, text)
                     }
             }
-        } finally {
-            documentChangedListener.isChangedByVim = false
         }
     }
 
     internal fun insertText(position: Position, text: CharSequence) {
-        documentChangedListener.isChangedByVim = true
-        try {
+        onVimDocumentChange {
             ApplicationManager.getApplication().runWriteAction {
                 WriteCommandAction.writeCommandAction(project)
                     .run<Throwable> {
@@ -105,25 +100,17 @@ class Buffer(val project: Project, val path: String) {
                         document.insertString(offset, text)
                     }
             }
+        }
+    }
+
+    fun onVimDocumentChange(runnable: () -> Unit) {
+        documentChangedListener.isChangedByVim = true
+        try {
+            runnable()
         } finally {
             documentChangedListener.isChangedByVim = false
         }
-    }
 
-    fun insertText(text: CharSequence, line: Int) {
-        val offset = document.getLineStartOffset(line)
-        ApplicationManager.getApplication().invokeAndWait {
-            insertText(offset, text)
-        }
-    }
-
-    private fun insertText(offset: Int, text: CharSequence) {
-        ApplicationManager.getApplication().runWriteAction {
-            WriteCommandAction.writeCommandAction(project)
-                .run<Throwable> {
-                    document.insertString(offset, text)
-                }
-        }
     }
 
     private fun locateFile(path: String): PsiFile? {
