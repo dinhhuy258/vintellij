@@ -4,7 +4,10 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentHashMap
 
-class BufferManager(private val project: Project) {
+class BufferManager(
+    private val project: Project,
+    private val onDocumentChanged: (String, Int, Int, List<String>) -> Unit
+) {
     private val bufferMap = ConcurrentHashMap<String, Buffer>()
 
     fun findBufferByPath(path: String): Buffer? {
@@ -19,6 +22,7 @@ class BufferManager(private val project: Project) {
             } catch (e: BufferNotInProjectException) {
                 return null
             }
+            buffer.setDocumentChangedListener(DocumentChangedListener(path, onDocumentChanged))
             bufferMap[buffer.path] = buffer
         }
 
