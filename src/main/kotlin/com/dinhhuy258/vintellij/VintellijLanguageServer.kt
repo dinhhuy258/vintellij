@@ -2,6 +2,7 @@ package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferManager
 import com.dinhhuy258.vintellij.buffer.BufferSynchronization
+import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.dinhhuy258.vintellij.utils.normalizeUri
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.notification.NotificationDisplayType
@@ -48,7 +49,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     override fun initialize(params: InitializeParams): CompletableFuture<InitializeResult> {
         return CompletableFuture.supplyAsync {
-            ApplicationManager.getApplication().invokeAndWait {
+            invokeAndWait {
                 project = getProject(params.rootUri)
                 if (project == null) {
                     VINTELLIJ_NOTIFICATION_GROUP
@@ -65,7 +66,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                     client.sendEventNotification(VintellijEventNotification(VintellijEventType.CLOSE_CONNECTION))
                     return@invokeAndWait
                 }
-                bufferSynchronization = BufferSynchronization(client!!)
+                bufferSynchronization = BufferSynchronization(client)
                 bufferManager = BufferManager(project!!, bufferSynchronization::onDocumentChanged)
                 textDocumentService.onProjectOpen(project!!)
                 project!!.putUserData(VINTELLIJ_CLIENT, client)

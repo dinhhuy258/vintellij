@@ -2,7 +2,8 @@ package com.dinhhuy258.vintellij.quickfix
 
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.quickfix.imports.ImportSuggesterFactory
-import com.intellij.openapi.application.ApplicationManager
+import com.dinhhuy258.vintellij.utils.invokeAndWait
+import com.dinhhuy258.vintellij.utils.runReadAction
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.util.Ref
 import org.eclipse.lsp4j.Position
@@ -13,9 +14,8 @@ fun getImportCandidates(buffer: Buffer?, position: Position): List<String> {
     }
 
     val candidatesRef = Ref<List<String>>()
-    val application = ApplicationManager.getApplication()
-    application.invokeAndWait {
-        application.runReadAction {
+    invokeAndWait {
+        runReadAction {
             val psiFile = buffer.psiFile
             val editor = buffer.editor.editor
             val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))

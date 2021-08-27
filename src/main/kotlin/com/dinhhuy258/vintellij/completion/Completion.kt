@@ -1,16 +1,16 @@
 package com.dinhhuy258.vintellij.completion
 
 import com.dinhhuy258.vintellij.buffer.Buffer
+import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.intellij.codeInsight.completion.CodeCompletionHandlerBase
 import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
-import java.util.concurrent.atomic.AtomicBoolean
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionList
 import org.eclipse.lsp4j.Position
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 10
 
@@ -45,7 +45,7 @@ private fun doAsyncComplete(buffer: Buffer, position: Position, completionList: 
 }
 
 private fun scheduleAsyncCompletion(buffer: Buffer, position: Position) {
-    ApplicationManager.getApplication().invokeAndWait {
+    invokeAndWait {
         try {
             buffer.moveCaretToPosition(position.line, position.character)
             val editor = buffer.editor.editor
@@ -70,7 +70,7 @@ private fun getCompletionResult(
         return
     }
 
-    ApplicationManager.getApplication().invokeAndWait {
+    invokeAndWait {
         try {
             while (indicator.isRunning &&
                     !indicator.isCanceled &&

@@ -2,29 +2,29 @@ package com.dinhhuy258.vintellij.symbol
 
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.utils.containerName
+import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.dinhhuy258.vintellij.utils.symbolKind
 import com.dinhhuy258.vintellij.utils.toRange
 import com.intellij.ide.structureView.impl.common.PsiTreeElementBase
 import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.java.JavaStructureViewBuilderFactory
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileEditor.FileEditorLocation
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.util.Key
 import com.intellij.pom.Navigatable
-import java.beans.PropertyChangeListener
-import java.util.*
-import javax.swing.JComponent
-import kotlin.collections.HashMap
 import org.eclipse.lsp4j.DocumentSymbol
 import org.eclipse.lsp4j.Location
 import org.eclipse.lsp4j.SymbolInformation
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.structureView.KotlinStructureViewFactory
+import java.beans.PropertyChangeListener
+import java.util.*
+import javax.swing.JComponent
+import kotlin.collections.HashMap
 
 private class VintellijFileEditor(private val editor: Editor) : TextEditor {
     private val userDataMap = HashMap<Any, Any?>()
@@ -102,7 +102,7 @@ fun getDocumentSymbols(buffer: Buffer?, documentUri: String): List<Either<Symbol
     }
     val document = buffer.document
 
-    ApplicationManager.getApplication().invokeAndWait {
+    invokeAndWait {
         val structureViewFactory = if (psiFile.language == KotlinLanguage.INSTANCE) {
             KotlinStructureViewFactory()
         } else {
