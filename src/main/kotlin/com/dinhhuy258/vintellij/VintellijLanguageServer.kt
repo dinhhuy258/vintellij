@@ -34,15 +34,15 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     private val VINTELLIJ_NOTIFICATION_GROUP =
         NotificationGroup("Vintellij", NotificationDisplayType.BALLOON, true)
 
-    private var client: VintellijLanguageClient? = null
-
     private var project: Project? = null
 
     private lateinit var bufferManager: BufferManager
 
     private lateinit var bufferSynchronization: BufferSynchronization
 
-    private val workspaceService = VintellijWorkspaceService(this)
+    private lateinit var client: VintellijLanguageClient
+
+    private val workspaceService: VintellijWorkspaceService = VintellijWorkspaceService()
 
     private val textDocumentService = VintellijTextDocumentService(this)
 
@@ -55,14 +55,14 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                         .createNotification("Failed to open project: ${params.rootUri}", NotificationType.ERROR)
                         .notify(null)
 
-                    client!!.showMessage(
+                    client.showMessage(
                         MessageParams(
                             MessageType.Error,
                             "Failed to open project: ${params.rootUri}"
                         )
                     )
 
-                    client!!.sendEventNotification(VintellijEventNotification(VintellijEventType.CLOSE_CONNECTION))
+                    client.sendEventNotification(VintellijEventNotification(VintellijEventType.CLOSE_CONNECTION))
                     return@invokeAndWait
                 }
                 bufferSynchronization = BufferSynchronization(client!!)
@@ -73,7 +73,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                 VINTELLIJ_NOTIFICATION_GROUP
                     .createNotification("Connected to LSP client: ${project!!.name}", NotificationType.INFORMATION)
                     .notify(project)
-                client!!.showMessage(
+                client.showMessage(
                     MessageParams(
                         MessageType.Info,
                         "LSP connected: ${project!!.name}"
@@ -98,6 +98,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     override fun connect(client: LanguageClient) {
         textDocumentService.connect(client)
+        workspaceService.connect(client)
         this.client = client as VintellijLanguageClient
     }
 

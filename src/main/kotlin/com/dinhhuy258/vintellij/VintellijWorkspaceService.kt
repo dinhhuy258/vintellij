@@ -1,13 +1,18 @@
 package com.dinhhuy258.vintellij
 
 import com.google.gson.JsonPrimitive
-import java.util.concurrent.CompletableFuture
 import org.eclipse.lsp4j.DidChangeConfigurationParams
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams
 import org.eclipse.lsp4j.ExecuteCommandParams
+import org.eclipse.lsp4j.services.LanguageClient
+import org.eclipse.lsp4j.services.LanguageClientAware
 import org.eclipse.lsp4j.services.WorkspaceService
+import java.util.concurrent.CompletableFuture
 
-class VintellijWorkspaceService(private val languageServer: VintellijLanguageServer) : WorkspaceService {
+class VintellijWorkspaceService : WorkspaceService,
+    LanguageClientAware {
+
+    private lateinit var client: VintellijLanguageClient
 
     override fun didChangeConfiguration(params: DidChangeConfigurationParams) {
     }
@@ -20,15 +25,21 @@ class VintellijWorkspaceService(private val languageServer: VintellijLanguageSer
             val firstArgument = params.arguments[0]
             val secondArgument = params.arguments[1]
             if (firstArgument is JsonPrimitive && firstArgument.isString &&
-                    secondArgument is JsonPrimitive && secondArgument.isString) {
+                secondArgument is JsonPrimitive && secondArgument.isString
+            ) {
                 val classToImport = firstArgument.asString
                 val documentPath = secondArgument.asString
 
-                languageServer.getBufferManager().findBufferByPath(documentPath)?.insertText(
-                        "\n$classToImport", 1)
+                client.syncBuffer(
+                    VintellijSyncBuffer(documentPath, 1, 2, listOf(classToImport))
+                )
             }
         }
 
         return CompletableFuture<Any>()
+    }
+
+    override fun connect(client: LanguageClient) {
+        this.client = client as VintellijLanguageClient
     }
 }
