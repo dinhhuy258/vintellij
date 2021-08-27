@@ -4,6 +4,7 @@ import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.codeInsight.javadoc.JavaDocInfoGenerator.generateType
 import com.intellij.ide.highlighter.JavaClassFileType
 import com.intellij.lang.jvm.JvmModifier
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.Comparing
 import com.intellij.openapi.util.TextRange
@@ -91,7 +92,7 @@ fun getLocation(psiElement: PsiElement): Location? {
                 }
             }
 
-            return Location(PathUtils.toVimJarFilePath(sourceFile.path), range)
+            return Location(toVimJarFilePath(sourceFile.path), range)
         }
 
         return null
@@ -106,17 +107,17 @@ fun getLocation(psiElement: PsiElement): Location? {
                 val content = navigationElement.containingFile.text
                 range = getRange(content, navigationElement.textOffset)
             }
-            return Location(PathUtils.toVimJarFilePath(sourceFile.path), range)
+            return Location(toVimJarFilePath(sourceFile.path), range)
         }
 
         return null
     }
 
-    if (PathUtils.isIntellijJarFile(virtualFile.path)) {
-        return Location(PathUtils.toVimJarFilePath(virtualFile.path), getRange(psiFile.text, psiElement.textOffset))
+    if (isIntellijJarFile(virtualFile.path)) {
+        return Location(toVimJarFilePath(virtualFile.path), getRange(psiFile.text, psiElement.textOffset))
     }
 
-    return Location(PathUtils.toVimFilePath(virtualFile.path), getRange(psiFile.text, psiElement.textOffset))
+    return Location(toVimFilePath(virtualFile.path), getRange(psiFile.text, psiElement.textOffset))
 }
 
 fun getRange(content: String, offset: Int): Range {
@@ -313,3 +314,20 @@ fun TextRange.toRange(doc: Document): Range =
 
 fun PsiElement.toRange(document: Document) =
         ((this as? PsiNameIdentifierOwner)?.nameIdentifier ?: this).textRange.toRange(document)
+
+fun invokeOnMainAndWait(exceptionHandler: ((Throwable) -> Unit)? = null, runnable: () -> Unit) {
+    var throwable: Throwable? = null
+    ApplicationManager.getApplication().invokeAndWait {
+        try {
+            runnable.invoke()
+        } catch (t: Throwable) {
+            throwable = t
+        }
+    }
+    val toThrow = throwable ?: return
+    if (exceptionHandler == null) {
+        throw toThrow
+    } else {
+        exceptionHandler.invoke(toThrow)
+    }
+}
