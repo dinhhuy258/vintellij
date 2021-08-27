@@ -331,3 +331,11 @@ fun invokeOnMainAndWait(exceptionHandler: ((Throwable) -> Unit)? = null, runnabl
         exceptionHandler.invoke(toThrow)
     }
 }
+
+fun invokeWriteOnMainAndWait(exceptionHandler: ((Throwable) -> Unit)? = null, runnable: () -> Unit) {
+    invokeOnMainAndWait(exceptionHandler) {
+        ApplicationManager.getApplication().runWriteAction {
+            runnable()
+        }
+    }
+}
