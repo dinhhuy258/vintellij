@@ -13,7 +13,7 @@ import com.dinhhuy258.vintellij.navigation.goToTypeDefinition
 import com.dinhhuy258.vintellij.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
-import com.dinhhuy258.vintellij.utils.IdeaUtils.Companion.invokeOnMainAndWait
+import com.dinhhuy258.vintellij.utils.invokeOnMainAndWait
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
