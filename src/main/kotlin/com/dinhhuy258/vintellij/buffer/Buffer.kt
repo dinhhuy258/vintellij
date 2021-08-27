@@ -72,34 +72,38 @@ class Buffer(val project: Project, val path: String) {
         caret.moveToLogicalPosition(LogicalPosition(row, col))
     }
 
+    /**
+     * Replaces the specified range of text in the document with the specified string.
+     * This method MUST be called in the write action block
+     */
     internal fun replaceText(startPosition: Position, endPosition: Position, text: CharSequence) {
         onVimDocumentChange {
-            runWriteAction {
-                WriteCommandAction.writeCommandAction(project)
-                    .run<Throwable> {
-                        val editor = this.editor.editor
-                        val startOffset =
-                            editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
-                        val endOffset =
-                            editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
+            WriteCommandAction.writeCommandAction(project)
+                .run<Throwable> {
+                    val editor = this.editor.editor
+                    val startOffset =
+                        editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
+                    val endOffset =
+                        editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
 
-                        document.replaceString(startOffset, endOffset, text)
-                    }
-            }
+                    document.replaceString(startOffset, endOffset, text)
+                }
         }
     }
 
+    /**
+     * Inserts the specified text at the specified offset in the document
+     * This method MUST be called in the write action block
+     */
     internal fun insertText(position: Position, text: CharSequence) {
         onVimDocumentChange {
-            runWriteAction {
-                WriteCommandAction.writeCommandAction(project)
-                    .run<Throwable> {
-                        val editor = this.editor.editor
-                        val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))
+            WriteCommandAction.writeCommandAction(project)
+                .run<Throwable> {
+                    val editor = this.editor.editor
+                    val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))
 
-                        document.insertString(offset, text)
-                    }
-            }
+                    document.insertString(offset, text)
+                }
         }
     }
 

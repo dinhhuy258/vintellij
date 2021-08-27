@@ -14,6 +14,7 @@ import com.dinhhuy258.vintellij.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
 import com.dinhhuy258.vintellij.utils.invokeAndWait
+import com.dinhhuy258.vintellij.utils.runWriteAction
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -106,14 +107,16 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
         documentAsync.compute {
             invokeAndWait {
-                contentChanges.forEach { contentChange ->
-                    val startPosition = contentChange.range.start
-                    val endPosition = contentChange.range.end
+                runWriteAction {
+                    contentChanges.forEach { contentChange ->
+                        val startPosition = contentChange.range.start
+                        val endPosition = contentChange.range.end
 
-                    if (startPosition.equals(endPosition)) {
-                        buffer.insertText(startPosition, contentChange.text)
-                    } else {
-                        buffer.replaceText(startPosition, endPosition, contentChange.text)
+                        if (startPosition.equals(endPosition)) {
+                            buffer.insertText(startPosition, contentChange.text)
+                        } else {
+                            buffer.replaceText(startPosition, endPosition, contentChange.text)
+                        }
                     }
                 }
             }
