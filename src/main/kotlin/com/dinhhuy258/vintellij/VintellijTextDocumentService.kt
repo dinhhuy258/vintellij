@@ -1,7 +1,6 @@
 package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferEventListener
-import com.dinhhuy258.vintellij.buffer.BufferSynchronization
 import com.dinhhuy258.vintellij.completion.doCompletion
 import com.dinhhuy258.vintellij.completion.shouldStopCompletion
 import com.dinhhuy258.vintellij.diagnostics.DiagnosticsProcessor
@@ -68,8 +67,6 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     private val documentAsync = AsyncExecutor()
 
-    private val bufferSynchronization = BufferSynchronization()
-
     private var project: Project? = null
 
     private var messageBusConnection: MessageBusConnection? = null
@@ -87,7 +84,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 if (buffer != null) {
                     publisher.bufferCreated(buffer)
                 } else {
-                    bufferSynchronization.performSync(project!!) {
+                    languageServer.getBufferSynchronization().performSync(project!!) {
                         val loadedBuffer = languageServer.getBufferManager().loadBuffer(path)
                         if (loadedBuffer != null) {
                             publisher.bufferCreated(loadedBuffer)

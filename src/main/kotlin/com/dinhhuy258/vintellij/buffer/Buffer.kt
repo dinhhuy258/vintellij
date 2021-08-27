@@ -25,6 +25,7 @@ class Buffer(val project: Project, val path: String) {
     internal val psiFile: PsiFile
     internal val document: Document
     private var _editor: EditorDelegate? = null
+    private lateinit var documentChangedListener: DocumentChangedListener
     val editor: EditorDelegate
         get() {
             ApplicationManager.getApplication().assertIsDispatchThread()
@@ -57,7 +58,13 @@ class Buffer(val project: Project, val path: String) {
         }
     }
 
+    internal fun setDocumentChangedListener(documentChangedListener: DocumentChangedListener) {
+        this.documentChangedListener = documentChangedListener
+        document.addDocumentListener(documentChangedListener)
+    }
+
     internal fun release() {
+        document.removeDocumentListener(documentChangedListener)
         fileEditorManager.closeFile(psiFile.virtualFile)
     }
 
@@ -67,29 +74,40 @@ class Buffer(val project: Project, val path: String) {
     }
 
     internal fun replaceText(startPosition: Position, endPosition: Position, text: CharSequence) {
-        ApplicationManager.getApplication().runWriteAction {
-            WriteCommandAction.writeCommandAction(project)
-                .run<Throwable> {
-                    val editor = this.editor.editor
-                    val startOffset =
-                        editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
-                    val endOffset =
-                        editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
+        documentChangedListener.isChangedByVim = true
 
-                    document.replaceString(startOffset, endOffset, text)
-                }
+        try {
+            ApplicationManager.getApplication().runWriteAction {
+                WriteCommandAction.writeCommandAction(project)
+                    .run<Throwable> {
+                        val editor = this.editor.editor
+                        val startOffset =
+                            editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
+                        val endOffset =
+                            editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
+
+                        document.replaceString(startOffset, endOffset, text)
+                    }
+            }
+        } finally {
+            documentChangedListener.isChangedByVim = false
         }
     }
 
     internal fun insertText(position: Position, text: CharSequence) {
-        ApplicationManager.getApplication().runWriteAction {
-            WriteCommandAction.writeCommandAction(project)
-                .run<Throwable> {
-                    val editor = this.editor.editor
-                    val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))
+        documentChangedListener.isChangedByVim = true
+        try {
+            ApplicationManager.getApplication().runWriteAction {
+                WriteCommandAction.writeCommandAction(project)
+                    .run<Throwable> {
+                        val editor = this.editor.editor
+                        val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))
 
-                    document.insertString(offset, text)
-                }
+                        document.insertString(offset, text)
+                    }
+            }
+        } finally {
+            documentChangedListener.isChangedByVim = false
         }
     }
 

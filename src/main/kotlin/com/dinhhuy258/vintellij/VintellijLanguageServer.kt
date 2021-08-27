@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferManager
+import com.dinhhuy258.vintellij.buffer.BufferSynchronization
 import com.dinhhuy258.vintellij.utils.getProject
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
@@ -35,6 +36,8 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     private lateinit var bufferManager: BufferManager
 
+    private lateinit var bufferSynchronization: BufferSynchronization
+
     private val workspaceService = VintellijWorkspaceService(this)
 
     private val textDocumentService = VintellijTextDocumentService(this)
@@ -58,7 +61,8 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                     client!!.sendEventNotification(VintellijEventNotification(VintellijEventType.CLOSE_CONNECTION))
                     return@invokeAndWait
                 }
-                bufferManager = BufferManager(project!!)
+                bufferSynchronization = BufferSynchronization(client!!)
+                bufferManager = BufferManager(project!!, bufferSynchronization::onDocumentChanged)
                 textDocumentService.onProjectOpen(project!!)
                 project!!.putUserData(VINTELLIJ_CLIENT, client)
 
@@ -95,6 +99,10 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
     fun getBufferManager(): BufferManager {
         return bufferManager
+    }
+
+    fun getBufferSynchronization(): BufferSynchronization {
+        return bufferSynchronization
     }
 
     private fun getServerCapabilities() = ServerCapabilities().apply {

@@ -13,4 +13,10 @@ interface VintellijLanguageClient : LanguageClient {
      */
     @JsonNotification("vintellij/eventNotification")
     fun sendEventNotification(notification: VintellijEventNotification)
+
+    /**
+     * The event is sent from a server to a client to notify the client about the change was made on the server side
+     */
+    @JsonNotification("vintellij/syncBuffer")
+    fun syncBuffer(syncBuffer: VintellijSyncBuffer)
 }
