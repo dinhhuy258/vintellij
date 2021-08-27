@@ -11,6 +11,11 @@ local function setup_handlers()
 			vim.lsp.stop_client(client_id, true)
 		end
 	end
+
+  vim.lsp.handlers["vintellij/syncBuffer"] = function(_, _, params, _, _)
+    -- TODO: Do something with `path`
+    vim.api.nvim_buf_set_lines(0, params["startLine"], params["endLine"], true, params["lines"])
+	end
 end
 
 local function resolve_bufnr(bufnr)
