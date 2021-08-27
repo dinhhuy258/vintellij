@@ -1,8 +1,11 @@
+@file:Suppress("ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
+
 package com.dinhhuy258.vintellij.utils
 
 import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.codeInsight.javadoc.JavaDocInfoGenerator.generateType
 import com.intellij.ide.highlighter.JavaClassFileType
+import com.intellij.ide.plugins.PluginManager
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
@@ -33,6 +36,7 @@ import org.eclipse.lsp4j.SymbolKind
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForFacade
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
+import org.jetbrains.kotlin.daemon.common.experimental.log
 import org.jetbrains.kotlin.idea.decompiler.builtIns.KotlinBuiltInFileType
 import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
 import org.jetbrains.kotlin.idea.refactoring.memberInfo.qualifiedClassNameForRendering
@@ -315,27 +319,14 @@ fun TextRange.toRange(doc: Document): Range =
 fun PsiElement.toRange(document: Document) =
         ((this as? PsiNameIdentifierOwner)?.nameIdentifier ?: this).textRange.toRange(document)
 
-fun invokeOnMainAndWait(exceptionHandler: ((Throwable) -> Unit)? = null, runnable: () -> Unit) {
-    var throwable: Throwable? = null
+fun invokeAndWait(runnable: () -> Unit) {
     ApplicationManager.getApplication().invokeAndWait {
-        try {
-            runnable.invoke()
-        } catch (t: Throwable) {
-            throwable = t
-        }
-    }
-    val toThrow = throwable ?: return
-    if (exceptionHandler == null) {
-        throw toThrow
-    } else {
-        exceptionHandler.invoke(toThrow)
+        runnable.invoke()
     }
 }
 
-fun invokeWriteOnMainAndWait(exceptionHandler: ((Throwable) -> Unit)? = null, runnable: () -> Unit) {
-    invokeOnMainAndWait(exceptionHandler) {
-        ApplicationManager.getApplication().runWriteAction {
-            runnable()
-        }
+fun runWriteAction(runnable: () -> Unit) {
+    ApplicationManager.getApplication().runWriteAction {
+        runnable()
     }
 }

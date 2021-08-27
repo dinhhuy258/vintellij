@@ -13,8 +13,7 @@ import com.dinhhuy258.vintellij.navigation.goToTypeDefinition
 import com.dinhhuy258.vintellij.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
-import com.dinhhuy258.vintellij.utils.invokeOnMainAndWait
-import com.dinhhuy258.vintellij.utils.invokeWriteOnMainAndWait
+import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
@@ -80,7 +79,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         val path = uriToPath(params.textDocument.uri)
 
         documentAsync.compute {
-            invokeOnMainAndWait {
+            invokeAndWait {
                 val buffer = languageServer.getBufferManager().loadBuffer(path)
                 if (buffer != null) {
                     publisher.bufferCreated(buffer)
@@ -106,7 +105,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         }
 
         documentAsync.compute {
-            invokeOnMainAndWait {
+            invokeAndWait {
                 contentChanges.forEach { contentChange ->
                     val startPosition = contentChange.range.start
                     val endPosition = contentChange.range.end
@@ -123,7 +122,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun didClose(params: DidCloseTextDocumentParams) {
         documentAsync.compute {
-            invokeOnMainAndWait {
+            invokeAndWait {
                 val buffer = languageServer.getBufferManager().releaseBuffer(uriToPath(params.textDocument.uri))
                 if (buffer != null) {
                     publisher.bufferReleased(buffer)
@@ -134,10 +133,10 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun willSave(params: WillSaveTextDocumentParams) {
         documentAsync.compute {
-            invokeOnMainAndWait {
+            invokeAndWait {
                 val syncedBuffer =
                     languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
-                        ?: return@invokeOnMainAndWait
+                        ?: return@invokeAndWait
 
                 syncedBuffer.psiFile.virtualFile.refresh(true, true)
                 FileDocumentManager.getInstance().saveDocument(syncedBuffer.document)
@@ -217,10 +216,8 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         val syncBuffer =
             languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-        invokeWriteOnMainAndWait {
-            formatDocument(syncBuffer, null)
-            client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
-        }
+        formatDocument(syncBuffer, null)
+        client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
 
         emptyList()
     }
@@ -230,10 +227,8 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
             val syncBuffer =
                 languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
-            invokeWriteOnMainAndWait {
-                formatDocument(syncBuffer, params.range)
-                client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
-            }
+            formatDocument(syncBuffer, params.range)
+            client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
 
             emptyList()
         }
