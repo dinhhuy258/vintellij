@@ -1,7 +1,6 @@
 package com.dinhhuy258.vintellij.navigation
 
 import com.dinhhuy258.vintellij.buffer.Buffer
-import com.dinhhuy258.vintellij.utils.getLocation
 import com.dinhhuy258.vintellij.utils.offsetToPosition
 import com.dinhhuy258.vintellij.utils.toVimFilePath
 import com.intellij.openapi.application.ApplicationManager
