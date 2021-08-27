@@ -330,3 +330,9 @@ fun runWriteAction(runnable: () -> Unit) {
         runnable()
     }
 }
+
+fun runReadAction(runnable: () -> Unit) {
+    ApplicationManager.getApplication().runReadAction {
+        runnable()
+    }
+}

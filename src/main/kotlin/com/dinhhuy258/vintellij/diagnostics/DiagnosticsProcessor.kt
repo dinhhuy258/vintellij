@@ -5,7 +5,6 @@ import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.buffer.BufferEventListener
 import com.dinhhuy258.vintellij.utils.normalizeUri
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
@@ -49,7 +48,6 @@ class DiagnosticsProcessor : BufferEventListener, DaemonCodeAnalyzer.DaemonListe
     }
 
     override fun bufferCreated(buffer: Buffer) {
-        ApplicationManager.getApplication().assertIsDispatchThread()
         if (buffer.project != project) {
             return
         }
@@ -59,7 +57,6 @@ class DiagnosticsProcessor : BufferEventListener, DaemonCodeAnalyzer.DaemonListe
     }
 
     override fun bufferReleased(buffer: Buffer) {
-        ApplicationManager.getApplication().assertIsDispatchThread()
         if (buffer.project != project) {
             return
         }

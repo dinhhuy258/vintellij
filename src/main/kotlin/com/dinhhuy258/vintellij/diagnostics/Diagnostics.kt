@@ -3,11 +3,11 @@ package com.dinhhuy258.vintellij.diagnostics
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.hover.stripHtml
 import com.dinhhuy258.vintellij.utils.offsetToPosition
+import com.dinhhuy258.vintellij.utils.runReadAction
 import com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerEx
 import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.quickfix.ImportClassFix
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.Ref
 import org.eclipse.lsp4j.Diagnostic
@@ -16,7 +16,7 @@ import org.eclipse.lsp4j.Range
 
 fun getDiagnostics(buffer: Buffer): List<Diagnostic> {
     val diagnosticsRef = Ref<List<Diagnostic>>()
-    ApplicationManager.getApplication().runReadAction {
+    runReadAction {
         val highlights = mutableListOf<HighlightInfo>()
         DaemonCodeAnalyzerEx.processHighlights(
                 buffer.document,

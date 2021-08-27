@@ -2,8 +2,9 @@ package com.dinhhuy258.vintellij.navigation
 
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.utils.getLocation
+import com.dinhhuy258.vintellij.utils.invokeAndWait
+import com.dinhhuy258.vintellij.utils.runReadAction
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.project.IndexNotReadyException
 import com.intellij.openapi.project.Project
@@ -34,9 +35,9 @@ fun goToDefinition(buffer: Buffer?, position: Position): List<Location> {
     if (buffer == null) {
         return locations
     }
-    val application = ApplicationManager.getApplication()
-    application.invokeAndWait {
-        application.runReadAction {
+
+    invokeAndWait {
+        runReadAction {
             val psiFile = buffer.psiFile
             val editor = buffer.editor.editor
             val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))
@@ -79,11 +80,13 @@ private fun findKotlinSuperMethod(project: Project, psiElement: PsiElement?): Li
     if (psiElement == null || psiElement.parent == null) {
         return emptyList()
     }
-    val declaration = PsiTreeUtil.getParentOfType<PsiElement>(psiElement.parent,
-            KtNamedFunction::class.java,
-            KtClass::class.java,
-            KtProperty::class.java,
-            KtObjectDeclaration::class.java) as KtDeclaration? ?: return emptyList()
+    val declaration = PsiTreeUtil.getParentOfType<PsiElement>(
+        psiElement.parent,
+        KtNamedFunction::class.java,
+        KtClass::class.java,
+        KtProperty::class.java,
+        KtObjectDeclaration::class.java
+    ) as KtDeclaration? ?: return emptyList()
     try {
         val descriptor = declaration.unsafeResolveToDescriptor(BodyResolveMode.PARTIAL)
         val superDeclarations = findSuperDeclarations(project, descriptor) ?: return emptyList()

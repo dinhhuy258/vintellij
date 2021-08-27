@@ -1,8 +1,9 @@
 package com.dinhhuy258.vintellij.hover
 
 import com.dinhhuy258.vintellij.buffer.Buffer
+import com.dinhhuy258.vintellij.utils.invokeAndWait
+import com.dinhhuy258.vintellij.utils.runReadAction
 import com.intellij.codeInsight.documentation.DocumentationManager
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.util.Ref
 import org.apache.commons.lang3.StringUtils.isBlank
@@ -16,8 +17,8 @@ fun getHoverDoc(buffer: Buffer?, position: Position): List<Either<String, Marked
     }
 
     val hoverDocRef = Ref<String>()
-    ApplicationManager.getApplication().invokeAndWait {
-        ApplicationManager.getApplication().runReadAction {
+    invokeAndWait {
+        runReadAction {
             val psiFile = buffer.psiFile
             val editor = buffer.editor.editor
             val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))

@@ -1,9 +1,10 @@
 package com.dinhhuy258.vintellij.navigation
 
 import com.dinhhuy258.vintellij.buffer.Buffer
+import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.dinhhuy258.vintellij.utils.offsetToPosition
+import com.dinhhuy258.vintellij.utils.runReadAction
 import com.dinhhuy258.vintellij.utils.toVimFilePath
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiDocumentManager
@@ -26,9 +27,8 @@ fun goToReferences(buffer: Buffer?, position: Position): List<Location> {
 
     val locationsRef = Ref<List<Location>>()
 
-    val application = ApplicationManager.getApplication()
-    application.invokeAndWait {
-        application.runReadAction {
+    invokeAndWait {
+        runReadAction {
             val psiFile = buffer.psiFile
             val editor = buffer.editor.editor
             val project = buffer.project

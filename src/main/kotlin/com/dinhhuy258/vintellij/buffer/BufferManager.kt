@@ -1,6 +1,5 @@
 package com.dinhhuy258.vintellij.buffer
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import java.util.concurrent.ConcurrentHashMap
 
@@ -32,7 +31,6 @@ class BufferManager(
     }
 
     fun releaseBuffer(path: String): Buffer? {
-        ApplicationManager.getApplication().assertIsDispatchThread()
         val buffer = findBufferByPath(path) ?: return null
 
         bufferMap.remove(path) != null

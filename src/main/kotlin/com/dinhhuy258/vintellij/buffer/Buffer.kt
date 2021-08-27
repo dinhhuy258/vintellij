@@ -1,6 +1,7 @@
 package com.dinhhuy258.vintellij.buffer
 
-import com.intellij.openapi.application.ApplicationManager
+import com.dinhhuy258.vintellij.utils.runReadAction
+import com.dinhhuy258.vintellij.utils.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.LogicalPosition
@@ -27,7 +28,6 @@ class Buffer(val project: Project, val path: String) {
     private lateinit var documentChangedListener: DocumentChangedListener
     val editor: EditorDelegate
         get() {
-            ApplicationManager.getApplication().assertIsDispatchThread()
             val backed = _editor
             if (backed == null || backed.isDisposed) {
                 _editor = createEditorDelegate()
@@ -74,7 +74,7 @@ class Buffer(val project: Project, val path: String) {
 
     internal fun replaceText(startPosition: Position, endPosition: Position, text: CharSequence) {
         onVimDocumentChange {
-            ApplicationManager.getApplication().runWriteAction {
+            runWriteAction {
                 WriteCommandAction.writeCommandAction(project)
                     .run<Throwable> {
                         val editor = this.editor.editor
@@ -91,7 +91,7 @@ class Buffer(val project: Project, val path: String) {
 
     internal fun insertText(position: Position, text: CharSequence) {
         onVimDocumentChange {
-            ApplicationManager.getApplication().runWriteAction {
+            runWriteAction {
                 WriteCommandAction.writeCommandAction(project)
                     .run<Throwable> {
                         val editor = this.editor.editor
@@ -115,7 +115,7 @@ class Buffer(val project: Project, val path: String) {
 
     private fun locateFile(path: String): PsiFile? {
         var psiFile: PsiFile? = null
-        ApplicationManager.getApplication().runReadAction {
+        runReadAction {
             val files = FilenameIndex.getFilesByName(
                 project, File(path).name, GlobalSearchScope.allScope(project)
             )
