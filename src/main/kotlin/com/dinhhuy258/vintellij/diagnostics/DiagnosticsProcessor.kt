@@ -3,7 +3,7 @@ package com.dinhhuy258.vintellij.diagnostics
 import com.dinhhuy258.vintellij.VintellijScope
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.buffer.BufferEventListener
-import com.dinhhuy258.vintellij.utils.getURIForFile
+import com.dinhhuy258.vintellij.utils.normalizeUri
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditor
@@ -89,6 +89,6 @@ class DiagnosticsProcessor : BufferEventListener, DaemonCodeAnalyzer.DaemonListe
     }
 
     private fun reportDiagnostics(buffer: Buffer, diagnostics: List<Diagnostic>) {
-        client.publishDiagnostics(PublishDiagnosticsParams(getURIForFile(buffer.psiFile), diagnostics))
+        client.publishDiagnostics(PublishDiagnosticsParams(normalizeUri(buffer.psiFile.virtualFile.url), diagnostics))
     }
 }

@@ -1,24 +1,16 @@
 package com.dinhhuy258.vintellij.utils
 
-import com.intellij.psi.PsiFile
 import java.net.URLDecoder
 import java.nio.file.Paths
 
-const val INTELLIJ_PATH_PREFIX = "jar://"
 private const val VIM_FILE_PATH_PREFIX = "file://"
 private const val VIM_ZIPFILE_PATH_PREFIX = "zipfile://"
-private const val INTELLIJ_JAR_SEPARATOR = ".jar!/"
 private const val VIM_JAR_SEPARATOR = ".jar::"
-private const val INTELLIJ_ZIP_SEPARATOR = ".zip!/"
 private const val VIM_ZIP_SEPARATOR = ".zip::"
 
-fun getFilePath(name: String): String {
-    return if (isVimJarFilePath(name)) {
-        toIntellijJarFilePath(name).removePrefix(INTELLIJ_PATH_PREFIX)
-    } else {
-        name
-    }
-}
+private const val INTELLIJ_PATH_PREFIX = "jar://"
+private const val INTELLIJ_JAR_SEPARATOR = ".jar!/"
+private const val INTELLIJ_ZIP_SEPARATOR = ".zip!/"
 
 fun isIntellijJarFile(filePath: String) =
     filePath.contains(INTELLIJ_JAR_SEPARATOR) || filePath.contains(INTELLIJ_ZIP_SEPARATOR)
@@ -37,8 +29,6 @@ fun toVimFilePath(filePath: String): String {
     return "$VIM_FILE_PATH_PREFIX$filePath"
 }
 
-private fun isVimJarFilePath(filePath: String): Boolean = filePath.startsWith(VIM_ZIPFILE_PATH_PREFIX)
-
 private fun toIntellijJarFilePath(filePath: String): String {
     val path = filePath.replaceFirst(VIM_ZIPFILE_PATH_PREFIX, INTELLIJ_PATH_PREFIX)
 
@@ -52,10 +42,16 @@ private fun toIntellijJarFilePath(filePath: String): String {
 fun uriToPath(uri: String): String {
     val newUri = normalizeUri(URLDecoder.decode(uri, "UTF-8"))
     val isWindowsPath = """^file:/+\w:""".toRegex().containsMatchIn(newUri)
-    return if (isWindowsPath) {
+    val path = if (isWindowsPath) {
         Paths.get("^file:/+".toRegex().replace(newUri, "")).toString().replace("\\", "/")
     } else {
         "^file:/+".toRegex().replace(newUri, "/")
+    }
+
+    return if (path.startsWith(VIM_ZIPFILE_PATH_PREFIX)) {
+        toIntellijJarFilePath(path).removePrefix(INTELLIJ_PATH_PREFIX)
+    } else {
+        path
     }
 }
 
@@ -73,6 +69,3 @@ fun normalizeUri(uri: String): String {
 
     return decodedUri
 }
-
-fun getURIForFile(file: PsiFile) = normalizeUri(file.virtualFile.url)
-

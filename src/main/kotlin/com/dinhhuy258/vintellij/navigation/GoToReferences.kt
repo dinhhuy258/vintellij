@@ -1,7 +1,9 @@
 package com.dinhhuy258.vintellij.navigation
 
 import com.dinhhuy258.vintellij.buffer.Buffer
+import com.dinhhuy258.vintellij.utils.getLocation
 import com.dinhhuy258.vintellij.utils.offsetToPosition
+import com.dinhhuy258.vintellij.utils.toVimFilePath
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.util.Ref
@@ -65,7 +67,7 @@ private fun getReference(psiElement: PsiElement): Location? {
     val offset = psiElement.startOffset
 
     val position = offsetToPosition(referenceDocument, offset)
-    return Location(filePath, Range(position, position))
+    return Location(toVimFilePath(filePath), Range(position, position))
 }
 
 private fun getPsiMethod(psiElement: PsiElement): PsiMethod? {
