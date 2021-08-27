@@ -77,8 +77,7 @@ fun getLocation(psiElement: PsiElement): Location? {
     val psiFile = psiElement.containingFile
     val virtualFile = psiFile.virtualFile
     if (virtualFile.fileType is JavaClassFileType && psiElement !is KtDeclaration) {
-        val project = IdeaUtils.getProject()
-        val sourceFile = JavaEditorFileSwapper.findSourceFile(project, virtualFile)
+        val sourceFile = JavaEditorFileSwapper.findSourceFile(psiElement.project, virtualFile)
         if (sourceFile != null) {
             // Recalculate the text offset for source file
             val member = PsiTreeUtil.getParentOfType(psiElement, PsiMember::class.java, false)
