@@ -24,7 +24,7 @@ local function setup_handlers()
 			if fullname == params["path"] then
 				local ft = vim.api.nvim_buf_get_option(buffer, "filetype")
 				if ft == "kotlin" or ft == "java" then
-					vim.api.nvim_buf_set_lines(buffer, params["startLine"], params["endLine"], true, params["lines"])
+					vim.api.nvim_buf_set_lines(buffer, params["startLine"], params["endLine"], false, params["lines"])
 				end
 				break
 			end
