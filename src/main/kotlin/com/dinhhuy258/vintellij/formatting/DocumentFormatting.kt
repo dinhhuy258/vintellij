@@ -19,20 +19,20 @@ fun formatDocument(buffer: Buffer?, range: Range?) {
     val endOffset = textRange?.endOffset ?: buffer.document.textLength
 
     buffer.onVimDocumentChange {
-        // Save before formatting
-        FileDocumentManager.getInstance().saveDocument(buffer.document)
-
         invokeAndWait {
             runWriteAction {
+                // Save before formatting
+                FileDocumentManager.getInstance().saveDocument(buffer.document)
+
                 WriteCommandAction.writeCommandAction(buffer.project)
                     .run<Throwable> {
                         CodeStyleManager.getInstance(buffer.project)
                             .reformatText(buffer.psiFile, startOffset, endOffset)
                     }
+
+                buffer.psiFile.virtualFile.refresh(true, true)
+                FileDocumentManager.getInstance().saveDocument(buffer.document)
             }
         }
-
-        buffer.psiFile.virtualFile.refresh(true, true)
-        FileDocumentManager.getInstance().saveDocument(buffer.document)
     }
 }
