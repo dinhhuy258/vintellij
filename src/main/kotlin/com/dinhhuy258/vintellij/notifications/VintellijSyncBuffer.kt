@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij
+package com.dinhhuy258.vintellij.notifications
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName

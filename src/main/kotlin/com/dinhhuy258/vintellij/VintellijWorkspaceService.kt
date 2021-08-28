@@ -1,5 +1,6 @@
 package com.dinhhuy258.vintellij
 
+import com.dinhhuy258.vintellij.notifications.VintellijSyncBuffer
 import com.google.gson.JsonPrimitive
 import org.eclipse.lsp4j.DidChangeConfigurationParams
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams
