@@ -1,6 +1,5 @@
 package com.dinhhuy258.vintellij.diagnostics
 
-import com.dinhhuy258.vintellij.VintellijScope
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.buffer.BufferEventListener
 import com.dinhhuy258.vintellij.utils.normalizeUri
@@ -8,18 +7,25 @@ import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
-import java.util.IdentityHashMap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import org.eclipse.lsp4j.Diagnostic
 import org.eclipse.lsp4j.PublishDiagnosticsParams
 import org.eclipse.lsp4j.services.LanguageClient
+import java.util.IdentityHashMap
 
 class DiagnosticsProcessor : BufferEventListener, DaemonCodeAnalyzer.DaemonListener, ProjectManagerListener {
     companion object {
         private const val DEBOUNCE_TIME = 200L
     }
+
+    private val job = Job()
+
+    private val coroutineScope = CoroutineScope(job + Dispatchers.Default)
 
     private var isStarted: Boolean = false
 
@@ -35,6 +41,10 @@ class DiagnosticsProcessor : BufferEventListener, DaemonCodeAnalyzer.DaemonListe
             this.client = client
             isStarted = true
         }
+    }
+
+    fun stop() {
+        job.cancel()
     }
 
     override fun daemonFinished(fileEditors: Collection<FileEditor>) {
@@ -65,7 +75,7 @@ class DiagnosticsProcessor : BufferEventListener, DaemonCodeAnalyzer.DaemonListe
     }
 
     private fun createJobAsync(buffer: Buffer): Deferred<Unit> {
-        return VintellijScope.async {
+        return coroutineScope.async {
             delay(DEBOUNCE_TIME)
             doLint(buffer)
         }

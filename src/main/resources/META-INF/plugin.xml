@@ -17,12 +17,6 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>org.jetbrains.kotlin</depends>
 
-    <application-components>
-        <component>
-            <implementation-class>com.dinhhuy258.vintellij.VintellijComponent</implementation-class>
-        </component>
-    </application-components>
-
     <extensions defaultExtensionNs="com.intellij">
         <appStarter implementation="com.dinhhuy258.vintellij.VintellijApplicationStarter"/>
         <preloadingActivity implementation="com.dinhhuy258.vintellij.VintellijLanguageServerPreloadingActivity"/>
