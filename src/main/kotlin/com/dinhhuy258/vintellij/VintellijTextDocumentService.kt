@@ -68,6 +68,8 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     private val documentAsync = AsyncExecutor()
 
+    private val diagnosticsProcessor = DiagnosticsProcessor()
+
     private var project: Project? = null
 
     private var messageBusConnection: MessageBusConnection? = null
@@ -279,11 +281,12 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun close() {
         async.shutdown(true)
+        documentAsync.shutdown(true)
         messageBusConnection?.disconnect()
+        diagnosticsProcessor.stop()
     }
 
     fun onProjectOpen(project: Project) {
-        val diagnosticsProcessor = DiagnosticsProcessor()
         diagnosticsProcessor.start(project, client)
         this.project = project
         messageBusConnection = project.messageBus.connect()
