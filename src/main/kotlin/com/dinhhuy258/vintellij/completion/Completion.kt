@@ -16,7 +16,11 @@ private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 10
 
 private val logger = Logger.getInstance("COMPLETION")
 
-val shouldStopCompletion = AtomicBoolean(false)
+private val shouldStopCompletion = AtomicBoolean(false)
+
+fun stopCompletion() {
+    shouldStopCompletion.set(true)
+}
 
 fun doCompletion(buffer: Buffer?, position: Position): CompletionList {
     shouldStopCompletion.set(false)
