@@ -5,7 +5,7 @@ local function setup_events()
 end
 
 local function setup_handlers()
-	vim.lsp.handlers["vintellij/eventNotification"] = function(_, _, params, client_id, bufnr)
+	vim.lsp.handlers["vintellij/notification"] = function(_, _, params, client_id, bufnr)
 		if params["eventType"] == 1 then
 			-- Close connection
 			vim.lsp.stop_client(client_id, true)
