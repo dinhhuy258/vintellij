@@ -2,7 +2,7 @@ package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferEventListener
 import com.dinhhuy258.vintellij.completion.doCompletion
-import com.dinhhuy258.vintellij.completion.shouldStopCompletion
+import com.dinhhuy258.vintellij.completion.stopCompletion
 import com.dinhhuy258.vintellij.diagnostics.DiagnosticsProcessor
 import com.dinhhuy258.vintellij.formatting.formatDocument
 import com.dinhhuy258.vintellij.hover.getHoverDoc
@@ -76,23 +76,20 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         this.client = client as VintellijLanguageClient
     }
 
-    override fun didOpen(params: DidOpenTextDocumentParams) {
-        val path = uriToPath(params.textDocument.uri)
+    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> {
+        // Stop in-progress suggestion
+        stopCompletion()
 
-        documentAsync.compute {
-            invokeAndWait {
-                val buffer = languageServer.getBufferManager().loadBuffer(path)
-                if (buffer != null) {
-                    publisher.bufferCreated(buffer)
-                } else {
-                    languageServer.getBufferSynchronization().performSync(project!!) {
-                        val loadedBuffer = languageServer.getBufferManager().loadBuffer(path)
-                        if (loadedBuffer != null) {
-                            publisher.bufferCreated(loadedBuffer)
-                        }
-                    }
-                }
-            }
+        return documentAsync.compute {
+            val buffer =
+                languageServer.getBufferManager().findBufferByPath(uriToPath(position.textDocument.uri))
+
+            Either.forRight(
+                tryCatch({
+                    doCompletion(buffer, position.position)
+                }, CompletionList(false, emptyList()))
+
+            )
         }
     }
 
@@ -105,7 +102,11 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
             return
         }
 
+        // Stop in-progress suggestion
+        stopCompletion()
+
         documentAsync.compute {
+            // Invoke this one here to avoid requesting to the event dispatch thread many times
             invokeAndWait {
                 runWriteAction {
                     contentChanges.forEach { contentChange ->
@@ -123,8 +124,29 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         }
     }
 
+    override fun didOpen(params: DidOpenTextDocumentParams) {
+        val path = uriToPath(params.textDocument.uri)
+
+        async.compute {
+            invokeAndWait {
+                val buffer = languageServer.getBufferManager().loadBuffer(path)
+                if (buffer != null) {
+                    publisher.bufferCreated(buffer)
+                } else {
+                    // Synchronize project in the case buffer not found
+                    languageServer.getBufferSynchronization().performSync(project!!) {
+                        val loadedBuffer = languageServer.getBufferManager().loadBuffer(path)
+                        if (loadedBuffer != null) {
+                            publisher.bufferCreated(loadedBuffer)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     override fun didClose(params: DidCloseTextDocumentParams) {
-        documentAsync.compute {
+        async.compute {
             invokeAndWait {
                 val buffer = languageServer.getBufferManager().releaseBuffer(uriToPath(params.textDocument.uri))
                 if (buffer != null) {
@@ -135,7 +157,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun willSave(params: WillSaveTextDocumentParams) {
-        documentAsync.compute {
+        async.compute {
             invokeAndWait {
                 val syncedBuffer =
                     languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
@@ -189,22 +211,6 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 goToTypeDefinition(buffer, params.position)
             }, emptyList()))
         }
-
-    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> {
-        // Stop in-progress suggestion
-        shouldStopCompletion.set(true)
-        return async.compute {
-            val buffer =
-                languageServer.getBufferManager().findBufferByPath(uriToPath(position.textDocument.uri))
-
-            Either.forRight(
-                tryCatch({
-                    doCompletion(buffer, position.position)
-                }, CompletionList(false, emptyList()))
-
-            )
-        }
-    }
 
     override fun hover(params: HoverParams): CompletableFuture<Hover> = async.compute {
         val buffer =
