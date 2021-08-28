@@ -83,6 +83,12 @@ private fun getCompletionResult(
                 Thread.sleep(50)
             }
 
+            if (shouldStopCompletion.get()) {
+                // Stop the running completion
+                CompletionServiceImpl.getCurrentCompletionProgressIndicator()?.closeAndFinish(false)
+                return@invokeAndWait
+            }
+
             onIndicatorCompletionFinish(indicator, completionList)
         } catch (t: Throwable) {
             logger.warn("Completion failed.", t)
