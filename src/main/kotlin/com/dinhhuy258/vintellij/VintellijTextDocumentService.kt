@@ -10,6 +10,8 @@ import com.dinhhuy258.vintellij.navigation.goToDefinition
 import com.dinhhuy258.vintellij.navigation.goToImplementation
 import com.dinhhuy258.vintellij.navigation.goToReferences
 import com.dinhhuy258.vintellij.navigation.goToTypeDefinition
+import com.dinhhuy258.vintellij.notifications.VintellijNotification
+import com.dinhhuy258.vintellij.notifications.VintellijEventType
 import com.dinhhuy258.vintellij.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
@@ -228,7 +230,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
             languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
         formatDocument(buffer, null)
-        client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
+        client.sendNotification(VintellijNotification(VintellijEventType.BUFFER_SAVED))
 
         emptyList()
     }
@@ -239,7 +241,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                 languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
             formatDocument(buffer, params.range)
-            client.sendEventNotification(VintellijEventNotification(VintellijEventType.BUFFER_SAVED))
+            client.sendNotification(VintellijNotification(VintellijEventType.BUFFER_SAVED))
 
             emptyList()
         }

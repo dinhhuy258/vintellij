@@ -1,4 +1,4 @@
-package com.dinhhuy258.vintellij
+package com.dinhhuy258.vintellij.notifications
 
 import com.google.gson.annotations.Expose
 import com.google.gson.annotations.SerializedName
@@ -9,7 +9,7 @@ enum class VintellijEventType(val value: Int) {
     BUFFER_SAVED(2)
 }
 
-class VintellijEventNotification(
+class VintellijNotification(
     @SerializedName("eventType")
     @Expose
     private val type: VintellijEventType,

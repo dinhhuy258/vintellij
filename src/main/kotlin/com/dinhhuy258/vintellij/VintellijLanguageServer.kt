@@ -2,6 +2,8 @@ package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferManager
 import com.dinhhuy258.vintellij.buffer.BufferSynchronization
+import com.dinhhuy258.vintellij.notifications.VintellijNotification
+import com.dinhhuy258.vintellij.notifications.VintellijEventType
 import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.dinhhuy258.vintellij.utils.normalizeUri
 import com.dinhhuy258.vintellij.utils.uriToPath
@@ -63,7 +65,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                         )
                     )
 
-                    client.sendEventNotification(VintellijEventNotification(VintellijEventType.CLOSE_CONNECTION))
+                    client.sendNotification(VintellijNotification(VintellijEventType.CLOSE_CONNECTION))
                     return@invokeAndWait
                 }
                 bufferSynchronization = BufferSynchronization(client)

@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij.buffer
 
 import com.dinhhuy258.vintellij.VintellijLanguageClient
-import com.dinhhuy258.vintellij.VintellijSyncBuffer
+import com.dinhhuy258.vintellij.notifications.VintellijSyncBuffer
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
