@@ -7,10 +7,10 @@ import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
 import com.intellij.openapi.diagnostic.Logger
+import java.util.concurrent.atomic.AtomicBoolean
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionList
 import org.eclipse.lsp4j.Position
-import java.util.concurrent.atomic.AtomicBoolean
 
 private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 5
 

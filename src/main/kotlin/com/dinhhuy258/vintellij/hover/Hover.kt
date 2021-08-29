@@ -3,6 +3,7 @@ package com.dinhhuy258.vintellij.hover
 import com.dinhhuy258.vintellij.buffer.Buffer
 import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.dinhhuy258.vintellij.utils.runReadAction
+import com.dinhhuy258.vintellij.utils.stripHtml
 import com.intellij.codeInsight.documentation.DocumentationManager
 import com.intellij.openapi.editor.LogicalPosition
 import com.intellij.openapi.util.Ref
@@ -42,17 +43,4 @@ fun getHoverDoc(buffer: Buffer?, position: Position): List<Either<String, Marked
     return docs.map {
         Either.forLeft(it)
     }
-}
-
-// TODO: Move this method to utils class
-fun stripHtml(input: String): String {
-    return input.replace("(<br[ /]*>|</?PRE>)".toRegex(), "\n")
-            .replace("<li>".toRegex(), "\n - ")
-            .replace("<style .*style>".toRegex(), "")
-            .replace("<[^>]+>".toRegex(), "")
-            .replace("&nbsp;".toRegex(), " ")
-            .replace("&amp;".toRegex(), "&")
-            .replace("&lt;".toRegex(), "<")
-            .replace("&gt;".toRegex(), ">")
-            .trim { it <= ' ' }
 }

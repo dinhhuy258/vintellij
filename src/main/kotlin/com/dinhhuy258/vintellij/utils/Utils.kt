@@ -5,7 +5,6 @@ package com.dinhhuy258.vintellij.utils
 import com.intellij.codeEditor.JavaEditorFileSwapper
 import com.intellij.codeInsight.javadoc.JavaDocInfoGenerator.generateType
 import com.intellij.ide.highlighter.JavaClassFileType
-import com.intellij.ide.plugins.PluginManager
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
@@ -36,7 +35,6 @@ import org.eclipse.lsp4j.SymbolKind
 import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.asJava.classes.KtLightClassForFacade
 import org.jetbrains.kotlin.asJava.elements.KtLightMethod
-import org.jetbrains.kotlin.daemon.common.experimental.log
 import org.jetbrains.kotlin.idea.decompiler.builtIns.KotlinBuiltInFileType
 import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
 import org.jetbrains.kotlin.idea.refactoring.memberInfo.qualifiedClassNameForRendering
@@ -318,6 +316,18 @@ fun TextRange.toRange(doc: Document): Range =
 
 fun PsiElement.toRange(document: Document) =
         ((this as? PsiNameIdentifierOwner)?.nameIdentifier ?: this).textRange.toRange(document)
+
+fun stripHtml(input: String): String {
+    return input.replace("(<br[ /]*>|</?PRE>)".toRegex(), "\n")
+        .replace("<li>".toRegex(), "\n - ")
+        .replace("<style .*style>".toRegex(), "")
+        .replace("<[^>]+>".toRegex(), "")
+        .replace("&nbsp;".toRegex(), " ")
+        .replace("&amp;".toRegex(), "&")
+        .replace("&lt;".toRegex(), "<")
+        .replace("&gt;".toRegex(), ">")
+        .trim { it <= ' ' }
+}
 
 fun invokeAndWait(runnable: () -> Unit) {
     ApplicationManager.getApplication().invokeAndWait {

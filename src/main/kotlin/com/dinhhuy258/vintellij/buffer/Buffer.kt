@@ -1,7 +1,6 @@
 package com.dinhhuy258.vintellij.buffer
 
 import com.dinhhuy258.vintellij.utils.runReadAction
-import com.dinhhuy258.vintellij.utils.runWriteAction
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.editor.LogicalPosition
@@ -14,8 +13,8 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
-import org.eclipse.lsp4j.Position
 import java.io.File
+import org.eclipse.lsp4j.Position
 
 class BufferNotInProjectException(path: String, msg: String) :
     Exception("'$path' cannot be found in any opened projects.\n$msg")
@@ -114,7 +113,6 @@ class Buffer(val project: Project, val path: String) {
         } finally {
             documentChangedListener.isChangedByVim = false
         }
-
     }
 
     private fun locateFile(path: String): PsiFile? {

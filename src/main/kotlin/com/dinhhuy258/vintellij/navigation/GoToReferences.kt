@@ -82,4 +82,3 @@ private fun getPsiMethod(psiElement: PsiElement): PsiMethod? {
         }
     }
 }
-
