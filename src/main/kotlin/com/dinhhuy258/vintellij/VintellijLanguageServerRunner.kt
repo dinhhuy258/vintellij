@@ -6,7 +6,6 @@ import java.net.Socket
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread
 import org.eclipse.lsp4j.jsonrpc.Launcher
-import org.eclipse.lsp4j.services.LanguageClient
 
 class VintellijLanguageServerRunner {
     companion object {

@@ -2,8 +2,8 @@ package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferManager
 import com.dinhhuy258.vintellij.buffer.BufferSynchronization
-import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.notifications.VintellijEventType
+import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.dinhhuy258.vintellij.utils.normalizeUri
 import com.dinhhuy258.vintellij.utils.uriToPath
@@ -14,6 +14,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Ref
+import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
 import org.eclipse.lsp4j.CompletionOptions
@@ -31,7 +32,6 @@ import org.eclipse.lsp4j.services.LanguageClientAware
 import org.eclipse.lsp4j.services.LanguageServer
 import org.eclipse.lsp4j.services.TextDocumentService
 import org.eclipse.lsp4j.services.WorkspaceService
-import java.io.File
 
 class VintellijLanguageServer : LanguageServer, LanguageClientAware {
     private val VINTELLIJ_NOTIFICATION_GROUP =

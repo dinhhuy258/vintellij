@@ -10,8 +10,8 @@ import com.dinhhuy258.vintellij.navigation.goToDefinition
 import com.dinhhuy258.vintellij.navigation.goToImplementation
 import com.dinhhuy258.vintellij.navigation.goToReferences
 import com.dinhhuy258.vintellij.navigation.goToTypeDefinition
-import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.notifications.VintellijEventType
+import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
@@ -23,6 +23,8 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
+import java.io.Closeable
+import java.util.concurrent.CompletableFuture
 import org.eclipse.lsp4j.CodeAction
 import org.eclipse.lsp4j.CodeActionParams
 import org.eclipse.lsp4j.Command
@@ -54,8 +56,6 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageClient
 import org.eclipse.lsp4j.services.LanguageClientAware
 import org.eclipse.lsp4j.services.TextDocumentService
-import java.io.Closeable
-import java.util.concurrent.CompletableFuture
 
 class VintellijTextDocumentService(private val languageServer: VintellijLanguageServer) : TextDocumentService,
     LanguageClientAware,

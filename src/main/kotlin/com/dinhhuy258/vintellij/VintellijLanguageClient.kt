@@ -6,7 +6,7 @@ import com.intellij.openapi.util.Key
 import org.eclipse.lsp4j.jsonrpc.services.JsonNotification
 import org.eclipse.lsp4j.services.LanguageClient
 
-val VINTELLIJ_CLIENT: Key<VintellijLanguageClient> = Key.create("vintellij_client");
+val VINTELLIJ_CLIENT: Key<VintellijLanguageClient> = Key.create("vintellij_client")
 
 interface VintellijLanguageClient : LanguageClient {
     /**

@@ -1,7 +1,7 @@
 package com.dinhhuy258.vintellij
 
-import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.notifications.VintellijEventType
+import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
 
