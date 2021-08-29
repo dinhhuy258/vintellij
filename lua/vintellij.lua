@@ -112,7 +112,7 @@ function M.setup(common_on_attach, common_capabilities, common_on_init, lib_dirs
 	local configs_ok, configs = pcall(require, "lspconfig/configs")
 
 	if not lspconfig_ok or not configs_ok then
-		-- TODO: Add error message here
+		vim.notify("[vintellij] Plugin lspconfig not found")
 		return
 	end
 
