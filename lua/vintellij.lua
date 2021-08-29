@@ -1,7 +1,15 @@
 local M = {}
 
-local function setup_events()
+local function setup_events(lib_dirs)
 	vim.api.nvim_command("autocmd BufEnter * lua require('vintellij').on_buf_enter()")
+
+	if lib_dirs ~= nil then
+		for _, lib_dir in pairs(lib_dirs) do
+			vim.api.nvim_command(
+				string.format("autocmd BufEnter zipfile://%s* lua require('vintellij').on_lib_file_loaded()", lib_dir)
+			)
+		end
+	end
 end
 
 local function setup_handlers()
@@ -52,6 +60,20 @@ local function on_attach(bufnr)
 	)
 end
 
+function M.on_lib_file_loaded()
+	local current_clients = vim.lsp.buf_get_clients(0)
+	if current_clients ~= nil and #current_clients ~= 0 then
+		return
+	end
+
+	local clients = vim.lsp.get_active_clients()
+	for _, client in pairs(clients) do
+		if client.name == "vintellij" then
+			vim.lsp.buf_attach_client(0, client.id)
+		end
+	end
+end
+
 function M.on_buf_enter()
 	local bufnr = resolve_bufnr(0)
 	local uri = vim.uri_from_bufnr(bufnr)
@@ -85,7 +107,7 @@ function M.text_document_will_save_handler(bufnr)
 	end)
 end
 
-function M.setup(common_on_attach, common_capabilities, common_on_init)
+function M.setup(common_on_attach, common_capabilities, common_on_init, lib_dirs)
 	local lspconfig_ok, lspconfig = pcall(require, "lspconfig")
 	local configs_ok, configs = pcall(require, "lspconfig/configs")
 
@@ -117,7 +139,7 @@ function M.setup(common_on_attach, common_capabilities, common_on_init)
 					return util.root_pattern(unpack(root_files))(fname)
 						or util.root_pattern(unpack(fallback_root_files))(fname)
 				end,
-				filetypes = { "kotlin" },
+				filetypes = { "kotlin", "java" },
 				autostart = false,
 				on_attach = function(client_id, bufnr)
 					common_on_attach(client_id, bufnr)
@@ -130,7 +152,7 @@ function M.setup(common_on_attach, common_capabilities, common_on_init)
 	end
 
 	lspconfig.vintellij.setup({})
-	setup_events()
+	setup_events(lib_dirs)
 	setup_handlers()
 end
 
