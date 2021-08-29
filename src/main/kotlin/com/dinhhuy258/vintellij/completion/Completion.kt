@@ -120,6 +120,6 @@ private fun onIndicatorCompletionFinish(
         }
     }
 
-    completionList.setIsIncomplete(indicator.isRunning)
+    completionList.setIsIncomplete(indicator.isRunning || shouldStopCompletion.get())
     completionList.items = completionItems
 }
