@@ -12,7 +12,7 @@ import org.eclipse.lsp4j.CompletionList
 import org.eclipse.lsp4j.Position
 import java.util.concurrent.atomic.AtomicBoolean
 
-private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 10
+private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 5
 
 private val logger = Logger.getInstance("COMPLETION")
 
