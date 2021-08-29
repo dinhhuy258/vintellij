@@ -80,19 +80,18 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         this.client = client as VintellijLanguageClient
     }
 
-    override fun completion(position: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> {
+    override fun completion(params: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> {
         // Stop in-progress suggestion
         stopCompletion()
 
         return documentAsync.compute {
             val buffer =
-                languageServer.getBufferManager().findBufferByPath(uriToPath(position.textDocument.uri))
+                languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
             Either.forRight(
                 tryCatch({
-                    doCompletion(buffer, position.position)
+                    doCompletion(buffer, params.position)
                 }, CompletionList(false, emptyList()))
-
             )
         }
     }
