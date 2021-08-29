@@ -29,7 +29,7 @@ fun doCompletion(buffer: Buffer?, position: Position): CompletionList {
     }
 
     val completionList = CompletionList()
-    completionList.setIsIncomplete(false)
+    completionList.setIsIncomplete(true)
 
     doAsyncComplete(buffer, position, completionList)
 
