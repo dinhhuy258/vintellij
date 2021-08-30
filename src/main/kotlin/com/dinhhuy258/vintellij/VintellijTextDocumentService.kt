@@ -95,6 +95,9 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     }
 
     override fun didChange(params: DidChangeTextDocumentParams) {
+        if (languageServer.getBufferSynchronization().hasPendingChanges()) {
+            return
+        }
         val buffer =
             languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri)) ?: return
 
