@@ -19,7 +19,6 @@ import org.eclipse.lsp4j.Position
 class BufferNotInProjectException(path: String, msg: String) :
     Exception("'$path' cannot be found in any opened projects.\n$msg")
 
-// TODO: Refactor setText, replaceText methods
 class Buffer(val project: Project, val path: String) {
     internal val psiFile: PsiFile
     internal val document: Document
