@@ -1,10 +1,13 @@
 package com.dinhhuy258.vintellij.buffer
 
+import com.dinhhuy258.vintellij.listeners.VINTELLIJ_WIN_FOCUS
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 
 class DocumentChangedListener(
+    private val project: Project,
     private val path: String,
     private val onDocumentChanged: (String, Int, Int, List<String>) -> Unit
 ) : DocumentListener {
@@ -16,15 +19,16 @@ class DocumentChangedListener(
     private var endLine: Int = 0
 
     override fun beforeDocumentChange(event: DocumentEvent) {
-        if (isChangedByVim) {
+        if (!shouldNotifyVim()) {
             return
         }
+
         startLine = event.document.getLineNumber(event.offset)
         endLine = event.document.getLineNumber(event.offset + event.oldLength) + 1
     }
 
     override fun documentChanged(event: DocumentEvent) {
-        if (isChangedByVim) {
+        if (!shouldNotifyVim()) {
             return
         }
         val document = event.document
@@ -35,5 +39,11 @@ class DocumentChangedListener(
                 .split('\n')
 
         onDocumentChanged(path, startLine, endLine, lines)
+    }
+
+    private fun shouldNotifyVim(): Boolean {
+        val winFocus = project.getUserData(VINTELLIJ_WIN_FOCUS)
+
+        return !isChangedByVim && winFocus == true
     }
 }

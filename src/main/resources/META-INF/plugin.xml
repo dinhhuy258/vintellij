@@ -23,6 +23,6 @@
     </extensions>
 
     <applicationListeners>
-        <listener class="com.dinhhuy258.vintellij.VintellijProjectManagerListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>
+        <listener class="com.dinhhuy258.vintellij.listeners.VintellijProjectManagerListener" topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
 </idea-plugin>
