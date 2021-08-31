@@ -21,7 +21,7 @@ class BufferManager(
             } catch (e: BufferNotInProjectException) {
                 return null
             }
-            buffer.setDocumentChangedListener(DocumentChangedListener(path, onDocumentChanged))
+            buffer.setDocumentChangedListener(DocumentChangedListener(project, path, onDocumentChanged))
             bufferMap[buffer.path] = buffer
         }
 

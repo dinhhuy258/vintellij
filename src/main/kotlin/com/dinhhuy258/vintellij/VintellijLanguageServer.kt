@@ -2,6 +2,7 @@ package com.dinhhuy258.vintellij
 
 import com.dinhhuy258.vintellij.buffer.BufferManager
 import com.dinhhuy258.vintellij.buffer.BufferSynchronization
+import com.dinhhuy258.vintellij.listeners.VintellijWindowFocusListener
 import com.dinhhuy258.vintellij.notifications.VintellijEventType
 import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.utils.invokeAndWait
@@ -14,6 +15,7 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Ref
+import com.intellij.openapi.wm.WindowManager
 import java.io.File
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CompletableFuture.completedFuture
@@ -72,6 +74,11 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                 bufferManager = BufferManager(project!!, bufferSynchronization::onDocumentChanged)
                 textDocumentService.onProjectOpen(project!!)
                 project!!.putUserData(VINTELLIJ_CLIENT, client)
+                WindowManager.getInstance().getFrame(project)?.let { frame ->
+                    // Don't want to add duplicate listeners
+                    frame.removeWindowFocusListener(VintellijWindowFocusListener)
+                    frame.addWindowFocusListener(VintellijWindowFocusListener)
+                }
 
                 VINTELLIJ_NOTIFICATION_GROUP
                     .createNotification("Connected to LSP client: ${project!!.name}", NotificationType.INFORMATION)

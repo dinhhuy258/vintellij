@@ -1,5 +1,6 @@
-package com.dinhhuy258.vintellij
+package com.dinhhuy258.vintellij.listeners
 
+import com.dinhhuy258.vintellij.VINTELLIJ_CLIENT
 import com.dinhhuy258.vintellij.notifications.VintellijEventType
 import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.intellij.openapi.project.Project
