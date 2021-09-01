@@ -17,6 +17,9 @@ class VintellijSyncBuffer(
     @SerializedName("lines")
     @Expose
     private val lines: List<String>,
+    @SerializedName("replaceText")
+    @Expose
+    private val replaceText: Boolean
 ) {
     override fun toString(): String {
         return MessageJsonHandler.toString(this)
