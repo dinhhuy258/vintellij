@@ -43,6 +43,6 @@ class BufferSynchronization(private val client: VintellijLanguageClient) {
     fun onDocumentChanged(path: String, startLine: Int, endLine: Int, lines: List<String>) {
         pendingChanges.incrementAndGet()
 
-        client.syncBuffer(VintellijSyncBuffer(path, startLine, endLine, lines))
+        client.syncBuffer(VintellijSyncBuffer(path, startLine, endLine, lines, true))
     }
 }

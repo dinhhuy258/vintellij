@@ -72,6 +72,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                 }
                 bufferSynchronization = BufferSynchronization(client)
                 bufferManager = BufferManager(project!!, bufferSynchronization::onDocumentChanged)
+                workspaceService.setBufferManager(bufferManager)
                 textDocumentService.onProjectOpen(project!!)
                 project!!.putUserData(VINTELLIJ_CLIENT, client)
                 WindowManager.getInstance().getFrame(project)?.let { frame ->
