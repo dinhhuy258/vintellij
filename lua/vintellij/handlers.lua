@@ -1,4 +1,5 @@
 local utils = require("vintellij.utils")
+local cfg = require("vintellij.config").config
 
 local M = {}
 
@@ -21,6 +22,10 @@ local function sync_buffer_handler()
 				local ft = vim.api.nvim_buf_get_option(buffer, "filetype")
 				if ft == "kotlin" or ft == "java" then
 					if params["replaceText"] then
+						if cfg.debug then
+							utils.info("Syncing buffer...")
+						end
+
 						vim.api.nvim_buf_set_lines(
 							buffer,
 							params["startLine"],

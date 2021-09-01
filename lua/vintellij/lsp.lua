@@ -1,3 +1,4 @@
+local utils = require("vintellij.utils")
 local M = {}
 
 local function setup_events(lib_dirs)
@@ -26,17 +27,8 @@ local function on_attach_vintellij(bufnr)
 	)
 end
 
-local function resolve_bufnr(bufnr)
-	vim.validate({ bufnr = { bufnr, "n", true } })
-	if bufnr == nil or bufnr == 0 then
-		return vim.api.nvim_get_current_buf()
-	end
-
-	return bufnr
-end
-
 function M.text_document_will_save_handler(bufnr)
-	bufnr = resolve_bufnr(bufnr)
+	bufnr = utils.resolve_bufnr(bufnr)
 	local uri = vim.uri_from_bufnr(bufnr)
 
 	vim.lsp.for_each_buffer_client(bufnr, function(client, _)
@@ -54,7 +46,7 @@ function M.text_document_will_save_handler(bufnr)
 end
 
 function M.on_buf_enter()
-	local bufnr = resolve_bufnr(0)
+	local bufnr = utils.resolve_bufnr(0)
 	local uri = vim.uri_from_bufnr(bufnr)
 
 	vim.lsp.for_each_buffer_client(bufnr, function(client, _)
@@ -89,7 +81,7 @@ function M.setup()
 	local configs_ok, configs = pcall(require, "lspconfig/configs")
 
 	if not lspconfig_ok or not configs_ok then
-		vim.notify("[vintellij] Plugin lspconfig not found")
+		utils.err("Plugin lspconfig not found")
 		return
 	end
 
