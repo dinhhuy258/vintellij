@@ -12,6 +12,14 @@ local function setup_events(lib_dirs)
 	end
 end
 
+local function setup_commands()
+	vim.api.nvim_command([[command! VintellijGenDoc lua require("vintellij").gen_doc()]])
+end
+
+local function repeats(s, n)
+	return n > 0 and s .. repeats(s, n - 1) or ""
+end
+
 local function setup_handlers()
 	vim.lsp.handlers["vintellij/notification"] = function(_, _, params, client_id, _)
 		if params["eventType"] == 1 then
@@ -28,7 +36,22 @@ local function setup_handlers()
 			if fullname == params["path"] then
 				local ft = vim.api.nvim_buf_get_option(buffer, "filetype")
 				if ft == "kotlin" or ft == "java" then
-					vim.api.nvim_buf_set_lines(buffer, params["startLine"], params["endLine"], false, params["lines"])
+					if params["replaceText"] then
+						vim.api.nvim_buf_set_lines(
+							buffer,
+							params["startLine"],
+							params["endLine"],
+							false,
+							params["lines"]
+						)
+					else
+						local indent = repeats(" ", vim.fn.indent(params["startLine"] + 1))
+						local lines = {}
+						for _, line in ipairs(params["lines"]) do
+							table.insert(lines, indent .. line)
+						end
+						vim.fn.appendbufline(buffer, params["startLine"], lines)
+					end
 				end
 				break
 			end
@@ -54,6 +77,29 @@ local function on_attach(bufnr)
 			bufnr
 		)
 	)
+end
+
+function M.gen_doc()
+	local current_clients = vim.lsp.buf_get_clients(0)
+	if current_clients == nil or #current_clients == 0 then
+		return
+	end
+
+	for _, client in pairs(current_clients) do
+		if client.name == "vintellij" then
+			local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+
+			vim.lsp.buf.execute_command({
+				command = "gen_doc",
+				arguments = {
+					vim.uri_from_bufnr(0),
+					row,
+					col,
+				},
+			})
+			break
+		end
+	end
 end
 
 function M.on_lib_file_loaded()
@@ -150,6 +196,7 @@ function M.setup(common_on_attach, common_capabilities, common_on_init, lib_dirs
 	lspconfig.vintellij.setup({})
 	setup_events(lib_dirs)
 	setup_handlers()
+	setup_commands()
 end
 
 return M
