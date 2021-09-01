@@ -7,11 +7,12 @@ import com.dinhhuy258.vintellij.notifications.VintellijEventType
 import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.utils.invokeAndWait
 import com.dinhhuy258.vintellij.utils.normalizeUri
+import com.dinhhuy258.vintellij.utils.runWriteAction
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.intellij.notification.NotificationDisplayType
 import com.intellij.notification.NotificationGroup
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.util.Ref
@@ -75,6 +76,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
                 workspaceService.setBufferManager(bufferManager)
                 textDocumentService.onProjectOpen(project!!)
                 project!!.putUserData(VINTELLIJ_CLIENT, client)
+                closeOpenFiles(project!!)
                 WindowManager.getInstance().getFrame(project)?.let { frame ->
                     // Don't want to add duplicate listeners
                     frame.removeWindowFocusListener(VintellijWindowFocusListener)
@@ -149,6 +151,16 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
         experimental = null
     }
 
+    private fun closeOpenFiles(project: Project) {
+        invokeAndWait {
+            val fileEditorManager = FileEditorManager.getInstance(project)
+            val openFiles = fileEditorManager.openFiles
+            openFiles.forEach { file ->
+                fileEditorManager.closeFile(file)
+            }
+        }
+    }
+
     private fun getProject(projectUri: String): Project? {
         val newUri = normalizeUri(projectUri)
         val directory = File(uriToPath(newUri))
@@ -163,7 +175,7 @@ class VintellijLanguageServer : LanguageServer, LanguageClientAware {
 
         val projectManager = ProjectManagerEx.getInstanceEx()
         val projectRef = Ref<Project>()
-        ApplicationManager.getApplication().runWriteAction {
+        runWriteAction {
             try {
                 val isProjectOpened = projectManager.openProjects.find {
                     uriToPath(it.baseDir.path).equals(projectPath.replace("\\", "/"), true)
