@@ -1,49 +1,34 @@
 # Vintellij
 Make IntelliJ as a server language protocol.
 
-## Vintellij versions
-
-- `master`: This is an original version of vintellij
-- `comrade`: Same as `master` branch that including comrade plugin
-- `lsp`: This is currently the main branch of vintellij which supports Language Server Protocol
-
 ## Installation
 
 ### Vim
 
-#### Dependencies
+[vim plug](https://github.com/junegunn/vim-plug)
 
-- [fzf](https://github.com/junegunn/fzf.vim)
-
-#### Install
-
-```
+```sh
 Plug 'dinhhuy258/vintellij', {'branch': 'lsp'}
 ```
 
-The default mapping is
-- <Leader>co to open the current file from vim by intelliJ
-- <Leader>ci to suggest possible imports by the symbol under cursor
+[packer.nvim](https://github.com/wbthomason/packer.nvim)
 
-if you want to make your own custom keymap, then put the following in your `.vimrc`
+```sh
+{
+  "dinhhuy258/vintellij",
+  branch = "lsp",
+  ft = { "kotlin" },
+  config = function()
+    require("plugins.vintellij").setup()
+  end,
+}
+```
 
-```
-let g:vintellij_use_default_keymap = 0
-nnoremap <Leader>co :VintellijOpenFile<CR>
-nnoremap <Leader>ci :VintellijSuggestImports<CR>
-...
-```
-
-For better syntax support
-
-```
-Plug 'udalov/kotlin-vim'
-```
 ### Intellij plugin
 
 1. Import the project into Intellij
 2. Modify intellij plugin version and intellij kotlin version in `build.gradle` file based on your version of Intellij
-3. Run `gradle buildPlugin`
+3. Run `./gradlew ktlinFormat`
 4. Install your plugin into Intellij. (Preferences -> Plugins -> Install Plugin from Disk...)
 
 ## Run IntelliJ in headless mode
@@ -64,91 +49,72 @@ Execute the script to run IntelliJ in headless mode
 
 ## Vintellij commands
 
-- `VintellijToggle`: Enable vintellij LSP, the LSP is not enabled by default
+- `VintellijGenDoc`: Generate kotlin doc at the current cursor. (Currently, only support Class and Function docs)
 
-- `VintellijOpenFile`: open the current file in Intellij
+**Note:** Please move the cursor to the line of a class/function that you want to generate doc before running a command.
+If your class/method contains annotations move the cursor to the top annotation instead.
 
-- `VintellijSuggestImports`: suggest a list of importable classes for an element at the current cursor
+Eg:
 
-## Coc setup
-
-```
-...
-  "languageserver": {
-    "vintellij":{
-        "enable": false,
-        "host": "127.0.0.1",
-        "port": 6969,
-        "rootPatterns": [
-          ".vim/",
-          ".git/",
-          ".hg/"
-        ],
-        "filetypes": [
-            "java",
-            "kotlin"
-        ],
-        "additionalSchemes": ["jar", "zipfile"]
-    }
-  }
+```kotlin
+class TestKotlin { <------------ Cursor must be in this line
+}
 ```
 
-Set value `g:vintellij_nvim_lsp` to `0` (default `1`)
+```kotlin
+@Controler   <------------ Cursor must be in this line
+@TestAnnotation
+class TestKotlin {
+}
+```
 
 ## Neovim LSP setup
 
 ```lua
-{
-  provider = "kotlin_language_server",
-  setup = {
-    cmd = { "nc", "localhost", "6969" },
-    root_dir = function(fname)
-      local util = require "lspconfig/util"
+local status_ok, vintellij = pcall(require, "vintellij")
+if not status_ok then
+  return
+end
 
-      local root_files = {
-        "settings.gradle", -- Gradle (multi-project)
-        "settings.gradle.kts", -- Gradle (multi-project)
-        "build.xml", -- Ant
-        "pom.xml", -- Maven
-      }
+local lsp = require "lsp"
 
-      local fallback_root_files = {
-        "build.gradle", -- Gradle
-        "build.gradle.kts", -- Gradle
-      }
-      return util.root_pattern(unpack(root_files))(fname) or util.root_pattern(unpack(fallback_root_files))(fname)
-    end,
-    filetypes = { "kotlin" },
-    autostart = false, -- We need to disable auto start
-    on_attach = common_on_attach,
-    on_init = common_on_init,
-    capabilities = common_capabilities,
-  },
+local lib_dirs = {
+  "/Users/dinhhuy258/.gradle/",
+  "/Library/Java/JavaVirtualMachines",
+}
+
+vintellij.setup {
+  debug = false,
+  common_on_attach = lsp.common_on_attach,
+  common_capabilities = lsp.common_capabilities(),
+  common_on_init = lsp.common_on_init,
+  lib_dirs = lib_dirs,
 }
 ```
 
+Where `lib_dirs` is the list of external library sources that uses by Intellij.
+
+## Coc setup
+
+Not supported at the moment please use branch `lsp_backup` instead.
+
 ## Features
 
-| Name | Kotlin | Java |
-| ---- | ------ | ---- |
-| Go to definition | :white_check_mark: | :white_check_mark: |
-| Suggest imports | :white_check_mark: | :white_check_mark: |
-| Find hierarchies | :white_check_mark: | :white_check_mark: |
-| Find usages | :white_check_mark: | :white_check_mark: |
-| Auto complete | :white_check_mark: | :white_check_mark: |
-
-## Credits
-
-- [Comrade](https://github.com/beeender/Comrade)
-- [ComradeNeovim](https://github.com/beeender/ComradeNeovim)
-
-Recently I just integrated the Comrade IntelliJ plugin source code into my plugin. It makes the vintelliJ plugin stronger and smarter. I would like to say thank to the author of the Comrade plugin for such a wonderful plugin that he made.
+- Go to definition
+- Go to type definition
+- Go to implementation
+- Go to reference
+- Document symbol
+- Import code action
+- Document formatting
+- Autocompletion
+- Generate doc (Kotlin only)
 
 ## Issue
 
+- The buffer sync between NeoVim and Intellij still have a problem
 - To make it work, the Intellij must open the same project as Vim.
 - Always open Intellij otherwise everything will be slow - the workarround maybe:
   - Get IntelliJ focused by having it in your secondary screen
   - Get vim transparent and putting IntelliJ behind
   - Open IntelliJ in headless mode
-  
