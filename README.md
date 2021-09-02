@@ -28,7 +28,7 @@ Plug 'dinhhuy258/vintellij', {'branch': 'lsp'}
 
 1. Import the project into Intellij
 2. Modify intellij plugin version and intellij kotlin version in `build.gradle` file based on your version of Intellij
-3. Run `./gradlew ktlinFormat`
+3. Run `./gradlew buildPlugin`
 4. Install your plugin into Intellij. (Preferences -> Plugins -> Install Plugin from Disk...)
 
 ## Run IntelliJ in headless mode
