@@ -98,6 +98,12 @@ Where `lib_dirs` is the list of external library sources that uses by Intellij.
 
 Not supported at the moment please use branch `lsp_backup` instead.
 
+## Start Vintellij LSP Client
+
+Vintellij LSP Client does not start automatically, please open the project in IntelliJ same as the project in Neovim then open any Kolin or Java file in project and run command `:LspStart`
+
+**Note:** If you disable `zip` and `zipPlugin` then the go to implementation will not work properly.
+
 ## Features
 
 - Go to definition
