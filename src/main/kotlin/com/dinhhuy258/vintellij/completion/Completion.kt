@@ -6,13 +6,17 @@ import com.intellij.codeInsight.completion.CodeCompletionHandlerBase
 import com.intellij.codeInsight.completion.CompletionProgressIndicator
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.completion.impl.CompletionServiceImpl
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.diagnostic.Logger
 import java.util.concurrent.atomic.AtomicBoolean
+import org.eclipse.lsp4j.Command
 import org.eclipse.lsp4j.CompletionItem
 import org.eclipse.lsp4j.CompletionList
 import org.eclipse.lsp4j.Position
 
 private const val ACCEPTABLE_NUM_OF_COMPLETION_ITEMS = 5
+
+private val IMPORT_PACKAGE_REGEX = "^([A-Za-z]{1}[A-Za-z\\d_]*\\.)+[A-Za-z][A-Za-z\\d_]*$".toRegex()
 
 private val logger = Logger.getInstance("COMPLETION")
 
@@ -45,7 +49,7 @@ private fun doAsyncComplete(buffer: Buffer, position: Position, completionList: 
         Thread.sleep(50)
     }
 
-    getCompletionResult(indicator, completionList)
+    getCompletionResult(buffer, indicator, completionList)
 }
 
 private fun scheduleAsyncCompletion(buffer: Buffer, position: Position) {
@@ -66,20 +70,22 @@ private fun scheduleAsyncCompletion(buffer: Buffer, position: Position) {
 }
 
 private fun getCompletionResult(
+    buffer: Buffer,
     indicator: CompletionProgressIndicator,
     completionList: CompletionList
 ) {
     if (indicator.isCanceled) {
-        onIndicatorCompletionFinish(indicator, completionList)
+        onIndicatorCompletionFinish(buffer, indicator, completionList)
         return
     }
 
     invokeAndWait {
         try {
             while (indicator.isRunning &&
-                    !indicator.isCanceled &&
-                    indicator.lookup.arranger.matchingItems.size < ACCEPTABLE_NUM_OF_COMPLETION_ITEMS &&
-                    !shouldStopCompletion.get()) {
+                !indicator.isCanceled &&
+                indicator.lookup.arranger.matchingItems.size < ACCEPTABLE_NUM_OF_COMPLETION_ITEMS &&
+                !shouldStopCompletion.get()
+            ) {
                 Thread.sleep(50)
             }
 
@@ -89,7 +95,7 @@ private fun getCompletionResult(
                 return@invokeAndWait
             }
 
-            onIndicatorCompletionFinish(indicator, completionList)
+            onIndicatorCompletionFinish(buffer, indicator, completionList)
         } catch (t: Throwable) {
             logger.warn("Completion failed.", t)
         }
@@ -97,6 +103,7 @@ private fun getCompletionResult(
 }
 
 private fun onIndicatorCompletionFinish(
+    buffer: Buffer,
     indicator: CompletionProgressIndicator,
     completionList: CompletionList
 ) {
@@ -116,10 +123,39 @@ private fun onIndicatorCompletionFinish(
             }
             val completionItem = CompletionItem(candidateLabel)
             completionItem.insertText = candidate.itemText
+            if (candidate.tailText != null) {
+                val importCandidate = getImportCandidate(buffer, candidate.tailText!!.trim(), candidate.itemText!!)
+                if (importCandidate != null) {
+                    completionItem.command = Command("import", "importFix", listOf(importCandidate, buffer.path))
+                }
+            }
+
             completionItems.add(completionItem)
         }
     }
 
     completionList.setIsIncomplete(indicator.isRunning || shouldStopCompletion.get())
     completionList.items = completionItems
+}
+
+private fun getImportCandidate(buffer: Buffer, tailText: String, itemText: String): String? {
+    if (tailText.length <= 2 || tailText[0] != '(' || tailText[tailText.length - 1] != ')') {
+        return null
+    }
+
+    var importPackage = tailText.substring(
+        1,
+        tailText.length - 1
+    ) + "." + itemText
+
+    if (!importPackage.matches(IMPORT_PACKAGE_REGEX) || importPackage.startsWith("kotlin.")) {
+        return null
+    }
+
+    importPackage = "import $importPackage"
+    if (buffer.psiFile.language == JavaLanguage.INSTANCE) {
+        importPackage += ";"
+    }
+
+    return importPackage
 }

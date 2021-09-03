@@ -17,11 +17,4 @@ class Candidate(lookupElement: LookupElement) : LookupElementPresentation() {
     override fun isReal(): Boolean {
         return false
     }
-
-    fun toMap(): Map<String, String> {
-        return mapOf(
-                "word" to (itemText ?: ""),
-                "abbr" to (itemText ?: "") + (tailText ?: ""),
-                "kind" to (typeText ?: ""))
-    }
 }
