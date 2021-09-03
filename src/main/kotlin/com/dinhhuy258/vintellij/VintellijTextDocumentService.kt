@@ -114,13 +114,27 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
             invokeAndWait {
                 runWriteAction {
                     contentChanges.forEach { contentChange ->
-                        val startPosition = contentChange.range.start
-                        val endPosition = contentChange.range.end
+                        val range = contentChange.range
+                        if (range == null) {
+                            // range is optional and if not given, the whole file content is replaced
+                            buffer.setText(contentChange.text)
+                            return@forEach
+                        }
 
-                        if (startPosition.equals(endPosition)) {
-                            buffer.insertText(startPosition, contentChange.text)
-                        } else {
-                            buffer.replaceText(startPosition, endPosition, contentChange.text)
+                        val startPosition = range.start
+                        val endPosition = range.end
+                        val text = contentChange.text
+
+                        when {
+                            startPosition.equals(endPosition) -> {
+                                buffer.insertText(startPosition, text)
+                            }
+                            text.isEmpty() -> {
+                                buffer.deleteText(startPosition, endPosition)
+                            }
+                            else -> {
+                                buffer.replaceText(startPosition, endPosition, text)
+                            }
                         }
                     }
                 }

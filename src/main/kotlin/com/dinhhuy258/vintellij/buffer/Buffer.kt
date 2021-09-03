@@ -90,6 +90,38 @@ class Buffer(val project: Project, val path: String) {
     }
 
     /**
+     * Set text for the document.
+     * This method MUST be called in the write action block
+     */
+    internal fun setText(text: String) {
+        onVimDocumentChange {
+            WriteCommandAction.writeCommandAction(project)
+                .run<Throwable> {
+                    document.setText(text)
+                }
+        }
+    }
+
+    /**
+     * Deletes the specified range of text from the document.
+     * This method MUST be called in the write action block
+     */
+    internal fun deleteText(startPosition: Position, endPosition: Position) {
+        onVimDocumentChange {
+            WriteCommandAction.writeCommandAction(project)
+                .run<Throwable> {
+                    val editor = this.editor.editor
+                    val startOffset =
+                        editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
+                    val endOffset =
+                        editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
+
+                    document.deleteString(startOffset, endOffset)
+                }
+        }
+    }
+
+    /**
      * Inserts the specified text at the specified offset in the document
      * This method MUST be called in the write action block
      */
