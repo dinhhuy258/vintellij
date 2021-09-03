@@ -26,33 +26,16 @@ Plug 'dinhhuy258/vintellij', {'branch': 'lsp'}
 
 ### Intellij plugin
 
-1. Import the project into Intellij
-2. Modify intellij plugin version and intellij kotlin version in `build.gradle` file based on your version of Intellij
-3. Run `./gradlew buildPlugin`
-4. Install your plugin into Intellij. (Preferences -> Plugins -> Install Plugin from Disk...)
-
-## Run IntelliJ in headless mode
-
-Create the following script file `vintellj.sh`
-
-```sh
-#!/bin/sh
-
-IDE_BIN_HOME="/Applications/IntelliJ IDEA CE.app/Contents/MacOS"
-exec "$IDE_BIN_HOME/idea" vintellij-inspect "$@"
-```
-Execute the script to run IntelliJ in headless mode
-
-```console
-./vintellij.sh ${project-path}
-```
+1. Modify intellij plugin version and intellij kotlin version in `build.gradle` file based on your Intellij version (default is 2020.2) (optional)
+2. Run `./gradlew buildPlugin`
+3. Install the vintellij plugin into Intellij. (Preferences -> Plugins -> Install Plugin from Disk...)
 
 ## Vintellij commands
 
 - `VintellijGenDoc`: Generate kotlin doc at the current cursor. (Currently, only support Class and Function docs)
 
 **Note:** Please move the cursor to the line of a class/function that you want to generate doc before running a command.
-If your class/method contains annotations move the cursor to the top annotation instead.
+If your class/method contains annotations then move the cursor to the top annotation.
 
 Eg:
 
@@ -92,7 +75,7 @@ vintellij.setup {
 }
 ```
 
-Where `lib_dirs` is the list of external library sources that uses by Intellij.
+`lib_dirs` is the list of external library sources that uses by Intellij.
 
 ## Coc setup
 
@@ -102,7 +85,7 @@ Not supported at the moment please use branch `lsp_backup` instead.
 
 Vintellij LSP Client does not start automatically, please open the project in IntelliJ same as the project in Neovim then open any Kolin or Java file in project and run command `:LspStart`
 
-**Note:** If you disable `zip` and `zipPlugin` then the go to implementation will not work properly.
+**Note:** If you disable `zip` and `zipPlugin` then the go to implementation feature will not work properly.
 
 ## Features
 
@@ -123,4 +106,3 @@ Vintellij LSP Client does not start automatically, please open the project in In
 - Always open Intellij otherwise everything will be slow - the workarround maybe:
   - Get IntelliJ focused by having it in your secondary screen
   - Get vim transparent and putting IntelliJ behind
-  - Open IntelliJ in headless mode
