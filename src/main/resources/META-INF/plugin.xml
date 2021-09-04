@@ -18,7 +18,6 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <appStarter implementation="com.dinhhuy258.vintellij.VintellijApplicationStarter"/>
         <preloadingActivity implementation="com.dinhhuy258.vintellij.VintellijLanguageServerPreloadingActivity"/>
     </extensions>
 
