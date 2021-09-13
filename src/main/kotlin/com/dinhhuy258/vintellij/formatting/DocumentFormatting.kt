@@ -21,34 +21,32 @@ fun formatDocument(buffer: Buffer?, range: Range?): List<TextEdit> {
 
     val textEdits = ArrayList<TextEdit>()
 
-    buffer.onVimDocumentChange {
-        invokeAndWait {
-            runWriteAction {
-                val beforeFormatting = buffer.document.text
+    invokeAndWait {
+        runWriteAction {
+            val beforeFormatting = buffer.document.text
 
-                WriteCommandAction.writeCommandAction(buffer.project)
-                    .run<Throwable> {
-                        CodeStyleManager.getInstance(buffer.project)
-                            .reformatText(buffer.psiFile, startOffset, endOffset)
-                    }
+            WriteCommandAction.writeCommandAction(buffer.project)
+                .run<Throwable> {
+                    CodeStyleManager.getInstance(buffer.project)
+                        .reformatText(buffer.psiFile, startOffset, endOffset)
+                }
 
-                buffer.psiFile.virtualFile.refresh(true, true)
+            buffer.psiFile.virtualFile.refresh(true, true)
 
-                val formattingText = buffer.document.text
-                val formattingRange = Range(
-                    offsetToPosition(buffer.document, 0),
-                    offsetToPosition(buffer.document, buffer.document.textLength)
+            val formattingText = buffer.document.text
+            val formattingRange = Range(
+                offsetToPosition(buffer.document, 0),
+                offsetToPosition(buffer.document, buffer.document.textLength)
+            )
+
+            buffer.document.setText(beforeFormatting)
+
+            textEdits.add(
+                TextEdit(
+                    formattingRange,
+                    formattingText
                 )
-
-                buffer.document.setText(beforeFormatting)
-
-                textEdits.add(
-                    TextEdit(
-                        formattingRange,
-                        formattingText
-                    )
-                )
-            }
+            )
         }
     }
 

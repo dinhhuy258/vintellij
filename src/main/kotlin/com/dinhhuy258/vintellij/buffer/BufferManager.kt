@@ -5,7 +5,6 @@ import java.util.concurrent.ConcurrentHashMap
 
 class BufferManager(
     private val project: Project,
-    private val onDocumentChanged: (String, Int, Int, List<String>) -> Unit
 ) {
     private val bufferMap = ConcurrentHashMap<String, Buffer>()
 
@@ -21,7 +20,6 @@ class BufferManager(
             } catch (e: BufferNotInProjectException) {
                 return null
             }
-            buffer.setDocumentChangedListener(DocumentChangedListener(project, path, onDocumentChanged))
             bufferMap[buffer.path] = buffer
         }
 

@@ -23,7 +23,6 @@ class Buffer(val project: Project, val path: String) {
     internal val psiFile: PsiFile
     internal val document: Document
     private var _editor: EditorDelegate? = null
-    private lateinit var documentChangedListener: DocumentChangedListener
     val editor: EditorDelegate
         get() {
             val backed = _editor
@@ -55,13 +54,7 @@ class Buffer(val project: Project, val path: String) {
         }
     }
 
-    internal fun setDocumentChangedListener(documentChangedListener: DocumentChangedListener) {
-        this.documentChangedListener = documentChangedListener
-        document.addDocumentListener(documentChangedListener)
-    }
-
     internal fun release() {
-        document.removeDocumentListener(documentChangedListener)
         fileEditorManager.closeFile(psiFile.virtualFile)
     }
 
@@ -75,18 +68,16 @@ class Buffer(val project: Project, val path: String) {
      * This method MUST be called in the write action block
      */
     internal fun replaceText(startPosition: Position, endPosition: Position, text: CharSequence) {
-        onVimDocumentChange {
-            WriteCommandAction.writeCommandAction(project)
-                .run<Throwable> {
-                    val editor = this.editor.editor
-                    val startOffset =
-                        editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
-                    val endOffset =
-                        editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
+        WriteCommandAction.writeCommandAction(project)
+            .run<Throwable> {
+                val editor = this.editor.editor
+                val startOffset =
+                    editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
+                val endOffset =
+                    editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
 
-                    document.replaceString(startOffset, endOffset, text)
-                }
-        }
+                document.replaceString(startOffset, endOffset, text)
+            }
     }
 
     /**
@@ -94,12 +85,10 @@ class Buffer(val project: Project, val path: String) {
      * This method MUST be called in the write action block
      */
     internal fun setText(text: String) {
-        onVimDocumentChange {
-            WriteCommandAction.writeCommandAction(project)
-                .run<Throwable> {
-                    document.setText(text)
-                }
-        }
+        WriteCommandAction.writeCommandAction(project)
+            .run<Throwable> {
+                document.setText(text)
+            }
     }
 
     /**
@@ -107,18 +96,16 @@ class Buffer(val project: Project, val path: String) {
      * This method MUST be called in the write action block
      */
     internal fun deleteText(startPosition: Position, endPosition: Position) {
-        onVimDocumentChange {
-            WriteCommandAction.writeCommandAction(project)
-                .run<Throwable> {
-                    val editor = this.editor.editor
-                    val startOffset =
-                        editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
-                    val endOffset =
-                        editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
+        WriteCommandAction.writeCommandAction(project)
+            .run<Throwable> {
+                val editor = this.editor.editor
+                val startOffset =
+                    editor.logicalPositionToOffset(LogicalPosition(startPosition.line, startPosition.character))
+                val endOffset =
+                    editor.logicalPositionToOffset(LogicalPosition(endPosition.line, endPosition.character))
 
-                    document.deleteString(startOffset, endOffset)
-                }
-        }
+                document.deleteString(startOffset, endOffset)
+            }
     }
 
     /**
@@ -126,24 +113,13 @@ class Buffer(val project: Project, val path: String) {
      * This method MUST be called in the write action block
      */
     internal fun insertText(position: Position, text: CharSequence) {
-        onVimDocumentChange {
-            WriteCommandAction.writeCommandAction(project)
-                .run<Throwable> {
-                    val editor = this.editor.editor
-                    val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))
+        WriteCommandAction.writeCommandAction(project)
+            .run<Throwable> {
+                val editor = this.editor.editor
+                val offset = editor.logicalPositionToOffset(LogicalPosition(position.line, position.character))
 
-                    document.insertString(offset, text)
-                }
-        }
-    }
-
-    fun onVimDocumentChange(runnable: () -> Unit) {
-        documentChangedListener.isChangedByVim = true
-        try {
-            runnable()
-        } finally {
-            documentChangedListener.isChangedByVim = false
-        }
+                document.insertString(offset, text)
+            }
     }
 
     private fun locateFile(path: String): PsiFile? {
