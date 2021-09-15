@@ -10,6 +10,8 @@ import com.dinhhuy258.vintellij.navigation.goToDefinition
 import com.dinhhuy258.vintellij.navigation.goToImplementation
 import com.dinhhuy258.vintellij.navigation.goToReferences
 import com.dinhhuy258.vintellij.navigation.goToTypeDefinition
+import com.dinhhuy258.vintellij.notifications.VintellijEventType
+import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.quickfix.getImportCandidates
 import com.dinhhuy258.vintellij.symbol.getDocumentSymbols
 import com.dinhhuy258.vintellij.utils.AsyncExecutor
@@ -21,6 +23,12 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.util.messages.MessageBusConnection
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import java.io.Closeable
 import java.util.concurrent.CompletableFuture
 import org.eclipse.lsp4j.CodeAction
@@ -60,19 +68,24 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
     Closeable {
     companion object {
         private val publisher = ApplicationManager.getApplication().messageBus.syncPublisher(BufferEventListener.TOPIC)
+        private const val REQUEST_COMPLETION_DEBOUNCE_TIME = 200L
     }
 
     private lateinit var client: VintellijLanguageClient
 
     private val async = AsyncExecutor()
 
-    private val documentAsync = AsyncExecutor()
-
     private val diagnosticsProcessor = DiagnosticsProcessor()
 
     private var project: Project? = null
 
     private var messageBusConnection: MessageBusConnection? = null
+
+    private val job = Job()
+
+    private val coroutineScope = CoroutineScope(job + Dispatchers.Default)
+
+    private var completionRequestDeferred: Deferred<Unit>? = null
 
     override fun connect(client: LanguageClient) {
         this.client = client as VintellijLanguageClient
@@ -82,7 +95,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         // Stop in-progress suggestion
         stopCompletion()
 
-        return documentAsync.compute {
+        return async.compute {
             val buffer =
                 languageServer.getBufferManager().findBufferByPath(uriToPath(params.textDocument.uri))
 
@@ -106,10 +119,15 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         // Stop in-progress suggestion
         stopCompletion()
 
-        documentAsync.compute {
+        async.compute {
+            completionRequestDeferred?.cancel()
+            completionRequestDeferred = null
+
             // Invoke this one here to avoid requesting to the event dispatch thread many times
             invokeAndWait {
                 runWriteAction {
+                    var isInsertMode = false
+
                     contentChanges.forEach { contentChange ->
                         val range = contentChange.range
                         if (range == null) {
@@ -124,6 +142,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
                         when {
                             startPosition.equals(endPosition) -> {
+                                isInsertMode = true
                                 buffer.insertText(startPosition, text)
                             }
                             text.isEmpty() -> {
@@ -132,6 +151,16 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
                             else -> {
                                 buffer.replaceText(startPosition, endPosition, text)
                             }
+                        }
+                    }
+
+                    if (isInsertMode && contentChanges.size == 1) {
+                        val insertText = contentChanges[0].text
+                        if (insertText.isNotBlank() &&
+                            insertText[insertText.length - 1].isLetter() ||
+                            insertText[insertText.length - 1] == '.'
+                        ) {
+                            completionRequestDeferred = createCompletionRequestAsync()
                         }
                     }
                 }
@@ -288,7 +317,7 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
 
     override fun close() {
         async.shutdown(true)
-        documentAsync.shutdown(true)
+        job.cancel()
         messageBusConnection?.disconnect()
         diagnosticsProcessor.stop()
     }
@@ -307,5 +336,16 @@ class VintellijTextDocumentService(private val languageServer: VintellijLanguage
         } catch (e: Throwable) {
             fallback
         }
+    }
+
+    private fun createCompletionRequestAsync(): Deferred<Unit> {
+        return coroutineScope.async {
+            delay(REQUEST_COMPLETION_DEBOUNCE_TIME)
+            requestCompletion()
+        }
+    }
+
+    private fun requestCompletion() {
+        client.sendNotification(VintellijNotification(VintellijEventType.REQUEST_COMPLETION))
     }
 }
