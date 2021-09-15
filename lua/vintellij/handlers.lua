@@ -8,6 +8,18 @@ local function notification_handler()
 		if params["eventType"] == 1 then
 			-- Close connection
 			vim.lsp.stop_client(client_id, true)
+		elseif params["eventType"] == 2 then
+			-- Request completion
+			if vim.fn.mode() ~= "i" then
+				return
+			end
+
+			local status_ok, cmp = pcall(require, "cmp")
+			if not status_ok then
+				return
+			end
+
+			cmp.complete()
 		end
 	end
 end
