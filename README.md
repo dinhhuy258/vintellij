@@ -5,24 +5,34 @@ Make IntelliJ as a server language protocol.
 
 ### Vim
 
-[vim plug](https://github.com/junegunn/vim-plug)
-
-```sh
-Plug 'dinhhuy258/vintellij', {'branch': 'lsp'}
-```
-
 [packer.nvim](https://github.com/wbthomason/packer.nvim)
 
 ```sh
 {
   "dinhhuy258/vintellij",
   branch = "lsp",
-  ft = { "kotlin" },
   config = function()
-    require("plugins.vintellij").setup()
+    require("vintellij").setup({
+      debug = false,
+      common_capabilities = vim.lsp.protocol.make_client_capabilities(),
+      common_on_attach = function() 
+        print("your on_attach function here")
+      end,
+      common_on_init = function()
+        print("Vintellij started ...")
+      end,
+      filetypes = {
+        "kotlin"
+      },
+      lib_dirs = {
+        "~/.gradle",
+        "/Library/Java/JavaVirtualMachines",
+      },
+    })
   end,
 }
 ```
+`lib_dirs` is the list of external library sources that uses by Intellij.
 
 ### Intellij plugin
 
@@ -50,32 +60,6 @@ class TestKotlin { <------------ Cursor must be in this line
 class TestKotlin {
 }
 ```
-
-## Neovim LSP setup
-
-```lua
-local status_ok, vintellij = pcall(require, "vintellij")
-if not status_ok then
-  return
-end
-
-local lsp = require "lsp"
-
-local lib_dirs = {
-  "/Users/dinhhuy258/.gradle/",
-  "/Library/Java/JavaVirtualMachines",
-}
-
-vintellij.setup {
-  debug = false,
-  common_on_attach = lsp.common_on_attach,
-  common_capabilities = lsp.common_capabilities(),
-  common_on_init = lsp.common_on_init,
-  lib_dirs = lib_dirs,
-}
-```
-
-`lib_dirs` is the list of external library sources that uses by Intellij.
 
 ## Coc setup
 
@@ -106,3 +90,12 @@ Vintellij LSP Client does not start automatically, please open the project in In
 - Always open Intellij otherwise everything will be slow - the workarround maybe:
   - Get IntelliJ focused by having it in your secondary screen
   - Get vim transparent and putting IntelliJ behind
+
+## Development
+
+1. Disable Vintellij plugin from your Intellij
+2. From Intellij (on Vintellij project), select Gradle panel => run `runIde` task as debug.
+3. An Intellij with Vintellij plugin installed will be spawned. Open a java/kotlin project from that Intellij
+4. Open the same project by vim => open a java/kotlin file => `LSP start`
+5. Set any debugger from Vintelli project
+
