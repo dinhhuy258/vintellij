@@ -77,22 +77,21 @@ end
 function M.setup()
 	local cfg = require("vintellij.config").config
 
-	local lspconfig_ok, lspconfig = pcall(require, "lspconfig")
-	local configs_ok, configs = pcall(require, "lspconfig/configs")
+	local configs_ok, configs = pcall(require, "lspconfig.configs")
 
-	if not lspconfig_ok or not configs_ok then
+	if not configs_ok then
 		utils.err("Plugin lspconfig not found")
 		return
 	end
 
 	cfg.common_capabilities.textDocument.synchronization.willSave = true
 
-	if not lspconfig.vintellij then
+	if not configs.vintellij then
 		configs.vintellij = {
 			default_config = {
 				cmd = { "nc", "localhost", "6969" },
 				root_dir = function(fname)
-					local util = require("lspconfig/util")
+					local util = require("lspconfig.util")
 
 					local root_files = {
 						"settings.gradle", -- Gradle (multi-project)
@@ -120,7 +119,7 @@ function M.setup()
 		}
 	end
 
-	lspconfig.vintellij.setup({})
+	configs.vintellij.setup({})
 
 	setup_events(cfg.lib_dirs)
 end
