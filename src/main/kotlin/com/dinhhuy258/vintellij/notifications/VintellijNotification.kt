@@ -7,6 +7,7 @@ import org.eclipse.lsp4j.jsonrpc.json.MessageJsonHandler
 enum class VintellijEventType(val value: Int) {
     CLOSE_CONNECTION(1),
     REQUEST_COMPLETION(2),
+    REFRESH_FILE(3)
 }
 
 class VintellijNotification(

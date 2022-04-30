@@ -22,6 +22,7 @@ class CommandFactory private constructor() {
             // TODO: Modify command name following convention
             "importFix" -> return ImportCommand(client, bufferManager)
             "gen_doc" -> return DocGenerationCommand(client, bufferManager)
+            "optimizeImport" -> return ImportOptimizationCommand(client, bufferManager)
         }
 
         throw CommandNotSupportedException("Command not supported $commandType")
