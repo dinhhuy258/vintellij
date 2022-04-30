@@ -7,6 +7,7 @@ import com.dinhhuy258.vintellij.notifications.VintellijEventType
 import com.dinhhuy258.vintellij.notifications.VintellijNotification
 import com.dinhhuy258.vintellij.utils.uriToPath
 import com.google.gson.JsonPrimitive
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import org.eclipse.lsp4j.ExecuteCommandParams
 
 class ImportOptimizationCommand(client: VintellijLanguageClient, bufferManager: BufferManager) :
@@ -16,6 +17,10 @@ class ImportOptimizationCommand(client: VintellijLanguageClient, bufferManager: 
         val path = uriToPath(uri)
 
         optimizeImport(buffer = bufferManager.loadBuffer(path)) {
+            val syncedBuffer = bufferManager.loadBuffer(path)!!
+            syncedBuffer.psiFile.virtualFile.refresh(true, true)
+            FileDocumentManager.getInstance().saveDocument(syncedBuffer.document)
+
             client.sendNotification(VintellijNotification(VintellijEventType.REFRESH_FILE))
         }
     }
