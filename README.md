@@ -42,6 +42,7 @@ Make IntelliJ as a server language protocol.
 
 ## Vintellij commands
 
+- `VintellijOptimizeImport`: Optimze import for the current file
 - `VintellijGenDoc`: Generate kotlin doc at the current cursor. (Currently, only support Class and Function docs)
 
 **Note:** Please move the cursor to the line of a class/function that you want to generate doc before running a command.
@@ -61,10 +62,6 @@ class TestKotlin {
 }
 ```
 
-## Coc setup
-
-Not supported at the moment please use branch `lsp_backup` instead.
-
 ## Start Vintellij LSP Client
 
 Vintellij LSP Client does not start automatically, please open the project in IntelliJ same as the project in Neovim then open any Kolin or Java file in project and run command `:LspStart`
@@ -82,6 +79,7 @@ Vintellij LSP Client does not start automatically, please open the project in In
 - Document formatting
 - Autocompletion
 - Generate doc (Kotlin only)
+- Optimize import
 
 ## Issue
 
@@ -96,6 +94,6 @@ Vintellij LSP Client does not start automatically, please open the project in In
 1. Disable Vintellij plugin from your Intellij
 2. From Intellij (on Vintellij project), select Gradle panel => run `runIde` task as debug.
 3. An Intellij with Vintellij plugin installed will be spawned. Open a java/kotlin project from that Intellij
-4. Open the same project by vim => open a java/kotlin file => `LSP start`
+4. Open the same project by vim -> open a java/kotlin file -> `LspStart`
 5. Set any debugger from Vintelli project
 
