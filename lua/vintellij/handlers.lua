@@ -6,14 +6,16 @@ local M = {}
 local EventType = {
   ["CLOSE_CONNECTION"] = 1,
   ["REQUEST_COMPLETION"] = 2,
+  ["REFRESH_FILE"] = 3,
 }
 
 local function notification_handler()
   vim.lsp.handlers["vintellij/notification"] = function(_, params, ctx, _)
-    if params["eventType"] == EventType.CLOSE_CONNECTION then
+    local eventType = params["eventType"]
+    if eventType == EventType.CLOSE_CONNECTION then
       -- Close connection
       vim.lsp.stop_client(ctx.client_id, true)
-    elseif params["eventType"] == EventType.REQUEST_COMPLETION then
+    elseif eventType == EventType.REQUEST_COMPLETION then
       -- Request completion
       if vim.fn.mode() ~= "i" then
         return
@@ -25,6 +27,8 @@ local function notification_handler()
       end
 
       cmp.complete()
+    elseif eventType == EventType.REFRESH_FILE then
+      vim.api.nvim_command('checktime')
     end
   end
 end
