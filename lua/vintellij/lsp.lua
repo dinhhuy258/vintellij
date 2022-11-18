@@ -84,8 +84,6 @@ function M.setup()
 		return
 	end
 
-	cfg.common_capabilities.textDocument.synchronization.willSave = true
-
 	if not configs.vintellij then
 		configs.vintellij = {
 			default_config = {
