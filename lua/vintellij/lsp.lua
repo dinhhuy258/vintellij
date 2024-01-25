@@ -96,6 +96,7 @@ function M.setup()
 						"settings.gradle.kts", -- Gradle (multi-project)
 						"build.xml", -- Ant
 						"pom.xml", -- Maven
+						"Gemfile", -- Ruby
 					}
 
 					local fallback_root_files = {
@@ -105,7 +106,7 @@ function M.setup()
 					return util.root_pattern(unpack(root_files))(fname)
 						or util.root_pattern(unpack(fallback_root_files))(fname)
 				end,
-				filetypes = { "kotlin", "java" },
+				filetypes = { "kotlin", "java", "ruby" },
 				autostart = false,
 				on_attach = function(client_id, bufnr)
 					cfg.common_on_attach(client_id, bufnr)

@@ -41,7 +41,7 @@ local function sync_buffer_handler()
       local fullname = vim.api.nvim_buf_get_name(buffer)
       if fullname == params["path"] then
         local ft = vim.api.nvim_buf_get_option(buffer, "filetype")
-        if ft == "kotlin" or ft == "java" then
+        if ft == "kotlin" or ft == "java" or ft == "ruby" then
           if params["replaceText"] then
             if cfg.debug then
               utils.info("Syncing buffer...")
